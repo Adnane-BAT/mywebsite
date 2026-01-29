@@ -1,0 +1,159 @@
+🧪 Plan de Recette Qualité – Application Crédit & Risques
+
+🎯 Objectifs de la recette
+	•	Garantir la fiabilité des données de contrôle (LOD1 / LOD2 / LOD3)
+	•	Sécuriser les chaînes techniques (saisie → stockage → automatisation → reporting)
+	•	Valider la robustesse des workflows face aux volumes, droits et usages réels
+	•	Assurer une traçabilité complète pour les audits et contrôles permanents
+
+⸻
+
+🧱 Périmètre de la recette
+	•	Sources : Power Apps, SharePoint / Dataverse
+	•	Traitements : Power Automate, Alteryx / Power Query
+	•	Restitution : Power BI (Import / DirectQuery)
+	•	Utilisateurs : LOD1, LOD2, contrôleurs, lecteurs
+
+⸻
+
+1️⃣ Recette Qualité Data
+
+1.1 Structure & Modélisation des Données
+
+Objectif : garantir l’intégrité du modèle de données
+
+Test
+Vérification
+Critère de validation
+Schéma
+Colonnes obligatoires présentes
+100 % conforme
+Types
+Types cohérents (date, booléen, texte)
+Aucun cast implicite
+Clés
+Identifiant unique dossier
+Unicité respectée
+Référentiels
+Segments, établissements, points de contrôle
+Alignement avec référentiel officiel
+
+1.2 Qualité des Données Métier
+
+Objectif : fiabilité des contrôles crédit
+	•	Valeurs obligatoires non nulles (segment, établissement, décision)
+	•	Cohérence logique
+	•	Ex : Écart = Oui ⇒ Commentaire obligatoire
+	•	Validité des délégations (N / N+1)
+	•	Conformité des dates (date décision ≤ date saisie)
+
+✅ Indicateur : taux d’anomalies < seuil défini (ex : < 2 %)
+
+⸻
+
+1.3 Historisation & Traçabilité
+	•	Horodatage automatique des modifications
+	•	Identification de l’utilisateur modificateur
+	•	Conservation des versions (si correction post-revue)
+	•	Traçabilité des validations LOD2
+
+🎯 Résultat attendu : capacité à reconstituer un dossier à date donnée
+
+⸻
+
+2️⃣ Recette Technique
+
+2.1 Power Apps – Saisie & UX
+
+Objectif : sécuriser la collecte
+	•	Chargement des valeurs préexistantes (pré-remplissage)
+	•	Blocage des champs selon rôle / statut
+	•	Validation front (formats, champs requis)
+	•	Comportement en cas de double saisie simultanée
+
+⚠️ Tests spécifiques :
+	•	Utilisateur sans droits
+	•	Reprise après déconnexion
+	•	Modification post-validation
+
+⸻
+
+2.2 Power Automate – Workflows
+
+Objectif : fiabilité des automatisations
+	•	Déclenchement correct à chaque action métier
+	•	Gestion des erreurs (try/catch, notifications)
+	•	Exécution avec compte technique
+	•	Gestion des quotas & throttling
+
+📌 Cas critiques testés :
+	•	Rafraîchissement Power BI déclenché par utilisateur final
+	•	Erreur 401 / droits workspace
+	•	Multiples validations simultanées
+
+⸻
+
+2.3 Stockage – SharePoint / Dataverse
+	•	Performance en volume (≥ 1 500 contrôles / an)
+	•	Indexation des colonnes clés
+	•	Conformité des permissions
+	•	Ségrégation des rôles (lecture / écriture)
+
+⸻
+
+2.4 Power BI – Modèle & Reporting
+
+Objectif : fiabilité décisionnelle
+	•	Exactitude des mesures (% conformité, écarts)
+	•	Concordance source vs visuels
+	•	Performance (temps de chargement)
+	•	Sécurité RLS par établissement / segment
+	•	Test Import vs DirectQuery
+
+📊 Vérification :
+	•	Même jeu de données → mêmes résultats
+	•	Aucun écart entre reporting et base source
+
+⸻
+
+3️⃣ Recette de Sécurité & Accès
+	•	Accès nominatif (pas “tout le monde”)
+	•	Tests par profil :
+	•	LOD1 : saisie uniquement
+	•	LOD2 : revue & validation
+	•	Lecture : consultation Power BI
+	•	Audit des accès & logs
+
+⸻
+
+4️⃣ Recette de Performance & Robustesse
+	•	Tests en charge (pics trimestriels)
+	•	Résilience en cas d’échec partiel
+	•	Temps de réponse acceptable (< X secondes)
+	•	Continuité de service pendant actualisation
+
+⸻
+
+5️⃣ Recette de Non-Régression
+
+À chaque évolution :
+	•	Rejeu des scénarios critiques
+	•	Comparaison des KPI avant / après
+	•	Validation que les workflows existants ne sont pas impactés
+
+⸻
+
+6️⃣ Livrables de Recette
+	•	✔️ Cahier de recette (checklist + résultats)
+	•	✔️ Tableau de suivi des anomalies
+	•	✔️ PV de recette signé (Métier / IT)
+	•	✔️ Synthèse pour comité de validation
+
+⸻
+
+💡 Bonnes pratiques (bonus pro)
+	•	Automatiser les contrôles qualité (flags, scores)
+	•	Centraliser les anomalies dans une table dédiée
+	•	Exposer un KPI “Qualité des contrôles” dans Power BI
+	•	Versionner les flux Power Automate
+
