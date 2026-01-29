@@ -1,86 +1,285 @@
 
-
-⸻
-
-🧪 Plan de Recette Qualité – Application Crédit & Risques
-
-🎯 Objectifs de la recette
-
-La recette qualité a pour objectif principal de s’assurer que l’application de contrôle des dossiers de crédit est fiable, sécurisée et conforme aux exigences de contrôle permanent, aussi bien sur le plan métier que technique.
-
-Elle vise notamment à :
-	•	Garantir la fiabilité des données de contrôle produites et exploitées par les différentes lignes de défense (LOD1, LOD2, LOD3), en s’assurant que les informations saisies, stockées et restituées sont exactes, complètes et cohérentes.
-	•	Sécuriser l’ensemble de la chaîne de traitement des données, depuis la saisie utilisateur dans l’application jusqu’à la restitution dans les reportings Power BI, en passant par les mécanismes de stockage et d’automatisation.
-	•	Valider la robustesse des workflows face aux conditions réelles d’utilisation, incluant les volumes de données attendus, la simultanéité des actions utilisateurs, les droits d’accès différenciés et les contraintes de performance.
-	•	Assurer une traçabilité complète et auditable des données et des actions, permettant de répondre aux exigences des contrôles permanents, des audits internes et des inspections réglementaires.
-
-La recette constitue ainsi un prérequis indispensable à la mise en production de l’application.
-
-⸻
-
-🧱 Périmètre de la recette
-
-La recette qualité couvre l’ensemble des composants fonctionnels et techniques de la solution.
-
-Sources de données
-	•	Power Apps : application de saisie des contrôles, des décisions et des commentaires.
-	•	SharePoint / Dataverse : stockage des données opérationnelles, des référentiels et de l’historique des contrôles.
-
-Traitements et automatisations
-	•	Power Automate : orchestration des workflows (enregistrement, notifications, mises à jour, rafraîchissements).
-	•	Alteryx / Power Query : préparation, transformation et structuration des données pour le reporting.
-
-Restitution et reporting
-	•	Power BI :
-	•	Mode Import
-	•	Mode DirectQuery (le cas échéant)
-	•	Modèle de données, mesures DAX, règles de sécurité (RLS)
-
-Utilisateurs concernés
-	•	LOD1 : saisie et première ligne de contrôle.
-	•	LOD2 : revue, validation et analyse des écarts.
-	•	Contrôleurs / Risk Management : supervision et consolidation.
-	•	Lecteurs : consultation des reportings.
-
-⸻
-
 1️⃣ Recette Qualité Data
 
-1.1 Structure & Modélisation des Données
+1.2 Qualité des Données Métier
 
 Objectif
 
-Garantir l’intégrité, la cohérence et la stabilité du modèle de données servant de socle aux contrôles crédit et aux reportings réglementaires.
+Garantir la fiabilité, la cohérence et l’exploitabilité métier des données issues des contrôles crédit, afin d’assurer une restitution fidèle de la conformité des dossiers et une analyse pertinente des risques.
 
 ⸻
 
 Description des contrôles réalisés
 
-La recette de structure et de modélisation vise à vérifier que le modèle de données est conforme aux règles de conception, robuste dans le temps et adapté aux usages métier et réglementaires.
-
-Elle couvre les axes suivants :
+La recette de qualité des données métier vise à vérifier que les informations saisies et traitées respectent les règles de gestion crédit, les exigences de contrôle permanent et les attendus des lignes de défense.
 
 ⸻
 
-1.1.1 Conformité du schéma de données
+1.2.1 Complétude des données obligatoires
 
-Vérification que toutes les tables et colonnes attendues sont présentes et correctement définies :
-	•	Présence de l’ensemble des champs obligatoires :
-	•	Identifiant du dossier
-	•	Segment crédit
+Vérification que l’ensemble des champs métier indispensables est systématiquement renseigné :
+	•	Segment de crédit
 	•	Établissement
 	•	Point de contrôle
 	•	Résultat du contrôle
-	•	Dates clés (saisie, décision, validation)
-	•	Absence de champs techniques inutilisés ou obsolètes
-	•	Nommage des colonnes conforme aux standards projet
+	•	Décision associée
+	•	Statut de validation
 
-Critère de validation :
-Le schéma est strictement identique au modèle de référence validé en phase de conception.
+Tout enregistrement présentant un champ obligatoire non renseigné est considéré comme non conforme.
+
+Objectif : éviter toute analyse biaisée ou incomplète.
 
 ⸻
 
-1.1.2 Typage et formats des données
+1.2.2 Cohérence logique des données
+
+Contrôle de la cohérence entre les champs selon les règles métier définies.
+
+Exemples de règles testées :
+	•	Si Écart = Oui, alors un commentaire explicatif est obligatoire
+	•	Si Statut = Validé, alors le champ valideur LOD2 doit être renseigné
+	•	Si Point de contrôle critique, alors le champ niveau de délégation est requis
+
+Ces contrôles permettent de garantir que chaque anomalie est documentée, justifiée et exploitable.
+
+⸻
+
+1.2.3 Validité des délégations
+
+Vérification de la conformité des niveaux de délégation :
+	•	Respect des règles N / N+1
+	•	Cohérence entre :
+	•	le type de dossier
+	•	le montant ou le niveau de risque
+	•	le niveau de délégation appliqué
+	•	Absence de validation par un niveau non habilité
+
+Risque adressé : validation irrégulière de dossiers sensibles.
+
+⸻
+
+1.2.4 Conformité des dates
+
+Contrôle des règles temporelles :
+	•	Date de décision ≤ date de saisie
+	•	Date de validation ≥ date de saisie
+	•	Absence de dates futures non autorisées
+	•	Cohérence entre période de contrôle et dates associées
+
+Ces contrôles assurent la chronologie correcte des actions et la fiabilité des analyses temporelles.
+
+⸻
+
+Indicateur de qualité
+
+Un indicateur de suivi de la qualité des données est calculé :
+	•	Taux d’anomalies métier
+	•	Seuil cible : < 2 %
+
+Tout dépassement du seuil déclenche :
+	•	une analyse des causes
+	•	un plan d’actions correctives
+
+⸻
+
+1.3 Historisation & Traçabilité
+
+Objectif
+
+Garantir une traçabilité complète et auditable de l’ensemble des actions réalisées sur les dossiers de crédit.
+
+⸻
+
+Description des contrôles réalisés
+
+⸻
+
+1.3.1 Horodatage automatique
+
+Vérification que chaque action génère automatiquement :
+	•	une date de création
+	•	une date de dernière modification
+
+Les horodatages doivent être :
+	•	automatiques
+	•	non modifiables par l’utilisateur
+	•	exploitables pour l’audit
+
+⸻
+
+1.3.2 Identification des utilisateurs
+
+Chaque modification ou validation doit être associée à :
+	•	un utilisateur identifié
+	•	un rôle (LOD1, LOD2, lecteur)
+
+Objectif : garantir la responsabilité des actions et la séparation des rôles.
+
+⸻
+
+1.3.3 Conservation des versions
+
+En cas de correction post-revue :
+	•	conservation de l’historique des valeurs précédentes
+	•	traçabilité de la modification
+	•	justification de la correction
+
+⸻
+
+1.3.4 Traçabilité des validations LOD2
+
+Vérification de la présence des informations suivantes :
+	•	identifiant du valideur
+	•	date de validation
+	•	statut final du contrôle
+
+⸻
+
+Résultat attendu
+
+L’application doit permettre de reconstituer un dossier de crédit à une date donnée, incluant :
+	•	l’état des contrôles
+	•	les décisions prises
+	•	les validations effectuées
+
+⸻
+
+2️⃣ Recette Technique
+
+2.1 Power Apps – Saisie & Expérience Utilisateur
+
+Objectif
+
+Sécuriser la collecte des données et garantir une saisie conforme aux règles métier.
+
+⸻
+
+Contrôles réalisés
+	•	Chargement automatique des données existantes lors de l’ouverture d’un dossier
+	•	Pré-remplissage correct des champs déjà renseignés
+	•	Blocage ou déverrouillage des champs selon :
+	•	le rôle utilisateur
+	•	le statut du dossier
+	•	Validation des formats et des champs obligatoires côté interface
+
+⸻
+
+Tests spécifiques
+	•	Accès utilisateur sans droits appropriés
+	•	Reprise de saisie après coupure ou déconnexion
+	•	Tentative de modification après validation finale
+	•	Gestion des saisies simultanées sur un même dossier
+
+⸻
+
+2.2 Power Automate – Workflows
+
+Objectif
+
+Garantir la fiabilité, la robustesse et la sécurité des automatisations.
+
+⸻
+
+Contrôles réalisés
+	•	Déclenchement correct des flows à chaque événement métier
+	•	Gestion des erreurs avec mécanismes de reprise et notifications
+	•	Exécution systématique via un compte technique
+	•	Respect des limites de quotas et gestion du throttling
+
+⸻
+
+Cas critiques testés
+	•	Rafraîchissement Power BI initié indirectement par un utilisateur final
+	•	Gestion des erreurs d’autorisation (401)
+	•	Exécution simultanée de plusieurs validations
+
+⸻
+
+2.3 Stockage – SharePoint / Dataverse
+
+Objectif
+
+Garantir la performance, la sécurité et la pérennité du stockage.
+
+⸻
+
+Contrôles réalisés
+	•	Tests de performance avec volumétrie cible (≥ 1 500 contrôles/an)
+	•	Indexation des colonnes clés
+	•	Vérification des permissions
+	•	Ségrégation stricte des droits lecture / écriture
+
+⸻
+
+2.4 Power BI – Modèle & Reporting
+
+Objectif
+
+Assurer une fiabilité décisionnelle totale.
+
+⸻
+
+Contrôles réalisés
+	•	Validation des mesures clés (% conformité, écarts)
+	•	Concordance stricte entre données sources et visuels
+	•	Tests de performance (temps de chargement)
+	•	Vérification des règles RLS par établissement et segment
+	•	Comparaison Import vs DirectQuery
+
+⸻
+
+3️⃣ Recette de Sécurité & Accès
+	•	Accès strictement nominatif
+	•	Tests par profil :
+	•	LOD1 : saisie uniquement
+	•	LOD2 : revue et validation
+	•	Lecture : consultation
+	•	Audit des accès et journalisation des actions
+
+⸻
+
+4️⃣ Recette de Performance & Robustesse
+	•	Tests en charge sur pics trimestriels
+	•	Résilience en cas d’échec partiel
+	•	Temps de réponse acceptable défini
+	•	Continuité de service lors des actualisations
+
+⸻
+
+5️⃣ Recette de Non-Régression
+
+À chaque évolution :
+	•	Rejeu des scénarios critiques
+	•	Comparaison des KPI avant / après
+	•	Validation de l’absence d’impact sur les workflows existants
+
+⸻
+
+6️⃣ Livrables de Recette
+	•	Cahier de recette détaillé
+	•	Tableau de suivi des anomalies
+	•	Procès-verbal de recette signé Métier / IT
+	•	Synthèse pour comité de validation
+
+⸻
+
+💡 Bonnes pratiques
+	•	Automatiser les contrôles qualité
+	•	Centraliser les anomalies
+	•	Exposer un KPI « Qualité des contrôles »
+	•	Versionner les flows Power Automate
+
+
+
+
+
+
+
+
+
+
+	•	Power Apps : application de saisie des contrôles, des décisions et des commentaires.
+	•	
 
 Contrôle de la cohérence des types de données :
 	•	Dates stockées au format date/heure normalisé
