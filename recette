@@ -1,18 +1,46 @@
+
+
+⸻
+
 🧪 Plan de Recette Qualité – Application Crédit & Risques
 
 🎯 Objectifs de la recette
-	•	Garantir la fiabilité des données de contrôle (LOD1 / LOD2 / LOD3)
-	•	Sécuriser les chaînes techniques (saisie → stockage → automatisation → reporting)
-	•	Valider la robustesse des workflows face aux volumes, droits et usages réels
-	•	Assurer une traçabilité complète pour les audits et contrôles permanents
+
+La recette qualité a pour objectif principal de s’assurer que l’application de contrôle des dossiers de crédit est fiable, sécurisée et conforme aux exigences de contrôle permanent, aussi bien sur le plan métier que technique.
+
+Elle vise notamment à :
+	•	Garantir la fiabilité des données de contrôle produites et exploitées par les différentes lignes de défense (LOD1, LOD2, LOD3), en s’assurant que les informations saisies, stockées et restituées sont exactes, complètes et cohérentes.
+	•	Sécuriser l’ensemble de la chaîne de traitement des données, depuis la saisie utilisateur dans l’application jusqu’à la restitution dans les reportings Power BI, en passant par les mécanismes de stockage et d’automatisation.
+	•	Valider la robustesse des workflows face aux conditions réelles d’utilisation, incluant les volumes de données attendus, la simultanéité des actions utilisateurs, les droits d’accès différenciés et les contraintes de performance.
+	•	Assurer une traçabilité complète et auditable des données et des actions, permettant de répondre aux exigences des contrôles permanents, des audits internes et des inspections réglementaires.
+
+La recette constitue ainsi un prérequis indispensable à la mise en production de l’application.
 
 ⸻
 
 🧱 Périmètre de la recette
-	•	Sources : Power Apps, SharePoint / Dataverse
-	•	Traitements : Power Automate, Alteryx / Power Query
-	•	Restitution : Power BI (Import / DirectQuery)
-	•	Utilisateurs : LOD1, LOD2, contrôleurs, lecteurs
+
+La recette qualité couvre l’ensemble des composants fonctionnels et techniques de la solution.
+
+Sources de données
+	•	Power Apps : application de saisie des contrôles, des décisions et des commentaires.
+	•	SharePoint / Dataverse : stockage des données opérationnelles, des référentiels et de l’historique des contrôles.
+
+Traitements et automatisations
+	•	Power Automate : orchestration des workflows (enregistrement, notifications, mises à jour, rafraîchissements).
+	•	Alteryx / Power Query : préparation, transformation et structuration des données pour le reporting.
+
+Restitution et reporting
+	•	Power BI :
+	•	Mode Import
+	•	Mode DirectQuery (le cas échéant)
+	•	Modèle de données, mesures DAX, règles de sécurité (RLS)
+
+Utilisateurs concernés
+	•	LOD1 : saisie et première ligne de contrôle.
+	•	LOD2 : revue, validation et analyse des écarts.
+	•	Contrôleurs / Risk Management : supervision et consolidation.
+	•	Lecteurs : consultation des reportings.
 
 ⸻
 
@@ -20,140 +48,102 @@
 
 1.1 Structure & Modélisation des Données
 
-Objectif : garantir l’intégrité du modèle de données
+Objectif
 
-Test
-Vérification
-Critère de validation
-Schéma
-Colonnes obligatoires présentes
-100 % conforme
-Types
-Types cohérents (date, booléen, texte)
-Aucun cast implicite
-Clés
-Identifiant unique dossier
-Unicité respectée
-Référentiels
-Segments, établissements, points de contrôle
-Alignement avec référentiel officiel
-
-1.2 Qualité des Données Métier
-
-Objectif : fiabilité des contrôles crédit
-	•	Valeurs obligatoires non nulles (segment, établissement, décision)
-	•	Cohérence logique
-	•	Ex : Écart = Oui ⇒ Commentaire obligatoire
-	•	Validité des délégations (N / N+1)
-	•	Conformité des dates (date décision ≤ date saisie)
-
-✅ Indicateur : taux d’anomalies < seuil défini (ex : < 2 %)
+Garantir l’intégrité, la cohérence et la stabilité du modèle de données servant de socle aux contrôles crédit et aux reportings réglementaires.
 
 ⸻
 
-1.3 Historisation & Traçabilité
-	•	Horodatage automatique des modifications
-	•	Identification de l’utilisateur modificateur
-	•	Conservation des versions (si correction post-revue)
-	•	Traçabilité des validations LOD2
+Description des contrôles réalisés
 
-🎯 Résultat attendu : capacité à reconstituer un dossier à date donnée
+La recette de structure et de modélisation vise à vérifier que le modèle de données est conforme aux règles de conception, robuste dans le temps et adapté aux usages métier et réglementaires.
+
+Elle couvre les axes suivants :
 
 ⸻
 
-2️⃣ Recette Technique
+1.1.1 Conformité du schéma de données
 
-2.1 Power Apps – Saisie & UX
+Vérification que toutes les tables et colonnes attendues sont présentes et correctement définies :
+	•	Présence de l’ensemble des champs obligatoires :
+	•	Identifiant du dossier
+	•	Segment crédit
+	•	Établissement
+	•	Point de contrôle
+	•	Résultat du contrôle
+	•	Dates clés (saisie, décision, validation)
+	•	Absence de champs techniques inutilisés ou obsolètes
+	•	Nommage des colonnes conforme aux standards projet
 
-Objectif : sécuriser la collecte
-	•	Chargement des valeurs préexistantes (pré-remplissage)
-	•	Blocage des champs selon rôle / statut
-	•	Validation front (formats, champs requis)
-	•	Comportement en cas de double saisie simultanée
-
-⚠️ Tests spécifiques :
-	•	Utilisateur sans droits
-	•	Reprise après déconnexion
-	•	Modification post-validation
-
-⸻
-
-2.2 Power Automate – Workflows
-
-Objectif : fiabilité des automatisations
-	•	Déclenchement correct à chaque action métier
-	•	Gestion des erreurs (try/catch, notifications)
-	•	Exécution avec compte technique
-	•	Gestion des quotas & throttling
-
-📌 Cas critiques testés :
-	•	Rafraîchissement Power BI déclenché par utilisateur final
-	•	Erreur 401 / droits workspace
-	•	Multiples validations simultanées
+Critère de validation :
+Le schéma est strictement identique au modèle de référence validé en phase de conception.
 
 ⸻
 
-2.3 Stockage – SharePoint / Dataverse
-	•	Performance en volume (≥ 1 500 contrôles / an)
-	•	Indexation des colonnes clés
-	•	Conformité des permissions
-	•	Ségrégation des rôles (lecture / écriture)
+1.1.2 Typage et formats des données
+
+Contrôle de la cohérence des types de données :
+	•	Dates stockées au format date/heure normalisé
+	•	Champs binaires utilisés pour les résultats de contrôle (Oui/Non, Conforme/Non conforme)
+	•	Champs numériques utilisés pour les scores, pondérations ou indicateurs
+	•	Absence de conversions implicites ou de formats texte non maîtrisés
+
+Risque adressé : erreurs de calcul, incohérences dans les KPI, écarts entre source et reporting.
 
 ⸻
 
-2.4 Power BI – Modèle & Reporting
+1.1.3 Unicité et clés fonctionnelles
 
-Objectif : fiabilité décisionnelle
-	•	Exactitude des mesures (% conformité, écarts)
-	•	Concordance source vs visuels
-	•	Performance (temps de chargement)
-	•	Sécurité RLS par établissement / segment
-	•	Test Import vs DirectQuery
+Validation de l’unicité des identifiants :
+	•	Identifiant unique par dossier de crédit
+	•	Clé unique par combinaison :
+	•	Dossier
+	•	Point de contrôle
+	•	Période de contrôle
 
-📊 Vérification :
-	•	Même jeu de données → mêmes résultats
-	•	Aucun écart entre reporting et base source
-
-⸻
-
-3️⃣ Recette de Sécurité & Accès
-	•	Accès nominatif (pas “tout le monde”)
-	•	Tests par profil :
-	•	LOD1 : saisie uniquement
-	•	LOD2 : revue & validation
-	•	Lecture : consultation Power BI
-	•	Audit des accès & logs
+Vérification de l’absence :
+	•	de doublons
+	•	d’écrasement de données lors des mises à jour
+	•	de conflits en cas de saisies simultanées
 
 ⸻
 
-4️⃣ Recette de Performance & Robustesse
-	•	Tests en charge (pics trimestriels)
-	•	Résilience en cas d’échec partiel
-	•	Temps de réponse acceptable (< X secondes)
-	•	Continuité de service pendant actualisation
+1.1.4 Référentiels et données de référence
+
+Contrôle de la cohérence des référentiels utilisés :
+	•	Segments crédit (retail, corporate, LBO, immobilier, etc.)
+	•	Établissements
+	•	Points de contrôle
+	•	Typologies d’écarts
+
+Les valeurs saisies doivent être :
+	•	issues de listes contrôlées
+	•	alignées avec les référentiels validés par le métier
+	•	identiques entre les sources, les traitements et le reporting
 
 ⸻
 
-5️⃣ Recette de Non-Régression
+1.1.5 Relations et intégrité référentielle
 
-À chaque évolution :
-	•	Rejeu des scénarios critiques
-	•	Comparaison des KPI avant / après
-	•	Validation que les workflows existants ne sont pas impactés
-
-⸻
-
-6️⃣ Livrables de Recette
-	•	✔️ Cahier de recette (checklist + résultats)
-	•	✔️ Tableau de suivi des anomalies
-	•	✔️ PV de recette signé (Métier / IT)
-	•	✔️ Synthèse pour comité de validation
+Vérification des relations entre les tables :
+	•	Relations actives et correctement orientées
+	•	Cardinalités cohérentes (1-n, n-1)
+	•	Absence de relations ambiguës ou circulaires
+	•	Intégrité référentielle respectée (aucune clé orpheline)
 
 ⸻
 
-💡 Bonnes pratiques (bonus pro)
-	•	Automatiser les contrôles qualité (flags, scores)
-	•	Centraliser les anomalies dans une table dédiée
-	•	Exposer un KPI “Qualité des contrôles” dans Power BI
-	•	Versionner les flux Power Automate
+Résultat attendu
 
+À l’issue de cette étape de recette :
+	•	Le modèle de données est stable, documenté et maîtrisé
+	•	Les données peuvent être exploitées sans retraitement manuel
+	•	Le socle est fiable pour les calculs de conformité et les analyses risques
+	•	Le modèle est compatible avec les exigences d’audit et de traçabilité
+
+⸻
+
+Si tu veux, je peux continuer avec :
+	•	1.2 Qualité des données métier (règles de cohérence, contrôles crédit)
+	•	1.3 Traçabilité & historisation
+	•	ou te livrer le document Word structuré avec titres, tableaux et checklist
