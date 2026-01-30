@@ -1,3 +1,8 @@
+Qualité des données – Contrôle de cohérence entre Power BI et la Golden Source
+
+Un contrôle de qualité des données est systématiquement réalisé afin de vérifier la cohérence entre les indicateurs restitués dans Power BI et la Golden Source de référence. Ce contrôle vise à s’assurer que les données utilisées à des fins de pilotage, de suivi des contrôles et de reporting réglementaire sont strictement alignées avec la source officielle validée par le métier. Les vérifications portent notamment sur les volumes de dossiers, le nombre d’écarts identifiés, les taux de conformité ainsi que les répartitions par segment et par établissement. Toute divergence constatée entre Power BI et la Golden Source fait l’objet d’une analyse approfondie permettant d’en identifier l’origine (problème de rafraîchissement, règle de transformation, filtre ou périmètre de données). Les écarts justifiés sont documentés, tandis que les écarts non justifiés déclenchent des actions correctives afin de garantir la fiabilité, la traçabilité et l’auditabilité des restitutions Power BI.
+
+
 
 1️⃣ Recette Qualité Data
 
