@@ -1,3 +1,19 @@
+= Table.TransformColumns(
+    #"Étape précédente",
+    {
+        "ListeCodes",
+        each
+            List.Transform(
+                _,
+                (x) =>
+                    if Text.Length(x) = 15
+                    then x & "0"
+                    else x
+            ),
+        type list
+    }
+)
+
 
 = Table.AddColumn(
     Source,
