@@ -1,4 +1,23 @@
-
+= Table.AddColumn(
+    Source,
+    "ListeCodes",
+    each
+        let
+            Prefixes = {"CRED.", "FRIS."}
+        in
+            List.Select(
+                Text.SplitAny([Texte], " ,;|"),
+                (x) =>
+                    List.AnyTrue(
+                        List.Transform(
+                            Prefixes,
+                            (p) => Text.StartsWith(x, p)
+                        )
+                    )
+                    and Text.Length(x) = 16
+            ),
+    type list
+)
 •	✅ Cohérence validée entre les données sources, les traitements automatisés et les restitutions Power BI
 	•	✅ Alignement confirmé des indicateurs avec la Golden Source de référence
 	•	✅ Écarts identifiés limités, documentés et justifiés, sans impact sur la fiabilité globale
