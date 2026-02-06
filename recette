@@ -1,3 +1,9 @@
+
+Vérification préalable de l’existence d’un plan d’action dans PRISCOP et de sa validation par la DRG
+	•	Aucune action requise de l’établissement lorsque le plan d’action est déjà validé
+	•	En l’absence de plan d’action validé par la DRG, le dossier est redirigé vers l’établissement
+	•	L’établissement est alors sollicité pour préciser les causes de l’évaluation insuffisante et compléter le plan d’action
+
 = Table.TransformColumns(
     #"Étape précédente",
     {
