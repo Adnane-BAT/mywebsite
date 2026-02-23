@@ -1,0 +1,33 @@
+Avantages
+	•	Simple
+	•	Rapide
+	•	Flexible
+	•	Pas besoin de développement
+
+❌ Limites (importantes en DRG)
+	•	Chaque utilisateur doit avoir accès au cube
+	•	Risque d’export massif
+	•	Pas de traçabilité des extractions
+	•	Logique métier non verrouillée
+	•	Pas de versioning d’arrêté
+	•	Dépendance au modèle (si modif → casse Excel)
+
+👉 En contrôle permanent : c’est fragile.
+
+⸻
+
+🎯 2️⃣ Excel alimenté par un dataset intermédiaire (plus robuste)
+
+Architecture recommandée :
+
+AAS → Power BI Dataset → Export structuré → Excel distribué
+
+✅ Avantages
+	•	Pas d’accès direct au cube
+	•	RLS géré côté Power BI
+	•	Extraction centralisée
+	•	Versionnement par arrêté
+	•	Gouvernance maîtrisée
+	•	Réduction des risques IT
+
+👉 Beaucoup plus propre en environnement risque / crédit.
