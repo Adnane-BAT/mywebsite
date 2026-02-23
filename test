@@ -1,3 +1,255 @@
+doc mise à jour : 
+1. Objet du document
+
+But : décrire le workflow de bout en bout (data + droits + exploitation)
+
+Périmètre : Alteryx, SharePoint List, Power Apps, Power BI (audience + workspace/app), Power Automate
+
+Public cible : LOD2 / équipe data / référents établissements / admins M365
+
+2. Contexte & principes
+2.1 Contexte fonctionnel
+
+Contrôles permanents crédit : collecte, écarts, commentaires, validations, restitutions
+
+2.2 Architecture cible (vue simple)
+
+Sources → Alteryx → SharePoint List (référentiel + transactions) → Power BI dataset/report → Power Apps (lecture/écriture) → Power Automate (notifications / relances)
+
+2.3 Rôles & responsabilités (RACI léger)
+
+Admin technique (Alteryx / SharePoint / PBI)
+
+Owner Power BI workspace
+
+Owner Power Apps
+
+Référent établissement
+
+Utilisateur final (consultation / saisie / validation)
+
+3. Données & référentiels
+3.1 Description des listes SharePoint
+
+Pour chaque liste :
+
+Nom / URL / objectif
+
+Schéma (colonnes, types, clés)
+
+Règles d’intégrité (unicité, valeurs obligatoires, statuts)
+
+Volumétrie attendue / rétention
+
+3.2 Modèle de données logique
+
+Tables principales (IQC, plans d’action, référentiels segments, établissements, contrôles)
+
+Clés : ID_Dossier / Code_Controle / Etablissement / Trimestre / Segment
+
+3.3 Règles métiers majeures
+
+Règles de statut (Brouillon → Soumis → Validé)
+
+Gestion des doublons
+
+Gestion des corrections (qui peut modifier quoi)
+
+4. Workflow d’alimentation Alteryx vers SharePoint (procédure)
+4.1 Pré-requis
+
+Accès Alteryx (Designer/Server)
+
+Droits SharePoint (écriture sur la/les listes)
+
+Compte de service (si utilisé) + principe MFA/connexion
+
+4.2 Flux “mise à jour globale” (end-to-end)
+
+Étapes standard :
+
+Extraction / préparation (Alteryx)
+
+Contrôles qualité (types, clés, valeurs, taux de null)
+
+Stratégie d’upsert :
+
+Update lignes existantes (match clé)
+
+Insert nouvelles lignes
+
+Gestion des lignes obsolètes (soft delete / statut “inactive”)
+
+Écriture dans SharePoint (batch / pagination / throttling)
+
+Journalisation (log d’exécution, nb lignes, erreurs)
+
+Rafraîchissement Power BI (si applicable)
+
+4.3 Détail technique Alteryx (par bloc)
+
+Outils utilisés (Input, Select, Formula, Join/Find Replace, Unique, Output Data…)
+
+Gestion des types / normalisation des codes
+
+Gestion des erreurs (Rejected rows, Error logs)
+
+Paramètres (site URL, list name, credentials)
+
+4.4 Cas particuliers & règles de reprise
+
+SharePoint throttling / erreurs 429
+
+Rejeu d’un lot (idempotence)
+
+Rollback (si possible via snapshot/export)
+
+Gestion des versions
+
+5. Contrôles & qualité des données
+5.1 Contrôles automatiques (avant publication)
+
+% clés manquantes
+
+doublons sur (ID_Dossier + Code_Controle + Trimestre)
+
+valeurs hors référentiel (segment, établissement)
+
+tests de cohérence (statut vs commentaire obligatoire)
+
+5.2 Contrôles de conformité métier (après chargement)
+
+totaux par segment / établissement
+
+variations vs T-1
+
+top anomalies
+
+5.3 Tableau de bord de monitoring (option)
+
+KPI d’alimentation (durée, nb lignes, erreurs, taux de rejet)
+
+6. Gestion des droits et accès
+6.1 Droits SharePoint (List / Site)
+
+Groupes recommandés :
+
+Owners (admin)
+
+Members (écriture)
+
+Visitors (lecture)
+
+Niveau de permission attendu par profil
+
+Héritage : site vs liste (bonnes pratiques)
+
+Gestion des accès via liste d’habilitation (si tu utilises une liste mails)
+
+6.2 Accès à la Power App
+
+Partage de l’application :
+
+Utilisateur (run)
+
+Co-owner (edit)
+
+Connexions utilisées (SharePoint, Power BI)
+
+Bonnes pratiques : groupe AAD plutôt que personnes
+
+6.3 Audience Power BI (App / Workspace)
+
+Workspace roles : Admin / Member / Contributor / Viewer
+
+App audience : qui voit quoi
+
+Dataset permissions / Build permission
+
+RLS (si présent) : logique + mapping établissement
+
+6.4 Power Automate (run only users)
+
+Propriétaire du flow
+
+Run-only users (exécution)
+
+Connexions / compte de service
+
+Gestion des erreurs et relances
+
+7. Procédures opérationnelles
+7.1 Exécuter une alimentation (Runbook)
+
+Quand lancer (quotidien / hebdo / trimestriel)
+
+Inputs nécessaires
+
+Étapes de run + points de contrôle
+
+Critères de succès
+
+Check post-run (Power BI refresh, contrôles, logs)
+
+7.2 “Mise à jour globale” (reset / rechargement complet)
+
+Conditions d’usage (ex : correction massive)
+
+Sauvegarde avant action
+
+Stratégie (purge + reload / update massif)
+
+Impacts sur Power BI / Power Apps
+
+7.3 Ajouter un nouvel utilisateur (procédure détaillée)
+
+Checklist unique (recommandée) :
+
+SharePoint : ajouter au bon groupe ou à la liste d’habilitation
+
+Power Apps : partager l’app (run)
+
+Power BI : ajouter à l’audience de l’app (et/ou workspace viewer)
+
+(Si besoin) RLS : mapping établissement
+
+Power Automate : run-only user (si nécessaire)
+
+Test de bout en bout (accès + écriture + refresh)
+
+7.4 Retirer un accès
+
+Même checklist en sens inverse + vérification logs
+
+8. Sécurité, conformité, auditabilité
+
+Traçabilité : logs Alteryx, historique SharePoint, logs Power Automate
+
+Sensibilité des données (PII ?)
+
+Stockage, rétention, versioning
+
+Gestion incidents (qui contacter, SLA interne)
+
+9. Annexe
+
+Dictionnaire de données (colonnes + définitions)
+
+Modèle RACI complet
+
+Schémas (architecture, flux, droits)
+
+Exemples :
+
+template fichier source
+
+exemples de payload / erreurs fréquentes
+
+
+
+
+
+
 Avantages
 	•	Simple
 	•	Rapide
