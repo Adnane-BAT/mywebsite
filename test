@@ -30,4 +30,48 @@ AAS → Power BI Dataset → Export structuré → Excel distribué
 	•	Gouvernance maîtrisée
 	•	Réduction des risques IT
 
+
 👉 Beaucoup plus propre en environnement risque / crédit.
+
+
+AAS
+↓
+Dataset Power BI sécurisé
+↓
+Export contrôlé / Power Automate
+↓
+Stockage SharePoint versionné
+↓
+Diffusion établissements
+
+⸻
+
+🏦 En contexte Crédit & Risques
+
+Ce qui compte vraiment :
+	•	🔒 Sécurité
+	•	🕒 Version d’arrêté figée
+	•	📊 Cohérence des indicateurs
+	•	📁 Traçabilité
+	•	🧾 Auditabilité
+
+Excel direct au cube = pratique
+Mais pas robuste en gouvernance.
+
+⸻
+
+🎯 Mon avis stratégique pour ton projet IQC
+
+Si ton objectif est :
+	•	1500 contrôles/an
+	•	29 établissements
+	•	Logique LOD1 / LOD2
+	•	Communication d’écarts
+
+👉 Je déconseille Excel en connexion directe.
+
+👉 Je recommande :
+	•	Power BI centralisé
+	•	Export standardisé
+	•	Ou workflow Power Automate d’extraction trimestrielle
+
