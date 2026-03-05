@@ -1,3 +1,66 @@
+
+
+Manuel d’utilisation – Validation DRG via Excel
+
+1. Objectif
+
+Le fichier Excel permet à la DRG de réaliser la revue et la validation des écarts identifiés lors des contrôles permanents sur les dossiers de crédit.
+
+Il sert à :
+	•	centraliser les résultats des contrôles
+	•	analyser les écarts détectés
+	•	confirmer ou challenger les anomalies
+	•	valider les écarts avant transmission aux établissements
+
+Ce fichier constitue un outil de validation simple permettant d’assurer la cohérence et la qualité du dispositif de contrôle.
+
+⸻
+
+2. Contenu du fichier
+
+Chaque ligne du fichier correspond à un contrôle réalisé sur un dossier de crédit.
+
+Les informations présentes permettent d’identifier :
+	•	l’établissement concerné
+	•	le segment de crédit
+	•	le code et le libellé du contrôle
+	•	le résultat du contrôle
+	•	la description de l’éventuel écart
+
+Lorsque le contrôle est non conforme, un commentaire précise la nature de l’anomalie détectée.
+
+⸻
+
+3. Rôle de la DRG
+
+La DRG intervient dans la phase de revue des écarts.
+
+Elle analyse les anomalies détectées afin de :
+	•	confirmer la pertinence de l’écart
+	•	demander une analyse complémentaire si nécessaire
+	•	valider les écarts qui devront être suivis
+
+Cette étape permet de garantir l’homogénéité et la fiabilité du dispositif de contrôle permanent.
+
+⸻
+
+4. Processus de validation
+
+La validation se déroule selon les étapes suivantes :
+	1.	Ouverture du fichier Excel transmis pour la période de contrôle
+	2.	Analyse des contrôles présentant un écart
+	3.	Revue des informations associées au dossier et au contrôle
+	4.	Validation ou demande d’analyse complémentaire
+
+Une fois la revue réalisée, les validations sont intégrées dans le workflow global de suivi des contrôles et des plans d’action.
+
+⸻
+
+Si tu veux, je peux aussi te faire une version encore plus crédible pour BPCE (4 paragraphes très corporate) qui passe mieux dans une documentation officielle DRG / contrôle permanent.
+
+
+----------/-
+
 Structure complète – Documentation Solution (≈22 pages)
 
 1. Contexte et objectifs du projet (1 page)
