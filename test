@@ -1,4 +1,247 @@
+Structure complète – Documentation Solution (≈22 pages)
 
+1. Contexte et objectifs du projet (1 page)
+
+Prompt
+
+Rédige une section “Contexte et objectifs du projet” pour une documentation fonctionnelle et technique d’une solution data mise en place chez BPCE.
+
+Le projet concerne l’automatisation du contrôle permanent sur les dossiers de crédit (retail, corporate, LBO, immobilier).
+
+La solution permet :
+	•	de gérer environ 1500 contrôles annuels
+	•	de centraliser les écarts remontés par 29 établissements
+	•	de structurer l’analyse par 12 segments de crédit
+	•	de produire un reporting consolidé pour la DRG
+
+La solution s’appuie sur Power BI, Power Apps, Power Automate, SharePoint et Azure Analysis Services.
+
+Rédige un texte professionnel destiné à une documentation interne banque.
+
+⸻
+
+2. Périmètre fonctionnel de la solution (2 pages)
+
+Prompt
+
+Rédige la section “Périmètre fonctionnel de la solution” d’une documentation projet.
+
+La solution couvre :
+	•	la gestion des contrôles permanents LOD2
+	•	la collecte des écarts auprès des établissements
+	•	la centralisation des résultats de contrôle
+	•	le suivi des plans d’actions
+	•	la restitution via dashboards Power BI
+
+Décrire :
+	•	les acteurs (DRG, établissements, contrôleurs)
+	•	les objets métiers (contrôles, dossiers crédit, écarts, plans d’action)
+	•	les processus couverts par la solution.
+
+⸻
+
+3. Description globale de l’architecture (2 pages)
+
+Prompt
+
+Rédige une section détaillée présentant l’architecture globale d’une solution data utilisée pour piloter des contrôles permanents dans une banque.
+
+La solution repose sur :
+	•	SharePoint List pour la collecte des réponses établissements
+	•	Power Apps pour la saisie et la validation des écarts
+	•	Power Automate pour les workflows
+	•	Power BI pour les dashboards
+	•	Azure Analysis Services pour le modèle sémantique
+
+Décrire les flux de données et les interactions entre ces composants.
+
+⸻
+
+4. Flux de données détaillé (2 pages)
+
+Prompt
+
+Décris de manière détaillée le flux de données d’une solution de pilotage des contrôles permanents crédit.
+
+Les données suivent les étapes suivantes :
+	1.	Extraction des données de contrôle depuis les sources internes
+	2.	Consolidation dans un modèle analytique
+	3.	Publication dans Azure Analysis Services
+	4.	Consommation dans Power BI
+	5.	Interaction via Power Apps pour le traitement des écarts
+	6.	Stockage des réponses dans SharePoint
+
+Décrire chaque étape et son rôle.
+
+⸻
+
+5. Modélisation des données (2 pages)
+
+Prompt
+
+Rédige la section “Modélisation des données” d’une documentation BI.
+
+Décrire le modèle en étoile utilisé dans Power BI avec les tables suivantes :
+	•	table IQC (contrôles)
+	•	table établissements
+	•	table segments
+	•	table plans d’action
+	•	table arrêtés
+
+Décrire les relations, les clés, et les principes de modélisation.
+
+⸻
+
+6. Description des tables principales (2 pages)
+
+Prompt
+
+Décris les tables principales utilisées dans la solution data de pilotage des contrôles permanents.
+
+Pour chaque table, expliquer :
+	•	son rôle
+	•	les principaux champs
+	•	les relations avec les autres tables
+
+Tables :
+	•	IQC
+	•	PlanAction
+	•	Etablissement
+	•	Segment
+	•	Arrêté
+
+⸻
+
+7. Processus de contrôle permanent (2 pages)
+
+Prompt
+
+Rédige une section expliquant le processus métier de contrôle permanent LOD2 dans une banque.
+
+Le processus inclut :
+	•	sélection des dossiers à contrôler
+	•	réalisation des contrôles
+	•	identification des écarts
+	•	communication aux établissements
+	•	suivi des plans d’actions
+
+Décrire ce processus étape par étape.
+
+⸻
+
+8. Workflow Power Apps (2 pages)
+
+Prompt
+
+Rédige une section décrivant le fonctionnement d’une application Power Apps utilisée pour traiter les écarts de contrôle permanent.
+
+L’application permet :
+	•	de visualiser les contrôles par établissement
+	•	de saisir les réponses aux écarts
+	•	d’ajouter des commentaires
+	•	de valider les réponses
+
+Décrire l’interface, les interactions et les règles métier.
+
+⸻
+
+9. Workflow Power Automate (2 pages)
+
+Prompt
+
+Rédige une section expliquant le rôle des workflows Power Automate dans la solution.
+
+Les workflows permettent :
+	•	l’envoi de notifications aux établissements
+	•	la mise à jour automatique des statuts
+	•	la synchronisation des données entre Power Apps et Power BI
+
+Décrire le fonctionnement global.
+
+⸻
+
+10. Tableaux de bord Power BI (2 pages)
+
+Prompt
+
+Rédige une section présentant les tableaux de bord Power BI utilisés pour le suivi des contrôles permanents.
+
+Les dashboards incluent :
+	•	taux de conformité
+	•	nombre d’écarts par segment
+	•	analyse par établissement
+	•	suivi des plans d’action
+
+Décrire les pages principales du rapport.
+
+⸻
+
+11. Gestion des accès et sécurité (1 page)
+
+Prompt
+
+Rédige une section décrivant la gestion des accès dans une solution Power BI / Power Apps utilisée dans un contexte bancaire.
+
+Inclure :
+	•	gestion des rôles
+	•	Row Level Security par établissement
+	•	gestion des accès SharePoint
+	•	accès à l’application Power Apps.
+
+⸻
+
+12. Procédure d’alimentation des données (2 pages)
+
+Prompt
+
+Rédige une procédure détaillée décrivant comment alimenter et mettre à jour les données dans la solution.
+
+Inclure :
+	•	mise à jour des sources
+	•	rafraîchissement du modèle
+	•	synchronisation SharePoint
+	•	vérification des données dans Power BI.
+
+⸻
+
+13. Maintenance et évolution de la solution (1 page)
+
+Prompt
+
+Rédige une section expliquant comment maintenir et faire évoluer une solution data utilisée pour piloter des contrôles permanents.
+
+Inclure :
+	•	maintenance des workflows
+	•	évolution des contrôles
+	•	ajout d’établissements
+	•	ajout de nouveaux indicateurs.
+
+⸻
+
+14. Conclusion et perspectives (1 page)
+
+Prompt
+
+Rédige une conclusion pour une documentation de solution data dédiée au pilotage des contrôles permanents crédit.
+
+Mettre en avant :
+	•	les gains d’industrialisation
+	•	la centralisation des contrôles
+	•	l’amélioration du suivi des risques
+	•	les perspectives d’évolution.
+
+⸻
+
+
+
+
+
+
+
+
+Résultat
+
+Avec ces sections tu obtiens :
 Madame, Monsieur,
 
 Acceniom atteste, par la présente, qu’Adnane Bachir Ahl Taleb est intervenu en 2025 pour le compte de la Direction des Risques du Groupe BPCE dans le cadre de projets innovants relatifs à l’automatisation et à l’analyse des dispositifs de contrôle permanent LOD2.2, éligibles au dispositif du Crédit Impôt Recherche (CIR).
