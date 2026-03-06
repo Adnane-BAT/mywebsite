@@ -1,3 +1,83 @@
+Manuel d’utilisation – Validation DRG via Excel
+
+Objectif
+
+Le fichier Excel permet à la DRG de revoir les réponses apportées par les établissements aux contrôles N2.2 et de confirmer la position finale de la DRG.
+
+Chaque ligne correspond à un contrôle présentant un écart nécessitant une validation DRG.
+
+⸻
+
+Étapes de validation
+
+1. Identifier les contrôles à traiter
+
+La DRG doit traiter uniquement les lignes où :
+
+Statut DRG à traiter = Oui
+
+Si la colonne indique Oui, cela signifie que le contrôle nécessite une revue par la DRG.
+
+⸻
+
+2. Consulter la réponse initiale DRG
+
+La colonne :
+
+Réponse 2.2 DRG initiale
+
+contient la position initiale de la DRG lors de l’identification de l’écart.
+
+Cette information permet de rappeler l’évaluation initiale du contrôle.
+
+⸻
+
+3. Consulter la réponse de l’établissement
+
+La colonne :
+
+Réponse 2.2 validé ou rejeté par l’établissement
+
+indique la réponse apportée par l’établissement suite au retour de la DRG.
+
+L’établissement peut :
+	•	confirmer l’écart
+	•	contester l’écart
+	•	apporter des éléments complémentaires
+
+⸻
+
+4. Analyse par la DRG
+
+La DRG analyse :
+	•	la réponse initiale DRG
+	•	la réponse de l’établissement
+	•	les éléments justificatifs fournis
+
+Si nécessaire, la DRG peut compléter la colonne :
+
+Commentaire DRG
+
+afin de préciser son analyse.
+
+Exemples de commentaires :
+	•	Écart confirmé après analyse
+	•	Justificatif insuffisant
+	•	Correction effectuée par l’établissement
+
+⸻
+
+5. Validation finale DRG
+
+Après analyse, la DRG doit compléter la colonne :
+
+Nouvelle réponse finale DRG
+
+Deux valeurs sont possibles :
+	•	Oui : l’écart est confirmé
+	•	Non : l’écart est rejeté
+
+Cette réponse constitue la position finale de la DRG dans le dispositif de contrôle permanent.
 
 
 Manuel d’utilisation – Validation DRG via Excel
