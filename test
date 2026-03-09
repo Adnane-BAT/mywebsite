@@ -1,3 +1,96 @@
+1. Contexte et objectifs de la solution
+
+Contexte
+
+Dans le cadre du dispositif de contrôle permanent du Groupe BPCE, la Direction des Risques Groupe (DRG) assure le pilotage et la supervision des contrôles relatifs aux activités de crédit et aux politiques de risque mises en œuvre par les établissements.
+
+Le dispositif de contrôle repose sur plusieurs niveaux de contrôle (LOD – Lines of Defense) permettant de garantir la conformité des pratiques avec les exigences réglementaires et les politiques internes du groupe.
+
+Dans ce cadre :
+	•	les établissements réalisent des contrôles de niveau N2.1 sur leurs activités et leurs dossiers de crédit,
+	•	la DRG réalise des contrôles de niveau N2.2 visant à superviser et challenger les résultats remontés par les établissements.
+
+Ces contrôles sont notamment restitués via les IQC (Indicateurs de Qualité des Contrôles) permettant d’évaluer le niveau de conformité et d’identifier les éventuelles dégradations.
+
+Cependant, le processus historique présentait plusieurs limites :
+	•	une multiplicité des sources de données (cube PRISCOP, fichiers Excel, échanges email),
+	•	une gestion manuelle des échanges contradictoires entre établissements et DRG,
+	•	un suivi difficile des écarts entre les contrôles N2.1 et N2.2,
+	•	une absence de traçabilité centralisée des réponses, commentaires et pièces justificatives.
+
+Ces limitations rendaient plus complexe :
+	•	l’analyse consolidée des contrôles,
+	•	le suivi des écarts,
+	•	et le pilotage des plans d’action associés.
+
+Afin de répondre à ces enjeux, une solution intégrée a été mise en place permettant de structurer, automatiser et tracer l’ensemble du processus de validation des contrôles et des échanges entre les établissements et la DRG.
+
+⸻
+
+Objectifs de la solution
+
+La solution mise en œuvre vise plusieurs objectifs opérationnels et analytiques.
+
+1. Centraliser les données de contrôle
+
+La solution permet de consolider dans un environnement unique :
+	•	les résultats des contrôles N2.1
+	•	les résultats des contrôles N2.2
+	•	les écarts identifiés
+	•	les commentaires et justificatifs des établissements
+
+Ces données sont extraites et transformées à partir du cube PRISCOP et des sources opérationnelles.
+
+⸻
+
+2. Structurer les échanges entre la DRG et les établissements
+
+Un workflow applicatif permet désormais de :
+	•	visualiser les points de contrôle en écart
+	•	saisir des commentaires et justificatifs
+	•	proposer et suivre des plans d’action
+	•	tracer les validations et décisions de la DRG
+
+Les interactions entre les parties prenantes sont ainsi structurées et historisées.
+
+⸻
+
+3. Automatiser le processus de validation
+
+La solution permet de gérer :
+	•	la validation en masse des contrôles lorsque les résultats sont cohérents
+	•	la validation ligne par ligne lorsqu’un écart nécessite une analyse spécifique
+
+Les validations sont réalisées via une interface applicative dédiée.
+
+⸻
+
+4. Améliorer le pilotage du dispositif de contrôle
+
+Les données consolidées permettent d’alimenter des tableaux de bord Power BI offrant :
+	•	une vision par établissement
+	•	une vision par segment de crédit
+	•	une vision détaillée par dossier ou point de contrôle
+
+Ces tableaux de bord permettent notamment :
+	•	d’identifier les établissements présentant des IQC dégradés
+	•	de suivre l’évolution des écarts
+	•	de piloter les plans d’action associés.
+
+⸻
+
+5. Garantir la traçabilité et la gouvernance du processus
+
+La solution assure une traçabilité complète des actions réalisées :
+	•	saisie des réponses
+	•	validation des contrôles
+	•	modification des résultats
+	•	suivi des plans d’action
+
+Chaque interaction est historisée afin de garantir la transparence et la gouvernance du processus de contrôle permanent.
+
+
+
 
 Documentation de la solution
 
