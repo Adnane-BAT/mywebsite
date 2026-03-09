@@ -444,6 +444,34 @@ Nous vous invitons à remplir le formulaire pour rejoindre ce cercle professionn
     // Année auto
     document.getElementById('year').textContent = new Date().getFullYear();
 
+        // Envoi du formulaire via e-mail (ouvre le client mail de l'utilisateur)
+    const contactForm = document.getElementById('contactForm');
+    contactForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const prenom = document.getElementById('prenom').value.trim();
+      const nom = document.getElementById('nom').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const message = document.getElementById('message').value.trim() || 'Aucun message complémentaire.';
+
+      const destinataire = 'adnane.ndour@gmail.com';
+      const sujet = encodeURIComponent('Nouvelle demande via le formulaire LRQ');
+      const corps = encodeURIComponent(
+`Nouvelle demande reçue depuis le site :
+
+Prénom : ${prenom}
+Nom : ${nom}
+E-mail : ${email}
+Téléphone : ${phone}
+
+Message :
+${message}`
+      );
+
+      window.location.href = `mailto:${destinataire}?subject=${sujet}&body=${corps}`;
+    });
+
     // Thème clair/sombre
     const root = document.documentElement;
     const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
