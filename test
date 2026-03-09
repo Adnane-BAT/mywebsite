@@ -1,3 +1,180 @@
+
+Documentation de la solution
+
+Workflow de validation des contrôles N2.2 / IQC – DRG
+
+⸻
+
+1. Contexte et objectifs
+
+Contexte
+
+Dans le cadre du dispositif de contrôle permanent du Groupe BPCE, la DRG doit assurer le suivi et la validation des contrôles réalisés par les établissements.
+
+Les contrôles concernent notamment :
+	•	les contrôles N2.1 réalisés par les établissements
+	•	les contrôles N2.2 réalisés par la DRG
+	•	l’analyse des écarts entre les deux niveaux de contrôle
+
+L’objectif est de disposer d’un dispositif permettant :
+	•	la centralisation des résultats de contrôle
+	•	la gestion des échanges contradictoires
+	•	le suivi des plans d’action
+	•	la restitution consolidée des indicateurs IQC
+
+⸻
+
+2. Architecture globale de la solution
+
+La solution repose sur plusieurs briques de l’écosystème Microsoft Power Platform et Alteryx.
+
+Sources de données
+	•	Cube PRISCOP
+	•	Fichiers Excel de contrôle N2.2
+
+Traitement des données
+
+Les données sont :
+	1.	extraites
+	2.	transformées
+	3.	consolidées
+
+via Alteryx.
+
+Les données transformées sont ensuite stockées dans une base intermédiaire (DB Alteryx).
+
+Restitution
+
+Les données sont exploitées via :
+	•	Power BI : analyse et suivi des contrôles
+	•	Power Apps : saisie des réponses et validation
+	•	Power Automate : gestion des notifications et relances
+
+⸻
+
+3. Flux de données de la solution
+
+Le flux de données suit les étapes suivantes :
+
+1️⃣ Extraction des données du cube PRISCOP
+
+2️⃣ Transformation et consolidation des données via Alteryx
+
+3️⃣ Stockage dans une base intermédiaire
+
+4️⃣ Restitution analytique dans Power BI
+
+5️⃣ Interaction des utilisateurs via Power Apps
+
+6️⃣ Automatisation des échanges via Power Automate
+
+⸻
+
+4. Axes analytiques du reporting
+
+Le reporting Power BI permet plusieurs niveaux d’analyse.
+
+Vision Entité
+
+Analyse des résultats par établissement :
+	•	BPAURA
+	•	BPACA
+	•	CEIDF
+	•	CEHDF
+	•	etc.
+
+Vision Segment
+
+Analyse par type de crédit :
+	•	Crédit habitat
+	•	Crédit consommation
+	•	Retail professionnel
+
+Vision Dossier
+
+Analyse détaillée par dossier :
+	•	points de contrôle
+	•	score par contrôle
+	•	statut du contrôle
+
+⸻
+
+5. Workflow de validation des contrôles
+
+Le workflow permet de gérer les échanges entre :
+	•	établissements (N2.1)
+	•	DRG (N2.2)
+
+Étapes principales
+
+1️⃣ Identification des contrôles en écart
+2️⃣ Visualisation des points de contrôle concernés
+3️⃣ Saisie des réponses par l’établissement
+4️⃣ Validation par la DRG
+5️⃣ Mise à jour des IQC
+
+⸻
+
+6. Processus de gestion des écarts
+
+Lorsque les résultats du contrôle N2.1 diffèrent du contrôle N2.2 :
+
+Cas 1 — Pas d’écart
+
+Aucune modification des données.
+
+Un commentaire peut être ajouté si nécessaire.
+
+Cas 2 — Écart identifié
+
+L’établissement doit :
+	•	fournir un justificatif
+	•	saisir un commentaire explicatif
+
+La DRG procède ensuite à la validation.
+
+⸻
+
+7. Workflow de validation DRG
+
+La validation peut être réalisée :
+
+Validation en masse
+
+Lorsque les résultats N2.2 ne sont pas modifiés.
+
+Validation ligne par ligne
+
+Lorsque certains points de contrôle doivent être ajustés.
+
+Les éléments examinés :
+	•	réponses des établissements
+	•	commentaires
+	•	pièces jointes
+
+⸻
+
+8. Gestion des plans d’action
+
+Lorsqu’un écart est confirmé, l’établissement doit saisir un plan d’action.
+
+Les informations demandées :
+	•	analyse des causes
+	•	description du plan d’action
+	•	échéance
+	•	état d’avancement
+
+Les plans d’action sont ensuite validés par la DRG.
+
+⸻
+
+9. Fonctionnalités de l’application Power Apps
+
+Les interactions utilisateurs se font via Power Apps.
+
+Fonctionnalités principales
+
+
 Manuel d’utilisation – Validation DRG via Excel
 
 Objectif
