@@ -1,3 +1,74 @@
+5. Workflow de validation des contrôles
+
+Le workflow de validation permet de structurer les échanges entre les établissements et la DRG dans le cadre de l’analyse des contrôles. Ce processus vise à identifier les éventuels écarts entre les résultats des contrôles N2.1 réalisés par les établissements et les contrôles N2.2 réalisés par la DRG.
+
+Lorsqu’un écart est identifié, l’établissement peut consulter les informations relatives au contrôle concerné et apporter des éléments d’explication via l’application. Ces éléments peuvent prendre la forme de commentaires ou de justificatifs permettant d’expliquer la différence observée.
+
+La DRG analyse ensuite ces informations afin de confirmer ou d’ajuster le résultat du contrôle. Ce processus permet de garantir la cohérence des données et d’assurer un suivi structuré des contrôles réalisés.
+
+📍 Schéma à insérer à la fin :
+Workflow de validation des contrôles.
+
+⸻
+
+6. Gestion des écarts
+
+La solution permet d’identifier et de suivre les écarts pouvant exister entre les résultats des contrôles réalisés par les établissements et ceux réalisés par la DRG.
+
+Lorsqu’un écart est détecté, celui-ci est signalé dans les tableaux de bord et peut être analysé par les utilisateurs. L’établissement concerné peut alors fournir des explications ou des éléments complémentaires permettant de justifier le résultat du contrôle.
+
+Après analyse des éléments transmis, la DRG peut confirmer le résultat initial ou ajuster le résultat du contrôle. Ce mécanisme permet d’assurer une gestion transparente et structurée des écarts.
+
+📍 Schéma à insérer :
+Gestion des écarts entre N2.1 et N2.2.
+
+⸻
+
+7. Fonctionnalités de l’application
+
+L’application développée dans Power Apps permet aux utilisateurs d’interagir directement avec les données de contrôle et de participer au processus de validation.
+
+Les utilisateurs peuvent notamment :
+	•	consulter les résultats des contrôles
+	•	identifier les contrôles en écart
+	•	saisir des commentaires explicatifs
+	•	joindre des justificatifs
+	•	proposer ou suivre des plans d’action
+
+Les actions réalisées dans l’application sont automatiquement enregistrées afin de garantir la traçabilité des échanges et des validations.
+
+📍 Schéma à insérer :
+Fonctionnalités et accès utilisateurs de l’application.
+
+⸻
+
+8. Gestion des plans d’action
+
+Lorsque certains contrôles présentent des résultats insuffisants ou des écarts significatifs, des plans d’action peuvent être mis en place afin de corriger les anomalies identifiées.
+
+Les établissements peuvent renseigner les actions prévues pour corriger les écarts observés et préciser les délais de mise en œuvre. Ces informations permettent de suivre l’avancement des actions correctrices.
+
+La DRG peut ensuite examiner les plans d’action proposés et s’assurer de leur mise en œuvre dans le cadre du suivi du dispositif de contrôle permanent.
+
+📍 Schéma à insérer :
+Workflow de gestion des plans d’action.
+
+⸻
+
+10. Restitution et pilotage via Power BI
+
+Les tableaux de bord développés dans Power BI permettent de restituer de manière synthétique les résultats des contrôles et de suivre l’évolution des indicateurs de qualité des contrôles.
+
+Ces tableaux de bord offrent une vision consolidée des résultats et permettent notamment :
+	•	d’identifier les établissements présentant des écarts
+	•	d’analyser les résultats par segment de crédit
+	•	de suivre les indicateurs IQC
+	•	de visualiser l’évolution des contrôles dans le temps
+
+La navigation interactive des tableaux de bord permet aux utilisateurs de passer d’une vision globale du dispositif de contrôle à une analyse détaillée des dossiers et des points de contrôle.
+
+📍 Schéma à insérer :
+Vue de restitution Power BI / dashboards.
 
 4. Axes analytiques du reporting
 
