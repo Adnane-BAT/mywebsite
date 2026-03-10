@@ -1,3 +1,20 @@
+
+4. Axes analytiques du reporting
+
+Le reporting mis en place dans Power BI permet d’analyser les résultats des contrôles selon plusieurs axes afin de faciliter le suivi du dispositif de contrôle permanent et l’identification des écarts entre les contrôles N2.1 réalisés par les établissements et les contrôles N2.2 réalisés par la DRG.
+
+L’analyse peut tout d’abord être réalisée selon une vision par établissement. Cet axe permet de suivre les résultats des contrôles pour chaque entité du groupe et d’identifier les établissements présentant des niveaux d’écart plus importants. Cette vision facilite le pilotage global du dispositif de contrôle permanent par la DRG.
+
+Le reporting permet également une analyse par segment de crédit. Cette approche permet d’identifier les domaines d’activité pour lesquels les contrôles présentent davantage d’anomalies ou de dégradations. Elle permet ainsi d’orienter les analyses et les actions correctrices vers les segments les plus exposés.
+
+Enfin, une vision détaillée par dossier est disponible afin d’examiner les résultats des contrôles au niveau le plus granulaire. Cette vue permet notamment d’analyser les points de contrôle, les réponses fournies par les établissements, ainsi que les écarts éventuels entre les résultats N2.1 et N2.2.
+
+Ces différents axes d’analyse permettent aux utilisateurs de naviguer facilement entre une vision globale des contrôles et une analyse détaillée des dossiers, facilitant ainsi l’identification des écarts et le suivi des actions correctrices.
+
+📍 Schéma à insérer à la fin de cette section :
+Axe analytique du reporting (Vision Entité – Vision Segment – Vision Dossier).
+
+
 3. Flux de données de la solution
 
 3.1 Principe général
