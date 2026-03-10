@@ -1,1 +1,116 @@
+3. Flux de données de la solution
 
+3.1 Principe général
+
+Le flux de données de la solution décrit le chemin parcouru par les informations depuis leur source initiale jusqu’à leur exploitation dans les outils de reporting et de validation.
+
+Ce flux permet de structurer le traitement des données relatives aux contrôles de niveau N2.1 et N2.2, tout en garantissant la traçabilité des informations et la cohérence des analyses.
+
+Le processus repose sur plusieurs étapes successives :
+	1.	extraction des données depuis les sources
+	2.	transformation et consolidation des informations
+	3.	stockage dans une base intermédiaire
+	4.	exploitation dans les outils analytiques et applicatifs
+	5.	mise à jour des données suite aux validations
+
+Cette organisation permet d’assurer un traitement structuré des données et de garantir la fiabilité des informations utilisées pour le suivi des contrôles.
+
+⸻
+
+3.2 Extraction des données
+
+La première étape du flux consiste à récupérer les données provenant des systèmes sources.
+
+Les données utilisées dans la solution proviennent principalement du système PRISCOP, qui centralise les informations relatives aux contrôles réalisés par les établissements.
+
+Ces données incluent notamment :
+	•	les résultats des contrôles N2.1 réalisés par les établissements
+	•	les résultats des contrôles N2.2 réalisés par la DRG
+	•	les informations relatives aux dossiers de crédit
+	•	les points de contrôle associés aux politiques de risque
+
+Les données peuvent être extraites sous forme :
+	•	d’extractions structurées
+	•	de cubes analytiques
+	•	ou de fichiers Excel issus des contrôles.
+
+⸻
+
+3.3 Transformation et consolidation des données
+
+Une fois les données extraites, elles sont traitées à l’aide de workflows Alteryx.
+
+Ces workflows permettent de préparer les données afin de les rendre exploitables pour les analyses et les processus de validation.
+
+Les principales opérations réalisées incluent :
+	•	la normalisation des données
+	•	la consolidation des différentes sources
+	•	l’identification des écarts entre les contrôles N2.1 et N2.2
+	•	la création d’indicateurs nécessaires au reporting
+
+Cette étape permet de structurer les informations afin qu’elles puissent être exploitées dans les outils de restitution.
+
+⸻
+
+3.4 Stockage des données consolidées
+
+Les données transformées sont ensuite stockées dans une base de données intermédiaire.
+
+Cette base constitue le référentiel central utilisé par la solution.
+
+Elle permet notamment de conserver :
+	•	les résultats consolidés des contrôles
+	•	les écarts identifiés
+	•	les commentaires et justificatifs saisis par les utilisateurs
+	•	les informations relatives aux plans d’action
+
+Le stockage intermédiaire permet également d’assurer une traçabilité complète des échanges et des validations.
+
+⸻
+
+3.5 Exploitation des données
+
+Les données consolidées sont exploitées dans deux environnements principaux.
+
+Restitution analytique
+
+Les tableaux de bord Power BI permettent de :
+	•	analyser les résultats des contrôles
+	•	suivre les indicateurs IQC
+	•	identifier les établissements présentant des écarts
+	•	analyser les résultats par segment ou par dossier.
+
+Interaction utilisateur
+
+L’application Power Apps permet aux utilisateurs de :
+	•	consulter les contrôles en écart
+	•	saisir des commentaires
+	•	proposer des plans d’action
+	•	valider ou modifier certains résultats.
+
+Les actions réalisées dans l’application sont automatiquement enregistrées dans la base de données.
+
+⸻
+
+3.6 Mise à jour et synchronisation des données
+
+Les mises à jour des données sont réalisées à travers un processus automatisé.
+
+Les workflows Power Automate permettent notamment :
+	•	d’envoyer des notifications aux utilisateurs concernés
+	•	de déclencher des relances en cas d’absence de réponse
+	•	de synchroniser les données mises à jour avec les tableaux de bord Power BI.
+
+Cette automatisation permet de garantir la cohérence des informations et d’assurer un suivi efficace des contrôles.
+
+⸻
+
+📌 Schéma à insérer dans cette section
+
+Juste après 3.1 Principe général, il faut insérer :
+
+Schéma : Workflow du flux de données
+
+(PRISCOP → extraction → transformation Alteryx → DB → Power BI / Power Apps → validation → mise à jour IQC)
+
+Cela permet de visualiser clairement le cycle de circulation des données dans la solution.
