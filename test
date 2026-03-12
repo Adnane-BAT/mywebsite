@@ -1,3 +1,26 @@
+4.X Gestion des valeurs manquantes dans les workflows
+
+Au cours du projet, nous avons dû faire face à des valeurs manquantes ou incomplètes dans les sources de données utilisées pour le calcul des indicateurs. Ces valeurs manquantes pouvaient provenir de :
+	•	sources différentes n’ayant pas toutes les mêmes fréquences de mise à jour,
+	•	établissements n’ayant pas transmis certaines informations,
+	•	erreurs ou anomalies dans les systèmes sources.
+
+La présence de ces valeurs posait des verrous techniques, car le calcul des indicateurs et leur comparaison entre établissements nécessitaient un ensemble complet et cohérent de données. Une mauvaise gestion aurait pu fausser les résultats et impacter la fiabilité des indicateurs.
+
+Pour résoudre ce problème, plusieurs stratégies ont été étudiées et expérimentées dans les workflows Alteryx :
+	1.	Imputation par valeurs historiques : lorsqu’une donnée était manquante pour un trimestre donné, la valeur précédente ou la moyenne des trimestres précédents de l’établissement pouvait être utilisée, dans la limite de critères définis.
+	2.	Valeur par défaut contrôlée : pour certains indicateurs, des valeurs neutres ou nulles ont été appliquées afin de maintenir la cohérence des calculs.
+	3.	Indicateurs de complétude : des champs supplémentaires ont été créés pour signaler les données manquantes ou imputées, permettant de tracer l’impact de ces imputations sur le calcul final.
+
+La mise en œuvre de ces traitements a nécessité :
+	•	la définition de règles métier précises pour chaque indicateur,
+	•	la construction de workflows adaptatifs capables de détecter automatiquement les valeurs manquantes et de décider de la stratégie à appliquer,
+	•	la validation systématique des résultats afin de s’assurer que les imputations n’introduisaient pas de biais dans l’analyse comparative.
+
+Cette approche innovante a permis de fiabiliser les calculs d’indicateurs tout en automatisant la gestion des données incomplètes, garantissant à la fois la robustesse des tableaux de bord et la traçabilité des décisions prises pour combler les données manquantes.
+
+
+
 Projet de R&D : Conception d’un système automatisé de production et de restitution d’indicateurs de risques des établissements
 
 1. Contexte général et objectifs du projet
