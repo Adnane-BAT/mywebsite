@@ -1,5 +1,16 @@
 5. Workflow de validation des contrôles
 
+Le workflow de validation permet de structurer le processus d’analyse et de validation des contrôles entre les établissements et la DRG. Ce processus vise à identifier les éventuels écarts entre les résultats des contrôles N2.1 réalisés par les établissements et les contrôles N2.2 réalisés par la DRG, puis à organiser leur analyse et leur validation.
+
+Les contrôles sont tout d’abord extraits et consolidés afin d’identifier les points présentant des écarts. Ces informations sont ensuite mises à disposition dans l’application, permettant aux établissements de consulter les contrôles concernés et d’apporter, si nécessaire, des commentaires ou des éléments justificatifs.
+
+La validation des contrôles est ensuite réalisée par la DRG. Cette validation peut être effectuée de manière globale lorsque les résultats sont cohérents, ou de manière détaillée lorsqu’un contrôle nécessite une analyse plus approfondie. La DRG peut alors confirmer le résultat initial ou ajuster le résultat du contrôle en fonction des éléments fournis.
+
+Une fois les contrôles validés, les résultats sont enregistrés dans la base de données et intégrés dans les indicateurs de suivi. Ce processus permet de garantir la cohérence des résultats et d’assurer un suivi structuré du dispositif de contrôle permanent.
+
+
+5. Workflow de validation des contrôles
+
 Le workflow de validation permet de structurer les échanges entre les établissements et la DRG dans le cadre de l’analyse des contrôles. Ce processus vise à identifier les éventuels écarts entre les résultats des contrôles N2.1 réalisés par les établissements et les contrôles N2.2 réalisés par la DRG.
 
 Lorsqu’un écart est identifié, l’établissement peut consulter les informations relatives au contrôle concerné et apporter des éléments d’explication via l’application. Ces éléments peuvent prendre la forme de commentaires ou de justificatifs permettant d’expliquer la différence observée.
