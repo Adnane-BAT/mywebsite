@@ -1,1 +1,154 @@
+Je vérifie le comportement exact de Power BI sur le RLS pour te proposer une solution qui garde la page 1 globale tout en filtrant le niveau “point de contrôle” par établissement.
 
+Réflexion durant 13s
+
+Oui, mais pas directement sur une seule partie de la même table si cette table _Data alimente aussi la page globale.
+
+Dans Power BI, le RLS filtre des lignes du modèle, pas une page ou un visuel en particulier. Donc si tu mets le RLS directement sur _Data, ta page 1 “monitoring global” sera aussi filtrée pour chaque établissement. Microsoft précise bien que le RLS agit au niveau ligne et ne permet pas de restreindre seulement certains objets/pages.
+
+La bonne solution dans ton cas :
+
+Ce qu’il faut faire
+1. Garder une table pour le global
+
+Tu conserves une table pour la page 1, par exemple :
+
+_Data_Global
+
+Cette table sert au monitoring global visible par tous les établissements.
+
+Elle peut contenir :
+
+établissement
+
+contrôle
+
+trimestre
+
+indicateurs agrégés
+
+Sans RLS.
+
+2. Créer une table détaillée pour les points de contrôle
+
+Tu utilises une autre table, par exemple :
+
+_Data_Detail
+
+Avec :
+
+établissement
+
+contrôle
+
+trimestre
+
+point de contrôle
+
+statut / écart / commentaire / etc.
+
+C’est sur cette table-là que tu appliques le RLS.
+
+3. Créer une table de sécurité
+
+Exemple :
+
+Security_Etab
+
+Mail	Etablissement
+a@bpce.fr
+	CEIDF
+b@bpce.fr
+	CEPAC
+
+Relation :
+
+Security_Etab[Etablissement] → _Data_Detail[Etablissement]
+
+Puis dans le rôle RLS, filtre sur la table sécurité :
+
+Security_Etab[Mail] = USERPRINCIPALNAME()
+
+USERPRINCIPALNAME() est bien la fonction standard pour faire du RLS dynamique par utilisateur connecté.
+
+Résultat attendu
+Page 1 — Monitoring global
+
+Source = _Data_Global
+Donc :
+
+tous les établissements voient les chiffres globaux
+
+pas de restriction
+
+Page 2 / détail point de contrôle
+
+Source = _Data_Detail
+Donc :
+
+chaque utilisateur ne voit que son établissement
+
+filtre dynamique via son mail
+
+Très important
+
+Si tu gardes une seule table _Data pour tout :
+
+soit tout est filtré
+
+soit rien n’est filtré
+
+Tu ne pourras pas faire :
+
+page 1 non filtrée
+
+page 2 filtrée
+
+avec la même fact table soumise au RLS.
+
+Architecture recommandée
+
+Dim_Etablissement
+
+Dim_Controle
+
+Dim_Trimestre
+
+_Data_Global → pour le monitoring commun
+
+_Data_Detail → pour les points de contrôle
+
+Security_Etab → pour le mapping mail / établissement
+
+Et le RLS ne doit propager que vers _Data_Detail.
+
+Formule RLS
+
+Dans Manage roles :
+
+Security_Etab[Mail] = USERPRINCIPALNAME()
+
+Ou si besoin de neutraliser la casse :
+
+LOWER(Security_Etab[Mail]) = LOWER(USERPRINCIPALNAME())
+Mon conseil concret
+
+Pour ton besoin BPCE, le plus propre est :
+
+page 1 = table agrégée globale
+
+pages détail / drillthrough = table sécurisée
+
+RLS dynamique via table Security_Etab
+
+C’est la solution la plus robuste et la plus maintenable.
+
+Je peux te faire juste après le schéma de modèle exact avec :
+
+les tables à créer
+
+les relations
+
+le rôle RLS
+
+et le cas du drillthrough page 1 → page 2.
