@@ -174,33 +174,3 @@ le développement de visualisations analytiques facilitant l’analyse des indic
 Ce dispositif constitue une base permettant d’étendre l’analyse à d’autres indicateurs ou d’intégrer de nouvelles sources de données dans les dispositifs de suivi des établissements.
 
 
-Formule RLS
-
-Dans Manage roles :
-
-Security_Etab[Mail] = USERPRINCIPALNAME()
-
-Ou si besoin de neutraliser la casse :
-
-LOWER(Security_Etab[Mail]) = LOWER(USERPRINCIPALNAME())
-Mon conseil concret
-
-Pour ton besoin BPCE, le plus propre est :
-
-page 1 = table agrégée globale
-
-pages détail / drillthrough = table sécurisée
-
-RLS dynamique via table Security_Etab
-
-C’est la solution la plus robuste et la plus maintenable.
-
-Je peux te faire juste après le schéma de modèle exact avec :
-
-les tables à créer
-
-les relations
-
-le rôle RLS
-
-et le cas du drillthrough page 1 → page 2.
