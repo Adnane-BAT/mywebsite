@@ -1,126 +1,178 @@
-Je vérifie le comportement exact de Power BI sur le RLS pour te proposer une solution qui garde la page 1 globale tout en filtrant le niveau “point de contrôle” par établissement.
+1. Contexte et objectifs
 
-Réflexion durant 13s
+Dans le cadre du suivi du RAF trimestriel, plusieurs indicateurs sont analysés afin d’évaluer la situation des établissements et d’identifier d’éventuels signaux de vigilance.
 
-Oui, mais pas directement sur une seule partie de la même table si cette table _Data alimente aussi la page globale.
+Ces indicateurs reposent principalement sur des données déclaratives transmises par les établissements, qui sont collectées, consolidées et analysées afin de produire une vision d’ensemble à l’échelle des réseaux.
 
-Dans Power BI, le RLS filtre des lignes du modèle, pas une page ou un visuel en particulier. Donc si tu mets le RLS directement sur _Data, ta page 1 “monitoring global” sera aussi filtrée pour chaque établissement. Microsoft précise bien que le RLS agit au niveau ligne et ne permet pas de restreindre seulement certains objets/pages.
+Le projet vise à concevoir un dispositif permettant :
 
-La bonne solution dans ton cas :
+d’automatiser la collecte des données déclaratives des établissements,
 
-Ce qu’il faut faire
-1. Garder une table pour le global
+de consolider et contrôler les informations transmises,
 
-Tu conserves une table pour la page 1, par exemple :
+de structurer les données afin de permettre leur analyse,
 
-_Data_Global
+de restituer les indicateurs dans un tableau de bord interactif.
 
-Cette table sert au monitoring global visible par tous les établissements.
+Le tableau de bord a été développé dans l’environnement de visualisation de données Microsoft Power BI et est structuré par indicateur : chaque page présente un indicateur spécifique pour l’ensemble des établissements appartenant aux deux réseaux.
 
-Elle peut contenir :
+Pour chaque indicateur, les informations suivantes sont présentées :
 
-établissement
+la valeur observée pour chaque établissement,
 
-contrôle
+les seuils de référence permettant d’évaluer la situation de l’établissement,
 
-trimestre
+les valeurs historiques trimestrielles.
 
-indicateurs agrégés
+Contrairement à d’autres dispositifs analytiques reposant sur un classement relatif des établissements, l’analyse repose ici sur la comparaison des valeurs observées à des seuils prédéfinis.
 
-Sans RLS.
+Deux niveaux de seuils sont utilisés :
 
-2. Créer une table détaillée pour les points de contrôle
+un seuil d’observation, correspondant à un niveau nécessitant une vigilance particulière,
 
-Tu utilises une autre table, par exemple :
+un seuil de résilience, correspondant à un niveau critique.
 
-_Data_Detail
+Ces seuils permettent d’identifier les situations nécessitant une attention renforcée.
 
-Avec :
+2. État de l’art
 
-établissement
+Les outils de Business Intelligence permettent aujourd’hui de concevoir des tableaux de bord interactifs facilitant l’analyse de données.
 
-contrôle
+Les solutions telles que Power BI proposent des fonctionnalités permettant :
 
-trimestre
+la création de tableaux dynamiques,
 
-point de contrôle
+la représentation graphique des indicateurs,
 
-statut / écart / commentaire / etc.
+la visualisation de données géographiques.
 
-C’est sur cette table-là que tu appliques le RLS.
+Cependant, l’analyse des indicateurs du RAF trimestriel nécessite la mise en œuvre d’un dispositif combinant plusieurs fonctionnalités :
 
-3. Créer une table de sécurité
+la collecte et la consolidation de données déclaratives provenant de nombreux établissements,
 
-Exemple :
+la comparaison des indicateurs à des seuils de référence,
 
-Security_Etab
+la visualisation géographique des établissements,
 
-Mail	Etablissement
-a@bpce.fr
-	CEIDF
-b@bpce.fr
-	CEPAC
+l’analyse de l’évolution historique des indicateurs.
 
-Relation :
+Les fonctionnalités standards des outils de visualisation ne permettent pas toujours d’intégrer efficacement ces différentes dimensions dans un même dispositif, ce qui nécessite la mise en œuvre d’une architecture spécifique de traitement et de restitution des données.
 
-Security_Etab[Etablissement] → _Data_Detail[Etablissement]
+3. Verrous scientifiques et techniques
 
-Puis dans le rôle RLS, filtre sur la table sécurité :
+La conception du dispositif a fait apparaître plusieurs difficultés techniques nécessitant des travaux de conception spécifiques.
 
-Security_Etab[Mail] = USERPRINCIPALNAME()
+Collecte et structuration des données déclaratives
 
-USERPRINCIPALNAME() est bien la fonction standard pour faire du RLS dynamique par utilisateur connecté.
+Les données nécessaires à la production des indicateurs sont issues de déclarations transmises par les établissements.
 
-Résultat attendu
-Page 1 — Monitoring global
+Ces données doivent être collectées de manière homogène afin de permettre leur exploitation dans les systèmes d’analyse.
 
-Source = _Data_Global
-Donc :
+Il était donc nécessaire de concevoir un mécanisme permettant de générer automatiquement les maquettes de collecte de données, tout en garantissant la cohérence des informations attendues.
 
-tous les établissements voient les chiffres globaux
+Consolidation et contrôle des données transmises
 
-pas de restriction
+Les données collectées auprès des établissements peuvent présenter des différences de structure ou des incohérences.
 
-Page 2 / détail point de contrôle
+Il était donc nécessaire de mettre en place un processus permettant :
 
-Source = _Data_Detail
-Donc :
+de consolider les données provenant de plusieurs établissements,
 
-chaque utilisateur ne voit que son établissement
+de vérifier leur cohérence,
 
-filtre dynamique via son mail
+de contrôler leur complétude.
 
-Très important
+La mise en œuvre de ces mécanismes de contrôle constitue un enjeu important pour garantir la fiabilité des indicateurs produits.
 
-Si tu gardes une seule table _Data pour tout :
+Représentation visuelle des dépassements de seuils
 
-soit tout est filtré
+Un autre enjeu consistait à représenter de manière synthétique les situations dans lesquelles les indicateurs dépassent les seuils définis.
 
-soit rien n’est filtré
+Il était nécessaire de mettre en place une visualisation permettant d’identifier rapidement :
 
-Tu ne pourras pas faire :
+les situations normales,
 
-page 1 non filtrée
+les situations dépassant le seuil d’observation,
 
-page 2 filtrée
+les situations dépassant le seuil de résilience.
 
-avec la même fact table soumise au RLS.
+La représentation géographique des établissements constituait également un élément important pour faciliter l’analyse de la répartition des dépassements de seuils sur le territoire.
 
-Architecture recommandée
+4. Travaux de recherche et développement réalisés
+Automatisation de la génération des maquettes de collecte
 
-Dim_Etablissement
+Afin de structurer la collecte des données déclaratives, un dispositif permettant de générer automatiquement les maquettes de collecte a été développé.
 
-Dim_Controle
+Ces maquettes sont produites sous forme de fichiers Excel générés automatiquement à l’aide d’un workflow développé dans Alteryx et d’une macro développée en Visual Basic for Applications.
 
-Dim_Trimestre
+Cette automatisation permet de garantir une structure homogène des données collectées auprès des établissements.
 
-_Data_Global → pour le monitoring commun
+Consolidation automatisée des données
 
-_Data_Detail → pour les points de contrôle
+Une fois les données transmises par les établissements, un workflow Alteryx permet de consolider les retours et d’effectuer plusieurs contrôles :
 
-Security_Etab → pour le mapping mail / établissement
+consolidation des données provenant des différents établissements,
 
-Et le RLS ne doit propager que vers _Data_Detail.
+vérification de la cohérence des informations transmises,
+
+contrôle de la complétude des données.
+
+Ces traitements permettent de produire un jeu de données consolidé et structuré.
+
+Constitution du fichier historique de données
+
+Les données consolidées issues des workflows Alteryx alimentent un fichier Excel dédié à la conservation de l’historique des indicateurs.
+
+Ce fichier, appelé data histo, constitue la source de données utilisée pour alimenter le tableau de bord développé dans Power BI.
+
+Il permet notamment de conserver les valeurs historiques des indicateurs afin de faciliter l’analyse de leur évolution dans le temps.
+
+Développement des visualisations analytiques
+
+Le tableau de bord développé dans Power BI permet de restituer les indicateurs sous différentes formes :
+
+des tableaux présentant les valeurs observées pour chaque établissement,
+
+la comparaison des valeurs aux seuils d’observation et de résilience,
+
+l’évolution historique des indicateurs.
+
+Une visualisation cartographique personnalisée a également été développée afin de représenter la répartition des établissements sur le territoire et d’identifier les situations de dépassement de seuils grâce à un code couleur spécifique.
+
+5. Résultats obtenus
+
+Les travaux réalisés ont permis de mettre en place un dispositif automatisé de production et de restitution des indicateurs du RAF trimestriel.
+
+Le système développé permet :
+
+d’automatiser la génération des maquettes de collecte des données,
+
+de consolider les données transmises par les établissements,
+
+de vérifier la cohérence et la complétude des informations collectées,
+
+de restituer les indicateurs dans un tableau de bord interactif.
+
+Le tableau de bord est organisé par indicateur et présente les informations pour l’ensemble des établissements des deux réseaux.
+
+Les visualisations développées permettent d’identifier rapidement les situations de dépassement de seuils et d’analyser leur répartition géographique.
+
+6. Contributions et perspectives
+
+Le projet a permis de développer un dispositif complet de collecte, de consolidation et de restitution des indicateurs du RAF trimestriel.
+
+Les principales contributions techniques concernent :
+
+l’automatisation de la génération des maquettes de collecte,
+
+la consolidation et le contrôle automatisé des données déclaratives,
+
+la structuration des données historiques,
+
+le développement de visualisations analytiques facilitant l’analyse des indicateurs.
+
+Ce dispositif constitue une base permettant d’étendre l’analyse à d’autres indicateurs ou d’intégrer de nouvelles sources de données dans les dispositifs de suivi des établissements.
+
 
 Formule RLS
 
