@@ -1,3 +1,123 @@
+Oui — ça veut dire que ton drillthrough contourne ton montage, ou plus précisément que la page 2 n’est pas 100% alimentée par le circuit sécurisé.
+
+Si tu fais View as = BPACA et qu’en cliquant BPBFC tu vois quand même les détails, alors en pratique il y a un des problèmes suivants :
+	1.	la page 2 utilise encore une table non sécurisée
+	2.	le champ drillthrough vient du circuit global
+	3.	le RLS ne se propage pas jusqu’à la table détail
+	4.	le visuel affiche une mesure/colonne qui ignore le filtre établissement
+	5.	la page 2 mélange global + détail sécurisé
+
+Le drillthrough transmet juste un filtre de contexte vers la page cible ; il ne remplace pas le RLS. Donc si la page 2 est bien construite sur des tables sécurisées, un utilisateur BPACA qui clique sur BPBFC devrait voir une page vide ou au minimum aucun détail BPBFC autorisé.  ￼
+
+Ce que ça veut dire dans ton cas
+
+Si tu vois les “détails”, alors la page 2 lit sûrement depuis :
+	•	_Data_Global
+	•	ou une dimension établissement non sécurisée
+	•	ou une table qui n’est pas dans le chemin du RLS
+
+Le RLS n’agit que via les relations actives du modèle. Si ton visuel page 2 n’est pas branché sur ce chemin, il affichera quand même les lignes.  ￼
+
+Règle absolue pour la page 2
+
+La page 2 doit utiliser uniquement :
+	•	Security_UserEtab
+	•	Dim_Etablissement_Sec
+	•	_Data_Detail
+
+et rien d’autre pour les champs de détail.
+
+Donc :
+	•	le champ Etablissement affiché sur la page 2 doit venir de Dim_Etablissement_Sec
+	•	les colonnes de détail doivent venir de _Data_Detail
+	•	aucune colonne de _Data_Global ne doit être utilisée sur la page 2
+
+Sinon tu peux afficher des données hors RLS.
+
+⸻
+
+Test très simple à faire
+
+Sur la page 2, mets temporairement un tableau avec seulement :
+	•	Dim_Etablissement_Sec[Etablissement]
+	•	_Data_Detail[PointControle]
+
+Puis fais :
+	•	View as BPACA
+	•	drillthrough sur BPBFC
+
+Résultat attendu :
+
+tu dois voir vide.
+
+Si ce tableau montre encore BPBFC, alors :
+	•	soit le RLS ne filtre pas _Data_Detail
+	•	soit la relation sécurité est mal configurée
+
+⸻
+
+Vérifie aussi le champ dans “Drillthrough filters”
+
+Sur la page 2, dans la zone Drillthrough, il faut mettre :
+	•	Dim_Etablissement_Sec[Etablissement]
+
+et pas :
+	•	_Data_Global[Etablissement]
+	•	Dim_Etablissement_Global[Etablissement]
+
+Sinon tu envoies un filtre depuis le mauvais circuit. Le drillthrough repose bien sur le champ déposé dans la zone dédiée de la page cible.  ￼
+
+⸻
+
+Vérifie la propagation sécurité
+
+Ton modèle sécurisé doit ressembler à ça :
+	•	Security_UserEtab[Mail]
+	•	Security_UserEtab[Etablissement]
+	•	Dim_Etablissement_Sec[Etablissement]
+	•	_Data_Detail[Etablissement]
+
+Avec :
+	•	Dim_Etablissement_Sec → _Data_Detail
+	•	lien entre Security_UserEtab et Dim_Etablissement_Sec
+
+
+LOWER(Security_UserEtab[Mail]) = LOWER(USERPRINCIPALNAME())
+Page 1
+	•	établissement depuis Dim_Etablissement_Nav
+	•	mesures depuis _Data_Global
+
+Page 2
+	•	drillthrough sur Dim_Etablissement_Nav[Etablissement]
+	•	visuels uniquement depuis _Data_Detail
+
+⸻
+
+Check-list ultra concrète
+	1.	Créer Security_UserEtab
+	2.	Créer Dim_Etablissement_Nav
+	3.	Relier Dim_Etablissement_Nav aux 3 tables
+	4.	Créer le rôle RLS sur Security_UserEtab
+	5.	Tester View as sur un tableau sécurité
+	6.	Construire page 1 avec établissement depuis Dim_Etablissement_Nav
+	7.	Construire page 2 uniquement avec _Data_Detail
+	8.	Mettre Dim_Etablissement_Nav[Etablissement] dans Drillthrough
+	9.	Tester BPACA → BPACA
+	10.	Tester BPACA → BPBFC = vide
+
+Si tu veux, je peux maintenant te donner le schéma exact en pseudo-modèle Power BI avec les flèches une par une, en mode très visuel.
+
+
+
+
+
+
+
+
+
+
+
+
 1. Contexte et objectifs
 
 Dans le cadre du suivi du RAF trimestriel, plusieurs indicateurs sont analysés afin d’évaluer la situation des établissements et d’identifier d’éventuels signaux de vigilance.
