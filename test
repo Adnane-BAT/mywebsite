@@ -1,3 +1,9 @@
+Les groupes Active Directory ont été créés afin de structurer et sécuriser l’accès au workflow, en centralisant la gestion des habilitations par établissement.
+	•	Chaque établissement est propriétaire de son groupe AD et est responsable de la gestion de ses membres (ajout, suppression, mise à jour), garantissant ainsi l’autonomie et la fiabilité des accès.
+	•	Ce dispositif permet d’assurer une gouvernance claire des droits, tout en facilitant l’intégration des utilisateurs aux outils (Power BI, Power Apps, Power Automate) de manière standardisée et contrôlée.
+
+
+
 Oui — ça veut dire que ton drillthrough contourne ton montage, ou plus précisément que la page 2 n’est pas 100% alimentée par le circuit sécurisé.
 
 Si tu fais View as = BPACA et qu’en cliquant BPBFC tu vois quand même les détails, alors en pratique il y a un des problèmes suivants :
