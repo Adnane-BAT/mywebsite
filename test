@@ -1,12 +1,134 @@
-
-Bonjour,
-
-Nous vous informons que les établissements ont finalisé la validation des segments dans le cadre du dispositif de contrôle permanent.
-
-À ce jour, l’ensemble des segments validés a été consolidé et est désormais disponible pour consultation. Ces validations reflètent les retours des établissements suite aux revues effectuées sur les dossiers concernés.
-
-👉 Les segments validés peuvent être considérés comme conformes au regard des contrôles réalisés et ne nécessitent pas d’actions complémentaires à ce stade.
-
-Nous restons bien entendu disponibles pour toute question ou précision, et poursuivons le suivi des éventuels écarts identifiés sur les autres périmètres.
-
-Cordialement,
+{
+    "statusCode": 200,
+    "headers": {
+        "Cache-Control": "max-age=0, private",
+        "Transfer-Encoding": "chunked",
+        "Vary": "Origin,Accept-Encoding",
+        "X-NetworkStatistics": "0,4194720,0,0,53435,21237,21237,3523",
+        "X-SharePointHealthScore": "1",
+        "X-MS-SPConnector": "1",
+        "X-SP-SERVERSTATE": "ReadOnly=0",
+        "DATASERVICEVERSION": "3.0",
+        "SPClientServiceRequestDuration": "162",
+        "IsOCDI": "0",
+        "X-DataBoundary": "EU",
+        "X-1DSCollectorUrl": "https://eu-mobile.events.data.microsoft.com/OneCollector/1.0/",
+        "X-AriaCollectorURL": "https://eu-mobile.events.data.microsoft.com/Collector/3.0/",
+        "SPRequestGuid": "07dd3006-e9d8-4ed7-b535-c9feac6e9fa2",
+        "request-id": "07dd3006-e9d8-4ed7-b535-c9feac6e9fa2",
+        "MS-CV": "ogWmsH8AAQBzZqFF6XMJnw.0",
+        "SPLogId": "b0a605a2-007f-0001-7366-a145e973099f",
+        "Alt-Svc": "h3=\":443\"",
+        "Strict-Transport-Security": "max-age=31536000",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Content-Security-Policy": "frame-ancestors 'self' teams.microsoft.com *.teams.microsoft.com *.skype.com *.teams.microsoft.us local.teams.office.com teams.cloud.microsoft *.office365.com goals.cloud.microsoft *.powerapps.com *.powerbi.com *.yammer.com engage.cloud.microsoft word.cloud.microsoft excel.cloud.microsoft powerpoint.cloud.microsoft *.officeapps.live.com *.office.com *.microsoft365.com m365.cloud.microsoft *.cloud.microsoft *.stream.azure-test.net *.dynamics.com *.microsoft.com onedrive.live.com *.onedrive.live.com securebroker.sharepointonline.com;",
+        "MicrosoftSharePointTeamServices": "16.0.0.27118",
+        "X-Content-Type-Options": "nosniff",
+        "X-MS-InvokeApp": "1; RequireReadOnly",
+        "P3P": "CP=\"ALL IND DSP COR ADM CONo CUR CUSo IVAo IVDo PSA PSD TAI TELo OUR SAMo CNT COM INT NAV ONL PHY PRE PUR UNI\"",
+        "X-AspNet-Version": "4.0.30319",
+        "X-Powered-By": "ASP.NET",
+        "x-ms-environment-id": "7dd6948d-989b-e9aa-9a6c-b18b8bcae14f",
+        "x-ms-tenant-id": "d5bb6d35-8a82-4329-b49a-5030bd6497ab",
+        "x-ms-subscription-id": "7dd6948d-989b-e9aa-9a6c-b18b8bcae14f",
+        "x-ms-dlp-re": "-|-",
+        "x-ms-dlp-gu": "-|-",
+        "x-ms-dlp-ef": "-|-/-|-|-|-",
+        "x-ms-mip-sl": "-|-|-|-",
+        "x-ms-au-creator-id": "9342eedb-ab1c-4f8f-bee5-7dc7b34b0aa3",
+        "Timing-Allow-Origin": "*",
+        "x-ms-apihub-cached-response": "false",
+        "x-ms-apihub-obo": "false",
+        "Date": "Wed, 01 Apr 2026 08:52:08 GMT",
+        "Content-Type": "application/json; charset=utf-8",
+        "Expires": "Tue, 17 Mar 2026 08:52:08 GMT",
+        "Last-Modified": "Wed, 01 Apr 2026 08:52:08 GMT",
+        "Content-Length": "3239"
+    },
+    "body": {
+        "value": [
+            {
+                "@odata.etag": "\"3\"",
+                "ItemInternalId": "7",
+                "ID": 7,
+                "Title": "NON",
+                "field_1": "BPACA",
+                "field_2": 1,
+                "field_3": "A définir",
+                "field_4": "Campagne_2025 T1 CRED",
+                "field_5": "Crédit à la consommation",
+                "field_6": "T1 2025",
+                "field_7": "CRED.65.03.03.00",
+                "field_8": 10,
+                "field_9": "01/01/2025 00:00;2024-12-31T23:00:00Z",
+                "field_10": "31/03/2025 00:00;2025-03-30T22:00:00Z",
+                "field_11": "Non",
+                "field_12": "0805324 > GPR09156940 > Top 5 Montants",
+                "field_13": "BPCE SC",
+                "field_14": "Nathalie JULIENNE (njulienne) {Superviseur N2}",
+                "field_15": "CRED.65.03.03.03",
+                "field_16": "Le dossier est exempt d’incident de compte significatif sur les 6 mois précédent l’octroi ?",
+                "field_17": "Simple",
+                "field_18": "OUI/NON",
+                "field_19": 0,
+                "field_23": "Nathalie JULIENNE (njulienne) {Superviseur N2}",
+                "field_24": "GPR09156940",
+                "field_25": "NON",
+                "field_26": "OUI",
+                "field_27": "OUI",
+                "field_28": "X",
+                "field_29": "NON",
+                "field_30": 1,
+                "field_31": "Aucun incident n'apparait dans l'historique du client.",
+                "field_33": 1,
+                "field_34": "BP",
+                "field_36": "Validé",
+                "field_39": "Souscription du prêt le 15/09/2024<br>Dépassement d'autorisation 30j consécutif du 18/07/2024 au 12/08/2024<br>Arriérés A1 du 03/08/2024 au 12/08/2024<br><br>Piste d'audit disponible",
+                "field_40": "X",
+                "field_41": "CRED.65.03.03.03-T1 2025-0805324 > GPR09156940 > Top 5 Montants",
+                "Modified": "2026-03-30T16:40:38Z",
+                "Created": "2026-03-30T16:29:08Z",
+                "Author": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|adnane.bachirahltaleb_ext@bpce.fr",
+                    "DisplayName": "BACHIR AHL TALEB ADNANE (EXT)",
+                    "Email": "Adnane.BACHIRAHLTALEB_ext@bpce.fr",
+                    "Picture": "https://groupebpce.sharepoint.com/sites/TableaudeborddescontrlespermanentsLOD2.2delaDRG/_layouts/15/UserPhoto.aspx?Size=L&AccountName=Adnane.BACHIRAHLTALEB_ext@bpce.fr",
+                    "Department": "Contrôle Permanent des Risques",
+                    "JobTitle": null
+                },
+                "Author#Claims": "i:0#.f|membership|adnane.bachirahltaleb_ext@bpce.fr",
+                "Editor": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    "Claims": "i:0#.f|membership|adnane.bachirahltaleb_ext@bpce.fr",
+                    "DisplayName": "BACHIR AHL TALEB ADNANE (EXT)",
+                    "Email": "Adnane.BACHIRAHLTALEB_ext@bpce.fr",
+                    "Picture": "https://groupebpce.sharepoint.com/sites/TableaudeborddescontrlespermanentsLOD2.2delaDRG/_layouts/15/UserPhoto.aspx?Size=L&AccountName=Adnane.BACHIRAHLTALEB_ext@bpce.fr",
+                    "Department": "Contrôle Permanent des Risques",
+                    "JobTitle": null
+                },
+                "Editor#Claims": "i:0#.f|membership|adnane.bachirahltaleb_ext@bpce.fr",
+                "{Identifier}": "Lists%252ftest_NewMAJ%252f7_.000",
+                "{IsFolder}": false,
+                "{Thumbnail}": {
+                    "Large": null,
+                    "Medium": null,
+                    "Small": null
+                },
+                "{Link}": "https://groupebpce.sharepoint.com/sites/TableaudeborddescontrlespermanentsLOD2.2delaDRG/_layouts/15/listform.aspx?PageType=4&ListId=b038b1bb%2Dba21%2D429a%2Da6f7%2D07ecb50adc31&ID=7&ContentTypeID=0x0100D8771EFDE2F27742B2C643FE06F9C982",
+                "{Name}": "NON",
+                "{FilenameWithExtension}": "NON",
+                "{Path}": "Lists/test_NewMAJ/",
+                "{FullPath}": "Lists/test_NewMAJ/7_.000",
+                "{ContentType}": {
+                    "@odata.type": "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedContentType",
+                    "Id": "0x0100D8771EFDE2F27742B2C643FE06F9C982",
+                    "Name": "Item"
+                },
+                "{ContentType}#Id": "0x0100D8771EFDE2F27742B2C643FE06F9C982",
+                "{HasAttachments}": false,
+                "{VersionNumber}": "3.0"
+            }
+        ]
+    }
+}
