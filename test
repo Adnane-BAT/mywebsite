@@ -1,35 +1,3 @@
-
-Filter Flag Statut confirmation N2.1 =
-VAR currentClassification =
-    SELECTEDVALUE(SlicerStatutConfirmation[Statut de confirmation N2.1])
-
-VAR nbEcartOui =
-    CALCULATE(
-        COUNTROWS(_DATA),
-        _DATA[Ecart Réponse N2.1 vs N2.2 Nouveau] = "OUI"
-    )
-
-VAR nbEcartNon =
-    CALCULATE(
-        COUNTROWS(_DATA),
-        _DATA[Ecart Réponse N2.1 vs N2.2 Nouveau] IN {"NON","N/A"}
-    )
-
-VAR nbStatutVide =
-    CALCULATE(
-        COUNTROWS(_DATA),
-        ISBLANK(_DATA[Statut de confirmation N2.1])
-    )
-
-RETURN
-SWITCH(
-    TRUE(),
-
-    nbEcartOui > 0 && nbStatutVide = 0 && currentClassification = "À valider", 1,
-
-    nbEcartNon > 0 && nbStatutVide = 0 && currentClassification = "Validé", 1,
-
-    currentClassification = "All", 1,
-
-    0
-)
+{
+  "text": "@{concat(items('Apply_to_each')?['nomContributeur'], ' : ', items('Apply_to_each')?['Commentaire'])}"
+}
