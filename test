@@ -1,3 +1,14 @@
-{
-  "text": "@{concat(items('Apply_to_each')?['nomContributeur'], ' : ', items('Apply_to_each')?['Commentaire'])}"
-}
+Points clés à retenir :
+•	Objectif : reproduire la logique workflow des contrôles dossiers de crédit pour les QS
+•	Planning serré avec présentation finale le 15/04
+•	Focus sur l'ergonomie utilisateur pour les établissements
+
+
+CE QU'ON A DÉCIDÉ
+•	Pas de d’envoie de mail pour les pièces justificatif, le dépôt se fait directement dans l'app → Lien vers le kiosque
+•	Pièces jointes non obligatoires → Les établissements peuvent justifier sans document
+•	Questions une par une ou en masse → Dropdown avec validation partielle possible
+•	Réponses progressives → Message "Il vous reste X questions à valider"
+
+POURQUOI CES CHOIX
+Garder simple pour que tous les établissements utilisent l'outil (3/4 n'ont pas de problème).
