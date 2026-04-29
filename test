@@ -1,2 +1,39 @@
+Objet : RE – Consignes Workflow LOD22
+
+Bonjour à tous,
+
+Suite à mon précédent message, je vous partage les éléments de clarification concernant le workflow LOD22.
+
+🔹 1. Informations générales
+
+Suite aux tests réalisés, le fonctionnement du workflow est validé.
+Quelques ajustements ont toutefois été identifiés afin de sécuriser son utilisation et d’harmoniser les pratiques entre établissements.
+
+🔹 2. Actions attendues
+
+1. Ajout d’un message d’information dans les communications :
+
+« Vous recevez ce message car vous faites partie du groupe AD du workflow LOD22, géré par l’équipe habilitation de votre établissement. »
+
+2. Utilisation du workflow pour les échanges contradictoires (mail push)
+Le workflow doit être utilisé comme canal officiel pour les échanges liés aux contrôles :
+
+* Cas 1 : absence d’écart
+* Cas 2 : présence d’écart
+
+⚠️ Attention : un envoi automatique de mail est déclenché lors de la validation.
+
+3. Gestion des retours établissements
+En cas de remarques ou de plaintes liées à ces envois, un argumentaire standardisé est prévu afin d’assurer une communication cohérente.
+
+⸻
+
+N’hésitez pas à me solliciter si besoin de précisions ou pour tout point complémentaire.
+
+Bien cordialement,
+Adnane BACHIR AHL TALEB
+Direction des Risques Groupe
+Process – Data
+
 DateModification ge '@{startOfDay(convertTimeZone(utcNow(),'UTC','Romance Standard Time'))}'
 and DateModification lt '@{startOfDay(addDays(convertTimeZone(utcNow(),'UTC','Romance Standard Time'),1))}'
