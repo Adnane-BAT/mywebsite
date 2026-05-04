@@ -1,54 +1,35 @@
-Bonjour,
+Statut de validation global N2.2 = 
+SWITCH(
+    TRUE(),
+    
+    // Condition 1: Si au moins une ligne a un statut de confirmation vide et "Ecart Réponse N2.1 vs N2.2 Nouveau" à Oui
+    COUNTROWS(
+        FILTER(
+            _DATA, 
+            UPPER(_DATA[Ecart Réponse N2.1 vs N2.2 Nouveau]) = "OUI" &&
+            _DATA[Statut de confirmation N2.2] = "" &&
+            _DATA[Périmètre CPR Calcul IQC] = 1 // Filtre sur Périmètre
+        )
+    ) > 0,
+    "À valider",
 
-Vous recevez ce message car vous êtes identifié comme faisant partie des acteurs concernés par le groupe AD associé au workflow LOD2.2.
+    // Condition 2: Si toutes les lignes ont un statut de confirmation non vide
+    COUNTROWS(
+        FILTER(
+            _DATA, 
+            UPPER(_DATA[Ecart Réponse N2.1 vs N2.2 Nouveau]) = "OUI" &&
+            _DATA[Périmètre CPR Calcul IQC] = 1 && // Filtre sur Périmètre
+            _DATA[Statut de confirmation N2.2] <> "" // Statut non vide
+        )
+    ) = COUNTROWS(
+        FILTER(
+            _DATA, 
+            UPPER(_DATA[Ecart Réponse N2.1 vs N2.2 Nouveau]) = "OUI" &&
+            _DATA[Périmètre CPR Calcul IQC] = 1 // Filtre sur Périmètre
 
-Dans le cadre du déploiement du dispositif de contrôle permanent et afin de garantir une gestion homogène et sécurisée des habilitations au sein des établissements, un groupe AD dédié a été mis en place. Celui-ci permet d’assurer un accès maîtrisé aux outils du workflow LOD2.2, conformément aux exigences de gouvernance et de sécurité du Groupe.
+        )
+    ),
+    "Validé",
 
-Cette communication vise à vous informer de votre rattachement potentiel à ce dispositif. Le cas échéant, les habilitations peuvent être ajustées par vos équipes habilitées (IAM / Security Group), selon votre organisation interne.
-
-Si vous ne souhaitez plus recevoir ce type de communication, nous vous invitons à vous rapprocher de vos équipes habilitées afin d’être retiré du groupe AD Workflow LOD2.2 de votre établissement.
-
-Nous restons à votre disposition pour tout complément d’information et vous remercions par avance pour votre mobilisation dans la bonne appropriation de ce dispositif.
-
-Cordialement,
-
-
-Objet : RE – Consignes Workflow LOD22
-
-Bonjour à tous,
-
-Suite à mon précédent message, je vous partage les éléments de clarification concernant le workflow LOD22.
-
-🔹 1. Informations générales
-
-Suite aux tests réalisés, le fonctionnement du workflow est validé.
-Quelques ajustements ont toutefois été identifiés afin de sécuriser son utilisation et d’harmoniser les pratiques entre établissements.
-
-🔹 2. Actions attendues
-
-1. Ajout d’un message d’information dans les communications :
-
-« Vous recevez ce message car vous faites partie du groupe AD du workflow LOD22, géré par l’équipe habilitation de votre établissement. »
-
-2. Utilisation du workflow pour les échanges contradictoires (mail push)
-Le workflow doit être utilisé comme canal officiel pour les échanges liés aux contrôles :
-
-* Cas 1 : absence d’écart
-* Cas 2 : présence d’écart
-
-⚠️ Attention : un envoi automatique de mail est déclenché lors de la validation.
-
-3. Gestion des retours établissements
-En cas de remarques ou de plaintes liées à ces envois, un argumentaire standardisé est prévu afin d’assurer une communication cohérente.
-
-⸻
-
-N’hésitez pas à me solliciter si besoin de précisions ou pour tout point complémentaire.
-
-Bien cordialement,
-Adnane BACHIR AHL TALEB
-Direction des Risques Groupe
-Process – Data
-
-DateModification ge '@{startOfDay(convertTimeZone(utcNow(),'UTC','Romance Standard Time'))}'
-and DateModification lt '@{startOfDay(addDays(convertTimeZone(utcNow(),'UTC','Romance Standard Time'),1))}'
+    BLANK()
+)
