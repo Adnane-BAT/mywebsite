@@ -1,3 +1,53 @@
+Statut de validation global N2.2 =
+VAR PointsControle =
+    FILTER(
+        _DATA,
+        UPPER(_DATA[Ecart Réponse N2.1 vs N2.2 Nouveau]) = "OUI"
+            && _DATA[Périmètre CPR Calcul IQC] = 1
+    )
+
+VAR NbPoints =
+    COUNTROWS(PointsControle)
+
+-- Points validés
+VAR NbPointsValides =
+    COUNTROWS(
+        FILTER(
+            PointsControle,
+            UPPER(_DATA[Statut de confirmation N2.2]) IN {"VALIDÉ","VALIDE"}
+        )
+    )
+
+-- Condition "En attente"
+VAR NbEnAttente =
+    COUNTROWS(
+        FILTER(
+            PointsControle,
+            UPPER(_DATA[Statut de confirmation N2.2]) = "NON VALIDÉ"
+                && (
+                    ISBLANK(_DATA[Réponse N2.1])
+                    || _DATA[Réponse N2.1] = ""
+                )
+        )
+    )
+
+RETURN
+SWITCH(
+    TRUE(),
+
+    NbPoints = 0, BLANK(),
+
+    -- 1️⃣ Tout validé
+    NbPointsValides = NbPoints, "Validé",
+
+    -- 2️⃣ Cas En attente prioritaire
+    NbEnAttente > 0, "En attente",
+
+    -- 3️⃣ Sinon
+    "À valider"
+)
+
+
 Statut de validation global N2.2 = 
 SWITCH(
     TRUE(),
