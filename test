@@ -1,3 +1,23 @@
+
+BENCHMARK_IQC =
+ADDCOLUMNS(
+    SUMMARIZE(
+        _DATA,
+        _DATA[Code Entité],
+        _DATA[Segment],
+        _DATA[Date_Arrete]
+    ),
+    "Etablissement",
+        LOOKUPVALUE(
+            'Entité'[Etablissement],
+            'Entité'[Code Entité], _DATA[Code Entité]
+        ),
+    "IQC", CALCULATE([IQC]),
+    "IQC 2.1", CALCULATE([IQC 2.1]),
+    "IQC 2.2", CALCULATE([IQC 2.2])
+)
+
+
 let
     Source = SharePoint.Files(https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/, [ApiVersion = 15]),
     #"Lignes filtrées1" = Table.SelectRows(Source, each Text.Contains([Folder Path], "2. PUITS DE DONNEES/")),
