@@ -1,3 +1,22 @@
+BENCHMARK_IQC =
+CALCULATETABLE(
+    ADDCOLUMNS(
+        ALL('Entité'[Code Entité], 'Entité'[Etablissement]),
+        "IQC", CALCULATE([IQC], ALL()),
+        "IQC 2.1", CALCULATE([IQC 2.1], ALL()),
+        "IQC 2.2", CALCULATE([IQC 2.2], ALL()),
+        "Nb Dossiers",
+            CALCULATE(
+                [Nb Dossiers],
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    _DATA[Code Entité]
+                )
+            )
+    ),
+    ALL()
+)
 
 BENCHMARK_IQC =
 ADDCOLUMNS(
