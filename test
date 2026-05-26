@@ -1,15 +1,36 @@
-{
-  "type": "Query",
-  "inputs": {
-    "from": "@outputs('Get_items')?['body/value']",
-    "where": "@greaterOrEquals(item()?['Modified'],addHours(startOfDay(convertTimeZone(utcNow(),'UTC','Romance Standard Time')),-24))"
-  },
-  "runAfter": {
-    "Get_items": [
-      "Succeeded"
-    ]
-  },
-  "metadata": {
-    "operationMetadataId": "b2e6be09-e5a4-4cc5-91f2-302677bd7412"
-  }
-}
+let
+    Source = SharePoint.Files(https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/, [ApiVersion = 15]),
+    #"Lignes filtrées1" = Table.SelectRows(Source, each Text.Contains([Folder Path], "2. PUITS DE DONNEES/")),
+    #"Lignes filtrées3" = Table.SelectRows(#"Lignes filtrées1", each ([Folder Path] =   Politiques Risques - Crédit Consommation or [Folder Path] =   Politiques Risques - Crédit Corporate or [Folder Path] =   Politiques Risques - LBO or  [Folder Path] =   Politiques Risques - Crédit Habitat or [Folder Path] =   Politiques Risques - Leverage Finance or [Folder Path] =   Politiques Risques - PIM or [Folder Path] =   Politiques Risques - PIM - Surveillance or [Folder Path] =   Politiques Risques - PIM - Encadrement or [Folder Path] =   Politiques Risques - Crédit Professionnel)),
+    #"Fichiers masqués filtrés1" = Table.SelectRows(#"Lignes filtrées3", each [Attributes]?[Hidden]? <> true),
+    #"Appeler une fonction personnalisée1" = Table.AddColumn(#"Fichiers masqués filtrés1", "Transformer le fichier", each #"Transformer le fichier"([Content])),
+    #"Colonnes renommées1" = Table.RenameColumns(#"Appeler une fonction personnalisée1", {"Name", "Source.Name"}),
+    #"Autres colonnes supprimées1" = Table.SelectColumns(#"Colonnes renommées1", {"Source.Name", "Transformer le fichier"}),
+    #"Transformer le fichier développé" = Table.ExpandTableColumn(#"Autres colonnes supprimées1", "Transformer le fichier", {"ARRETE", "CODE INDICATEUR", "CODE ETABLISSEMENT", "N° POINT DE CONTRÔLE", "N° PAGE POLITIQUE", "THÈME", "SOUS THÈME", "POINTS DE CONTRÔLE", "RÉPONSE (OUI/NON)", "PRÉCISION SI NON SÉLECTIONNÉ (PLUS EXIGEANT QUE LA POLITIQUE GROUPE, PRÉCISER RÈGLE APPLIQUÉE)", "PRÉCISION SI NON SÉLECTIONNÉ (CRITÈRE EN DESSOUS DE LA POLITIQUE GROUPE )", "AUTRES CRITÈRES UTILISÉS ALTERNATIVEMENT À LA POLITIQUE GROUPE", "COMMENTAIRE", "DATE", "SOURCE", "OBJET DU POINTS DE CONTRÔLE", "PRÉCISION SI NON SÉLECTIONNÉ (MOINS EXIGEANT QUE LA POLITIQUE GROUPE,PRÉCISER RÈGLE APPLIQUÉE)"}, {"ARRETE", "CODE INDICATEUR", "CODE ETABLISSEMENT", "N° POINT DE CONTRÔLE", "N° PAGE POLITIQUE", "THÈME", "SOUS THÈME", "POINTS DE CONTRÔLE", "RÉPONSE (OUI/NON)", "PRÉCISION SI NON SÉLECTIONNÉ (PLUS EXIGEANT QUE LA POLITIQUE GROUPE, PRÉCISER RÈ", "PRÉCISION SI NON SÉLECTIONNÉ (CRITÈRE EN DESSOUS DE LA POLITIQUE GROUPE )", "AUTRES CRITÈRES UTILISÉS ALTERNATIVEMENT À LA POLITIQUE GROUPE", "COMMENTAIRE", "DATE", "SOURCE", "OBJET DU POINTS DE CONTRÔLE", "PRÉCISION SI NON SÉLECTIONNÉ (MOINS EXIGEANT QUE LA POLITIQUE GROUPE,PRÉCISER RÈ"}),
+    #"Lignes filtrées" = Table.SelectRows(#"Transformer le fichier développé", each [POINTS DE CONTRÔLE] <> null and [POINTS DE CONTRÔLE] <> ""),
+    #"Colonnes renommées6" = Table.RenameColumns(#"Lignes filtrées",{{"N° POINT DE CONTRÔLE", "N° point de contrôle"}, {"N° PAGE POLITIQUE", "N° page politique"}, {"THÈME", "Thème"}, {"SOUS THÈME", "Sous thème"}, {"POINTS DE CONTRÔLE", "Points de contrôle"}, {"RÉPONSE (OUI/NON)", "Réponse (Oui/Non)"}, {"PRÉCISION SI NON SÉLECTIONNÉ (PLUS EXIGEANT QUE LA POLITIQUE GROUPE, PRÉCISER RÈ", "Précision si NON sélectionné (Plus exigeant que la politique Groupe, préciser règle appliquée)"}, {"PRÉCISION SI NON SÉLECTIONNÉ (CRITÈRE EN DESSOUS DE LA POLITIQUE GROUPE )", "Précision si NON sélectionné (Critère en dessous de la politique Groupe )"}, {"AUTRES CRITÈRES UTILISÉS ALTERNATIVEMENT À LA POLITIQUE GROUPE", "Autres critères utilisés alternativement à la politique Groupe"}, {"COMMENTAIRE", "Commentaires"}}),
+    #"Colonnes renommées5" = Table.RenameColumns(#"Colonnes renommées6",{{"CODE ETABLISSEMENT", "ETABLISSEMENT"}}),
+    #"Type modifié" = Table.TransformColumnTypes(#"Colonnes renommées5",{{"Source.Name", type text}, {"ARRETE", Int64.Type}, {"ETABLISSEMENT", type text}, {"N° point de contrôle", Int64.Type}, {"N° page politique", type text}, {"Thème", type text}, {"Sous thème", type text}, {"Points de contrôle", type text}, {"Réponse (Oui/Non)", type text}, {"Précision si NON sélectionné (Plus exigeant que la politique Groupe, préciser règle appliquée)", type any}, {"Précision si NON sélectionné (Critère en dessous de la politique Groupe )", type any}, {"Autres critères utilisés alternativement à la politique Groupe", type any}, {"Commentaires", type text}, {"SOURCE", type text}}),
+    #"Colonne conditionnelle ajoutée" = Table.AddColumn(#"Type modifié", "PERIMETRE", each if [CODE INDICATEUR] = "Politiques Risques_Crédit Corporate" then "Crédit Corporate" else if [CODE INDICATEUR] = "Politiques Risques_Crédit Consommation" then "Crédit Consommation" else if [CODE INDICATEUR] = "Politiques Risques_Crédit Habitat" then "Crédit Habitat" else if [CODE INDICATEUR] = "Politiques Risques_Leverage Finance" then "Leverage Finance" else if [CODE INDICATEUR] = "Politiques Risques_PIM" then "PIM Octroi" else if [CODE INDICATEUR] = "Politiques Risques_PIM - Encadrement et Limites" then "PIM Encadrement" else if [CODE INDICATEUR] = "Politiques Risques_PIM - Surveillance" then "PIM Surveillance" else if [CODE INDICATEUR] = "Politiques Risques_LBO" then "LBO" else if [CODE INDICATEUR] = "Politiques Risques_Crédit Professionnel" then "Crédit Professionnel" else null),
+    #"Lignes filtrées2" = Table.SelectRows(#"Colonne conditionnelle ajoutée", each true),
+    #"Type modifié2" = Table.TransformColumnTypes(#"Lignes filtrées2",{{"Précision si NON sélectionné (Plus exigeant que la politique Groupe, préciser règle appliquée)", type text}, {"Précision si NON sélectionné (Critère en dessous de la politique Groupe )", type text}, {"Autres critères utilisés alternativement à la politique Groupe", type text}}),
+    #"Colonnes renommées2" = Table.RenameColumns(#"Type modifié2",{{"Thème", "THEME"}, {"Sous thème", "SOUS-THEME"}}),
+    #"Requêtes fusionnées" = Table.NestedJoin(#"Colonnes renommées2", {"ETABLISSEMENT"}, ETB, {"Column1"}, "ETB", JoinKind.LeftOuter),
+    #"ETB développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "ETB", {"Column1", "Column2", "Column3"}, {"ETB.Column1", "ETB.Column2", "ETB.Column3"}),
+    #"Lignes filtrées5" = Table.SelectRows(#"ETB développé", each true),
+    #"Autres colonnes supprimées" = Table.SelectColumns(#"Lignes filtrées5",{"Source.Name", "ARRETE", "N° point de contrôle", "N° page politique", "THEME", "SOUS-THEME", "Points de contrôle", "Réponse (Oui/Non)", "Précision si NON sélectionné (Plus exigeant que la politique Groupe, préciser règle appliquée)", "Précision si NON sélectionné (Critère en dessous de la politique Groupe )", "Autres critères utilisés alternativement à la politique Groupe", "Commentaires","SOURCE", "OBJET DU POINTS DE CONTRÔLE", "PERIMETRE", "ETB.Column2", "ETB.Column3"}),
+    #"Colonnes renommées3" = Table.RenameColumns(#"Autres colonnes supprimées",{{"ETB.Column2", "ETABLISSEMENT"}, {"ETB.Column3", "RESEAU"}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Colonnes renommées3", "Commentaire et Précisions", each [Commentaires]& " " &[#"Précision si NON sélectionné (Plus exigeant que la politique Groupe, préciser règle appliquée)"]& " "&[#"Précision si NON sélectionné (Critère en dessous de la politique Groupe )"]),
+    #"Type modifié3" = Table.TransformColumnTypes(#"Personnalisée ajoutée",{{"Commentaire et Précisions", type text}}),
+    #"Requêtes fusionnées1" = Table.NestedJoin(#"Type modifié3", {"N° point de contrôle", "Points de contrôle"}, #"QUESTION SOUS THEME", {"N° #(lf)point de contrôle ", "Points de contrôle"}, "QUESTION SOUS THEME", JoinKind.LeftOuter),
+    #"QUESTION SOUS THEME développé" = Table.ExpandTableColumn(#"Requêtes fusionnées1", "QUESTION SOUS THEME", {"Points de contrôle"}, {"QUESTION SOUS THEME.Points de contrôle"}),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"QUESTION SOUS THEME développé", "Est un sous thème", each if [QUESTION SOUS THEME.Points de contrôle]<>null then true else false),
+    #"Colonnes supprimées" = Table.RemoveColumns(#"Personnalisée ajoutée1",{"QUESTION SOUS THEME.Points de contrôle"}),
+    #"Type modifié4" = Table.TransformColumnTypes(#"Colonnes supprimées",{{"Est un sous thème", type logical}}),
+    #"Colonnes renommées4" = Table.RenameColumns(#"Type modifié4",{{"Réponse (Oui/Non)", "Réponse brut"}}),
+    #"Personnalisée ajoutée2" = Table.AddColumn(#"Colonnes renommées4", "TH>SS TH", each [THEME] &">"&[#"SOUS-THEME"]),
+    #"Valeur remplacée" = Table.ReplaceValue(#"Personnalisée ajoutée2",". ","",Replacer.ReplaceText,{"Points de contrôle"}),
+    #"Lignes filtrées4" = Table.SelectRows(#"Valeur remplacée", each true)
+in
+    #"Lignes filtrées4"
+
