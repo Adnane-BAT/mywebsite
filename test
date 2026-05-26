@@ -1,3 +1,67 @@
+
+BENCHMARK_IQC =
+CALCULATETABLE(
+    ADDCOLUMNS(
+        ALL('Entité'[Code Entité], 'Entité'[Etablissement], 'Entité'[Libelle Reduit]),
+        "IQC", CALCULATE([IQC], ALL()),
+        "IQC 2.1", CALCULATE([IQC 2.1], ALL()),
+        "IQC 2.2", CALCULATE([IQC 2.2], ALL()),
+
+        -- Dossiers contrôlés (lien direct)
+        "Nb Dossiers Contrôlés Global",
+            CALCULATE(
+                [NbDossiersControle],
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    _DATA[Code Entité]
+                )
+            ),
+        "Nb Dossiers Contrôlés 2.1",
+            CALCULATE(
+                [NbDossiersControle 2.1],
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    _DATA[Code Entité]
+                )
+            ),
+        "Nb Dossiers Contrôlés 2.2",
+            CALCULATE(
+                [NbDossiersControle 2.2],
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    _DATA[Code Entité]
+                )
+            ),
+
+        -- IQC21 via RefSuiviTable[KEY] (lien indirect)
+        "IQC21",
+            CALCULATE(
+                SUM('IQC21'[IQC21]),
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    'RefSuiviTable'[KEY]
+                )
+            ),
+
+        -- Nb Dossiers global
+        "Nb Dossiers",
+            CALCULATE(
+                [Nb Dossiers],
+                ALL(),
+                TREATAS(
+                    VALUES('Entité'[Code Entité]),
+                    _DATA[Code Entité]
+                )
+            )
+    ),
+    ALL()
+)
+
+
 BENCHMARK_IQC =
 CALCULATETABLE(
     ADDCOLUMNS(
