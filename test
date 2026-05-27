@@ -1,4 +1,95 @@
 
+let
+    // Liste des codes contrôles depuis le paramètre SharePoint
+    ListRef = List.Buffer(pRefControle),
+
+    // Construction de la liste DAX formatée
+    ListeFormatee = 
+        "{" & 
+        Text.Combine(
+            List.Transform(ListRef, each """" & _ & """"), 
+            ","
+        ) & 
+        "}",
+
+    // Requête DAX complète
+    RequeteDAX = 
+        "DEFINE " &
+        "VAR __DS0FilterTable = " &
+            "TREATAS(" & ListeFormatee & ", 'Contrôles'[Code du contrôle]) " &
+
+        "VAR __DS0FilterTable3 = " &
+            "FILTER(" &
+                "KEEPFILTERS(VALUES('Entités'[Entité niveau 4 (code)]))," &
+                "SEARCH("".0001"", 'Entités'[Entité niveau 4 (code)], 1, 0) >= 1" &
+            ") " &
+
+        "VAR __DS0FilterTable4 = " &
+            "FILTER(" &
+                "KEEPFILTERS(VALUES('Evaluations des contrôles'[Date de fin de la période d'évaluation]))," &
+                "AND(" &
+                    "'Evaluations des contrôles'[Date de fin de la période d'évaluation] >= DATE(2025, 1, 1)," &
+                    "'Evaluations des contrôles'[Date de fin de la période d'évaluation] < (DATE(2026, 12, 31) + TIME(0, 0, 1))" &
+                ")" &
+            ") " &
+
+        "VAR __DS0Core = " &
+            "SUMMARIZECOLUMNS(" &
+                "ROLLUPADDISSUBTOTAL(" &
+                    "ROLLUPGROUP(" &
+                        "'Feuilles de travail'[Référence]," &
+                        "'Evaluations des contrôles'[Date de fin de la période d'évaluation]," &
+                        "'Points de contrôles'[Code du point de contrôle]" &
+                    "), ""IsGrandTotalRowTotal""" &
+                ")," &
+                "__DS0FilterTable," &
+                "__DS0FilterTable3," &
+                "__DS0FilterTable4," &
+                """AverageIQC_du_contrôle"", CALCULATE(AVERAGE('Evaluations des contrôles'[IQC du contrôle]))" &
+            ") " &
+
+        "EVALUATE __DS0Core " &
+
+        "ORDER BY " &
+            "[IsGrandTotalRowTotal] DESC," &
+            "'Evaluations des contrôles'[Date de fin de la période d'évaluation]," &
+            "'Points de contrôles'[Code du point de contrôle]",
+
+    // Appel SSAS
+    Source = AnalysisServices.Database(
+        pSSAS_Server, 
+        pSSAS_Database, 
+        [Query = RequeteDAX]
+    ),
+
+    // Renommage des colonnes
+    #"Renamed Columns" = Table.RenameColumns(Source, {
+        {"Feuilles de travail[Référence]", "Référence"},
+        {"Evaluations des contrôles[Date de fin de la période d'évaluation]", "Date de fin de la période d'évaluation"},
+        {"Points de contrôles[Code du point de contrôle]", "Code du point de contrôle"},
+        {"AverageIQC_du_contrôle", "IQC_du_contrôle"}
+    }),
+
+    // Suppression colonne inutile
+    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"IsGrandTotalRowTotal"}),
+
+    // Filtrage des nulls
+    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each ([#"Date de fin de la période d'évaluation"] <> null)),
+
+    // Ajout colonne trimestre
+    #"Added Arrete" = Table.AddColumn(#"Filtered Rows", "Evaluation (trimestre)", 
+        each "T" & Number.ToText(Date.QuarterOfYear([#"Date de fin de la période d'évaluation"])))
+
+in
+    #"Added Arrete"
+
+
+
+
+
+
+
+
 BENCHMARK_IQC =
 CALCULATETABLE(
     ADDCOLUMNS(
