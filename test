@@ -1,3 +1,57 @@
+createOrReplace
+
+function RangIndPrec = ```
+    (indicateur, reseau, Sens) =>
+
+        VAR resultat =
+            IF(
+                indicateur IN {"RC27", "RC31", "RC38", "RC40", "TX6", "TX7", "TX8", "RM4", "RC1a", "RC1b", "NF3a", "NF3b"},
+                BLANK(),
+
+                IF(
+                    Sens = 1,
+                    RANKX(
+                        FILTER(
+                            ALL(_DIM_ENTITE),
+                            _DIM_ENTITE[CODE RESEAU] = reseau
+                                && NOT _DIM_ENTITE[CODE] IN {"RBP", "RCE"}
+                        ),
+                        CALCULATE(
+                            SUMX(RELATEDTABLE(_FACT_VALEURS), _FACT_VALEURS[VALEUR]),
+                            FILTER(
+                                ALL(DIM_DATE),
+                                DIM_DATE[Année] = SELECTEDVALUE(DIM_DATE[Année]) - 1
+                                    && DIM_DATE[Trimestre] = SELECTEDVALUE(DIM_DATE[Trimestre])
+                            )
+                        ),
+                        ,
+                        DESC, Skip
+                    ),
+                    RANKX(
+                        FILTER(
+                            ALL(_DIM_ENTITE),
+                            _DIM_ENTITE[CODE RESEAU] = reseau
+                                && NOT _DIM_ENTITE[CODE] IN {"RBP", "RCE"}
+                        ),
+                        CALCULATE(
+                            SUMX(RELATEDTABLE(_FACT_VALEURS), _FACT_VALEURS[VALEUR]),
+                            FILTER(
+                                ALL(DIM_DATE),
+                                DIM_DATE[Année] = SELECTEDVALUE(DIM_DATE[Année]) - 1
+                                    && DIM_DATE[Trimestre] = SELECTEDVALUE(DIM_DATE[Trimestre])
+                            )
+                        ),
+                        ,
+                        ASC, Skip
+                    )
+                )
+            )
+
+        RETURN resultat
+
+
+
+
 
 let
     // Liste des codes contrôles depuis le paramètre SharePoint
