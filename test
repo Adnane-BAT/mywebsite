@@ -1,8 +1,82 @@
 @echo off
+setlocal EnableDelayedExpansion
+
+REM =====================================================
+REM PARAMETRES
+REM =====================================================
+
+set "SOURCE=\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2\Output"
+set "DESTINATION=\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2"
+
+set "LOGDIR=C:\Logs\WorkflowControlePermanent"
+
+REM =====================================================
+REM CREATION DOSSIER LOG
+REM =====================================================
+
+if not exist "%LOGDIR%" (
+    mkdir "%LOGDIR%"
+)
+
+REM =====================================================
+REM DATE DU JOUR POUR NOM DU LOG
+REM =====================================================
+
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set DATETIME=%%i
+
+set "LOGFILE=%LOGDIR%\Workflow_%DATETIME%.log"
+
+echo ===================================================== >> "%LOGFILE%"
+echo DEBUT EXECUTION : %DATE% %TIME% >> "%LOGFILE%"
+echo ===================================================== >> "%LOGFILE%"
+echo. >> "%LOGFILE%"
+
+echo.
+echo ==========================================
+echo Debut synchronisation
+echo ==========================================
+
+REM =====================================================
+REM COPIE INCREMENTALE
+REM =====================================================
 
 robocopy ^
-"\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2\Output" ^
-"\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2" ^
-/E /XO /R:1 /W:1 /LOG+:C:\Logs\workflow.log
+"%SOURCE%" ^
+"%DESTINATION%" ^
+/E ^
+/XO ^
+/FFT ^
+/Z ^
+/R:3 ^
+/W:5 ^
+/TEE ^
+/NP ^
+/LOG+:"%LOGFILE%"
 
-exit /b %ERRORLEVEL%
+set RC=%ERRORLEVEL%
+
+echo. >> "%LOGFILE%"
+echo Code retour Robocopy : %RC% >> "%LOGFILE%"
+
+REM =====================================================
+REM INTERPRETATION CODE RETOUR
+REM =====================================================
+
+if %RC% LEQ 7 (
+    echo Synchronisation terminee avec succes >> "%LOGFILE%"
+    echo.
+    echo ==========================================
+    echo Synchronisation terminee avec succes
+    echo ==========================================
+    exit /b 0
+)
+
+echo ERREUR lors de la synchronisation >> "%LOGFILE%"
+echo.
+echo ==========================================
+echo ECHEC DE LA SYNCHRONISATION
+echo Voir le log :
+echo %LOGFILE%
+echo ==========================================
+
+exit /b %RC%
