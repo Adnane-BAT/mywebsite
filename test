@@ -1,0 +1,8 @@
+@echo off
+
+robocopy ^
+"\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2\Output" ^
+"\\bpce-res.fr\data\DRG\Controle_permanent_des_risques\15. Projets\Outil WF 2.2" ^
+/E /XO /R:1 /W:1 /LOG+:C:\Logs\workflow.log
+
+exit /b %ERRORLEVEL%
