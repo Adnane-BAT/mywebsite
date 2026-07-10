@@ -1,3 +1,23 @@
+foreach (var m in Model.AllMeasures)
+{
+    if (!m.IsHidden && string.IsNullOrEmpty(m.FormatString))
+    {
+        string n = m.Name.ToLower();
+
+        if (n.Contains("%") || n.Contains("taux") || n.Contains("pourcentage") || n.Contains("ratio"))
+            m.FormatString = "0.0%";
+        else if (n.Contains("montant") || n.Contains("€") || n.Contains("euro") || n.Contains("cout") || n.Contains("coût"))
+            m.FormatString = "#,##0 €";
+        else if (n.Contains("nb") || n.Contains("nombre") || n.Contains("count") || n.Contains("compte"))
+            m.FormatString = "#,##0";
+        else
+            m.FormatString = "#,##0.00";
+    }
+}
+
+
+
+
 #!/bin/bash
 
 # =====================================================
