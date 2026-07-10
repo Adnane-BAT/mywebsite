@@ -1,3 +1,240 @@
+
+Pour une première réunion de cadrage / passation avec l’IT qui a développé Risk-Flow, ton objectif n’est pas de parler solution immédiatement. Il faut comprendre :
+
+1. Pourquoi le projet a été créé
+2. Comment il fonctionne réellement
+3. Pourquoi les utilisateurs se plaignent
+4. Ce qui est réutilisable
+5. Ce qui doit être refait
+
+D’après les slides, je vois déjà plusieurs signaux d’alerte :
+
+* Ergonomie faible
+* Gestion des contributeurs complexe
+* Affectation des chapitres erronée
+* Dépendance à Word partagé
+* Paramétrage lourd
+* Notifications excessives
+* Impossibilité de relancer facilement
+* Gestion des habilitations compliquée
+
+Donc la réunion doit être orientée REX (retour d’expérience).
+
+⸻
+
+Agenda de la réunion (1h30)
+
+1. Contexte (10 min)
+
+Questions :
+
+* Quel était l’objectif initial du projet ?
+* Quel problème métier devait être résolu ?
+* Qui était le sponsor ?
+* Quels utilisateurs étaient visés ?
+
+Livrable :
+
+➡ Comprendre la vision initiale.
+
+⸻
+
+2. Architecture de la solution (15 min)
+
+Demander un schéma complet.
+
+Questions :
+
+* Quels composants composent la solution ?
+    * Power Apps ?
+    * SharePoint ?
+    * Power Automate ?
+    * SQL ?
+    * Word ?
+    * Teams ?
+* Où sont stockées les données ?
+* Combien de listes SharePoint ?
+* Existe-t-il des flux Power Automate ?
+* Existe-t-il des développements spécifiques ?
+* Quelle est la volumétrie actuelle ?
+
+⸻
+
+3. Parcours utilisateur (15 min)
+
+Faire dérouler un cas réel.
+
+Demander :
+
+Contributeur
+
+* Comment reçoit-il sa tâche ?
+* Comment contribue-t-il ?
+* Comment soumet-il ?
+
+Valideur N1
+
+* Comment valide-t-il ?
+* Comment refuse-t-il ?
+
+Valideur N2
+
+* Quel est son rôle exact ?
+
+Administrateur
+
+* Que doit-il paramétrer ?
+
+⸻
+
+4. Retours d’expérience (20 min)
+
+La partie la plus importante.
+
+Questions :
+
+Ce qui a marché
+
+* Quelles fonctionnalités sont utilisées aujourd’hui ?
+* Quelles fonctionnalités ont été appréciées ?
+
+Ce qui n’a pas marché
+
+* Quels tickets reviennent le plus souvent ?
+* Quels sont les irritants majeurs ?
+* Quels sont les contournements mis en place ?
+
+Adoption
+
+* Taux d’utilisation ?
+* Taux d’abandon ?
+* Nombre d’utilisateurs ?
+
+⸻
+
+5. Technique et maintenance (15 min)
+
+Questions :
+
+Déploiement
+
+* Comment est déployée l’application ?
+
+Sécurité
+
+* Comment sont gérées les habilitations ?
+
+Support
+
+* Qui maintient aujourd’hui ?
+
+Dette technique
+
+* Qu’est-ce qui vous inquiète le plus dans l’application actuelle ?
+
+Performance
+
+* Quels écrans sont lents ?
+
+Bugs connus
+
+* Liste des bugs ouverts ?
+
+⸻
+
+6. Vision future (15 min)
+
+Questions importantes :
+
+* Si vous deviez recommencer aujourd’hui, que changeriez-vous ?
+* Quelles fonctionnalités supprimeriez-vous ?
+* Quelles fonctionnalités ajouteriez-vous ?
+* Quels sont les besoins non couverts ?
+* Le métier demande-t-il encore Word ?
+
+⸻
+
+Questions “pièges” très utiles
+
+Question 1
+
+Si je coupe l’application demain matin, qu’est-ce qui bloque immédiatement ?
+
+Permet d’identifier les fonctions critiques.
+
+⸻
+
+Question 2
+
+Quel est aujourd’hui le plus gros irritant utilisateur ?
+
+Tu obtiens souvent la vraie réponse.
+
+⸻
+
+Question 3
+
+Quelle fonctionnalité a coûté le plus cher à développer ?
+
+Permet d’identifier les zones complexes.
+
+⸻
+
+Question 4
+
+Quel est le composant le plus fragile ?
+
+Très bonne question IT.
+
+⸻
+
+Question 5
+
+Quel est le principal facteur d’échec du Lot 1 ?
+
+Vu les slides, la réponse risque d’être :
+
+* Word partagé
+* Gestion des contributeurs
+* Ergonomie
+* Paramétrage
+
+⸻
+
+Ce que je chercherais absolument à récupérer
+
+Avant de quitter la réunion :
+
+✅ Architecture détaillée
+
+✅ Liste SharePoint
+
+✅ Flux Power Automate
+
+✅ Schéma des rôles
+
+✅ Maquette actuelle
+
+✅ Cahier des charges initial
+
+✅ PV de recette
+
+✅ Liste des anomalies
+
+✅ Backlog des évolutions
+
+✅ Temps passé par lot
+
+⸻
+
+Conclusion à annoncer en début de réunion
+
+“L’objectif aujourd’hui n’est pas de challenger les choix techniques réalisés mais de comprendre le fonctionnement, les contraintes rencontrées, les retours utilisateurs et les enseignements tirés afin de préparer la prochaine version dans les meilleures conditions.”
+
+Cette phrase met immédiatement l’IT en confiance et les fera parler beaucoup plus librement.
+
+
+
 foreach (var m in Model.AllMeasures)
 {
     if (!m.IsHidden && string.IsNullOrEmpty(m.FormatString))
