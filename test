@@ -1,3 +1,64 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+# ---------- Configuration ----------
+SOURCE="/c/Users/Adnane/Documents/a_copier"   # dossier local source
+DEST="/o/Backup"                               # lecteur O:\ (adapter: /mnt/o en WSL)
+LOG_DIR="/c/Users/Adnane/logs"                 # dossier des logs
+LOG_FILE="$LOG_DIR/copie_$(date +%Y%m%d_%H%M%S).log"
+# -----------------------------------
+
+# Création du dossier de log si absent
+mkdir -p "$LOG_DIR"
+
+# Fonction de log : écrit à l'écran ET dans le fichier
+log() {
+    local msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "$msg" | tee -a "$LOG_FILE"
+}
+
+log "=== Début de la copie ==="
+log "Source      : $SOURCE"
+log "Destination : $DEST"
+
+# Vérifications préalables
+if [[ ! -d "$SOURCE" ]]; then
+    log "ERREUR : dossier source introuvable. Arrêt."
+    exit 1
+fi
+
+if [[ ! -d "$DEST" ]]; then
+    log "Destination absente, tentative de création..."
+    if ! mkdir -p "$DEST"; then
+        log "ERREUR : impossible de créer/accéder à $DEST (lecteur O: monté ?). Arrêt."
+        exit 1
+    fi
+fi
+
+# Compteurs
+ok=0
+ko=0
+
+# Copie fichier par fichier (récursif) pour tracer chaque opération
+while IFS= read -r -d '' fichier; do
+    rel="${fichier#$SOURCE/}"          # chemin relatif
+    cible="$DEST/$rel"
+    mkdir -p "$(dirname "$cible")"
+
+    if cp -p "$fichier" "$cible" 2>>"$LOG_FILE"; then
+        log "OK   : $rel"
+        ((ok++))
+    else
+        log "ECHEC: $rel"
+        ((ko++))
+    fi
+done < <(find "$SOURCE" -type f -print0)
+
+log "=== Fin de la copie ==="
+log "Fichiers copiés : $ok | Échecs : $ko"
+
+# Code de sortie non nul s'il y a eu des erreurs
+[[ $ko -eq 0 ]]
 
 Pour une première réunion de cadrage / passation avec l’IT qui a développé Risk-Flow, ton objectif n’est pas de parler solution immédiatement. Il faut comprendre :
 
