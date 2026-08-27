@@ -1,3 +1,24 @@
+let
+    Source = SharePoint.Contents("https://groupbpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Shared Documents" = Source{[Name="Shared Documents"]}[Content],
+    #"General" = #"Shared Documents"{[Name="General"]}[Content],
+    #"Dossier4" = #"General"{[Name="4. TABLEAUX DE BORD"]}[Content],
+    #"Questionnaire" = #"Dossier4"{[Name="QUESTIONNAIRE SEMESTRIEL"]}[Content],
+    #"Parametrage" = #"Questionnaire"{[Name="PARAMETRAGE"]}[Content],
+    #"Etablissements" = #"Parametrage"{[Name="ETABLISSEMENTS"]}[Content],
+    #"Fichier" = #"Etablissements"{[Name="Etablissements.xlsx"]}[Content],
+    #"Classeur" = Excel.Workbook(#"Fichier", null, true),
+    // adapte le nom de la table/feuille ci-dessous
+    #"Feuille" = #"Classeur"{[Item="TonNomDeFeuilleOuTable"]}[Data],
+    #"Changed Type" = Table.TransformColumnTypes(#"Feuille",{{"ETABLISSEMENT", type text}, {"RESEAU", type text}}),
+    #"Uppercased Text" = Table.TransformColumns(#"Changed Type",{{"ETABLISSEMENT", Text.Upper, type text}})
+in
+    #"Uppercased Text"
+
+
+
+
+
 #!/usr/bin/env bash
 set -uo pipefail
 
