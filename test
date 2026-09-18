@@ -1,3 +1,19 @@
+
+union(
+  if(
+    startsWith(trim(string(coalesce(triggerBody()?['text_2'], ''))), '['),
+    json(string(triggerBody()?['text_2'])),
+    json('[]')
+  ),
+  createArray(
+    addProperty(addProperty(json('{}'), 'k', 'LienApp'), 'v', coalesce(first(body('Get_lien_app')?['value'])?['Lien'], '')),
+    addProperty(addProperty(json('{}'), 'k', 'LienDocument'), 'v', coalesce(first(body('Get_lien_doc')?['value'])?['Lien'], ''))
+  )
+)
+
+
+
+
 let
     Source = SharePoint.Contents("https://groupbpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
     #"Shared Documents" = Source{[Name="Shared Documents"]}[Content],
