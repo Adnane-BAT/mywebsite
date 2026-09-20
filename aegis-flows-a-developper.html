@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk Flow / AEGIS — Guide de développement des flows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14213D; --paper:#F5F7FB; --panel:#FFFFFF; --rule:#D5DBE7; --muted:#56627A;
+  --accent:#6A2C91; --accent-soft:#EFE6F6;
+  --ok:#2E7D5B; --ok-soft:#E3F2EA; --warn:#9A6414; --warn-soft:#FBF0DC; --ko:#B23A3A; --ko-soft:#F8E4E4;
+  --code-bg:#EEF1F7;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E4E8F2; --paper:#10141F; --panel:#171C2A; --rule:#2B3246; --muted:#9AA4BC;
+    --accent:#C49BE3; --accent-soft:#2A2138;
+    --ok:#6CC49C; --ok-soft:#16291F; --warn:#E3B462; --warn-soft:#2E2413; --ko:#EB8A8A; --ko-soft:#2F1818;
+    --code-bg:#1C2233;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E4E8F2; --paper:#10141F; --panel:#171C2A; --rule:#2B3246; --muted:#9AA4BC;
+  --accent:#C49BE3; --accent-soft:#2A2138;
+  --ok:#6CC49C; --ok-soft:#16291F; --warn:#E3B462; --warn-soft:#2E2413; --ko:#EB8A8A; --ko-soft:#2F1818;
+  --code-bg:#1C2233;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1280px;margin:0 auto}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:2rem 1.25rem;border-right:1px solid var(--rule);font-size:.9rem}
+nav.toc p{font-weight:600;margin:0 0 .75rem}
+nav.toc ol{margin:0;padding-left:1.2rem}
+nav.toc li{margin:.3rem 0}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{padding:2.5rem clamp(1rem,4vw,3.5rem) 5rem;min-width:0}
+header.hero{border-bottom:3px solid var(--ink);padding-bottom:2rem;margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.15;margin:0 0 .75rem;max-width:22ch}
+.hero .sub{color:var(--muted);max-width:70ch;margin:0 0 1.75rem}
+.ratio{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem 1.25rem;font-weight:700}
+.ratio .n{font-size:clamp(3rem,9vw,5.5rem);line-height:1;letter-spacing:-.03em}
+.ratio .arrow{font-size:clamp(2rem,6vw,3.5rem);color:var(--accent);font-weight:400}
+.ratio .cap{flex-basis:100%;font-weight:400;color:var(--muted);font-size:.95rem}
+.ratio .cap strong{color:var(--ink)}
+section{margin:3.5rem 0}
+h2{font-size:1.6rem;line-height:1.25;margin:0 0 1rem;padding-top:.5rem}
+h2 .step{display:inline-block;min-width:2.2ch;color:var(--accent)}
+h3{font-size:1.2rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .4rem}
+p,li{max-width:78ch}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--rule);border-radius:4px;background:var(--panel)}
+pre{margin:0;padding:1rem 1.1rem;font-family:var(--mono);font-size:.8rem;line-height:1.45;white-space:pre;color:var(--ink)}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:3px}
+pre code{background:none;padding:0;font-size:inherit}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--rule)}
+th{background:var(--code-bg);font-weight:600}
+.tag{display:inline-block;padding:.05rem .45rem;border-radius:3px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.t-keep{background:var(--ok-soft);color:var(--ok)}
+.t-merge{background:var(--accent-soft);color:var(--accent)}
+.t-del{background:var(--ko-soft);color:var(--ko)}
+.t-child{background:var(--warn-soft);color:var(--warn)}
+.confirm{background:var(--warn-soft);color:var(--warn);font-weight:600;padding:.05rem .4rem;border-radius:3px;font-size:.85em;white-space:nowrap}
+.note{border-left:4px solid var(--accent);background:var(--panel);padding:.8rem 1rem;margin:1.25rem 0;max-width:80ch}
+.risk{border-left-color:var(--ko)}
+.flowcard{border:1px solid var(--rule);border-top:4px solid var(--accent);background:var(--panel);padding:1.25rem 1.25rem .5rem;margin:2rem 0;border-radius:0 0 4px 4px}
+.flowcard h3{margin-top:0}
+.meta{display:grid;grid-template-columns:max-content 1fr;gap:.25rem 1rem;font-size:.9rem;margin:.5rem 0 1rem}
+.meta dt{font-weight:600;color:var(--muted)}
+.meta dd{margin:0}
+ol.steps>li{margin:.5rem 0}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--rule)}
+}
+@media print{nav.toc{display:none}.layout{display:block}.scroll{overflow:visible}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+<p>Sommaire</p>
+<ol>
+<li><a href="#principes">Principes et prérequis</a></li>
+<li><a href="#tables">Tables utilisées</a></li>
+<li><a href="#vue">Vue d'ensemble</a></li>
+<li><a href="#f04">DRG_04_Notification</a></li>
+<li><a href="#f01">DRG_01_Campagne</a></li>
+<li><a href="#f02">DRG_02_MoteurValidation</a></li>
+<li><a href="#f03">DRG_03_Relances</a></li>
+<li><a href="#std">Blocs standards</a></li>
+<li><a href="#ordre">Ordre de développement et recette</a></li>
+<li><a href="#confirmer">À confirmer</a></li>
+</ol>
+</nav>
+<main>
+<header class="hero">
+<h1>Risk Flow / AEGIS — guide de développement des flows</h1>
+<p class="sub">Quatre nouveaux flows construits uniquement sur les listes SharePoint existantes de la solution « DRG – Gestion des Validations ». Aucune liste ni colonne à créer. Chaque flow est décrit action par action, avec le nom à donner à l'action dans le designer, ses paramètres et ses expressions.</p>
+<div class="ratio" role="img" aria-label="7 flows actuels remplacés par 4">
+<span class="n">7</span><span class="arrow">→</span><span class="n">4</span>
+<span class="cap"><strong>3 orchestrateurs + 1 child flow.</strong> DRG_MiseAJourUtilisateur et DRG_MiseAJourAdministrateur sont supprimés : l'email est lu directement dans la colonne Personne.</span>
+</div>
+</header>
+
+<section id="principes">
+<h2><span class="step">1</span> Principes et prérequis</h2>
+<h3>Règles de construction</h3>
+<ul>
+<li><strong>Tous les flows dans la solution</strong>, connexions via références de connexion (SharePoint, Office 365 Outlook) au nom du <strong>compte de service</strong>.</li>
+<li><strong>Anti-boucle sans nouvelle colonne</strong> : Power Apps écrit avec l'identité de l'utilisateur, les flows écrivent avec le compte de service. Le déclencheur ignore toute modification dont l'auteur (<code>Editor</code>) est le compte de service.</li>
+<li><strong>Détection du vrai changement</strong> : l'action « Obtenir les modifications d'un élément » compare avec la version précédente. Le flow ne traite que si <code>Statut</code> a changé. Le contrôle de version doit être actif sur les listes (il l'est par défaut).</li>
+<li><strong>Nommer chaque action</strong> exactement comme dans ce guide : les expressions y font référence (espaces remplacés par <code>_</code>).</li>
+<li><strong>Chaque flow</strong> est enveloppé dans un Scope <code>Try</code> et un Scope <code>Catch</code> (voir <a href="#std">blocs standards</a>).</li>
+<li><strong>Aucune valeur en dur</strong> : site, listes et expéditeur viennent des variables d'environnement déjà créées.</li>
+</ul>
+<h3>Variables d'environnement utilisées</h3>
+<p>Le document indique que le site, les listes et l'adresse d'envoi sont déjà en variables d'environnement. Noms à aligner sur ceux existants <span class="confirm">À confirmer</span>.</p>
+<div class="scroll"><table>
+<thead><tr><th>Nom proposé</th><th>Type</th><th>Contenu</th></tr></thead>
+<tbody>
+<tr><td><code>drg_SiteUrl</code></td><td>Source de données SharePoint (site)</td><td>URL du site DEV / TEST / PROD</td></tr>
+<tr><td><code>drg_ListCampagnes</code></td><td>Liste</td><td>CampagnesEnCours</td></tr>
+<tr><td><code>drg_ListSuiviRapports</code></td><td>Liste</td><td>SuiviValidationsRapportsReglementaire</td></tr>
+<tr><td><code>drg_ListGestion</code></td><td>Liste</td><td>GestionRapportsReglementaire</td></tr>
+<tr><td><code>drg_ListSuiviParagraphes</code></td><td>Liste</td><td>SuiviValidationsParagraphes</td></tr>
+<tr><td><code>drg_ListConfigEmail</code>, <code>drg_ListLienApp</code>, <code>drg_ListLiensDocs</code>, <code>drg_ListAdmins</code></td><td>Liste</td><td>Configuration Email, Lien Application, Liens Documents, Administrateurs</td></tr>
+<tr><td><code>drg_ListHistoSuiviParagraphes</code>, <code>drg_ListHistoSuiviRapports</code></td><td>Liste</td><td>Listes « Historique… » <span class="confirm">noms à confirmer</span></td></tr>
+<tr><td><code>drg_SenderEmail</code></td><td>Texte</td><td>Boîte d'envoi (« envoyé en tant que »)</td></tr>
+<tr><td><code>drg_ServiceAccount</code></td><td>Texte</td><td>Email du compte de service propriétaire des connexions</td></tr>
+</tbody></table></div>
+<p class="note">Les trigger conditions ne lisent pas les variables d'environnement de façon fiable. L'email du compte de service y est donc écrit en dur, c'est la seule exception. Si le compte diffère entre environnements, le modifier après import ou utiliser le même compte technique partout.</p>
+</section>
+
+<section id="tables">
+<h2><span class="step">2</span> Tables utilisées</h2>
+<p>Colonnes lues dans les captures. Les noms internes SharePoint peuvent différer des noms affichés (accents, espaces) : vérifier dans les paramètres de chaque liste avant de coder les filtres OData.</p>
+<div class="scroll"><table>
+<thead><tr><th>Liste</th><th>Colonnes utilisées</th><th>Flows</th></tr></thead>
+<tbody>
+<tr><td>CampagnesEnCours</td><td>ID, IDRapport, NomRapport, Statut (Lancer / Ouverte / Clôturer), DateLancement, DateFermeture, campagneLancee (Oui/Non, masquée)</td><td>01 (déclencheur), 03</td></tr>
+<tr><td>GestionRapportsReglementaire</td><td>ID, IDRapport, Chapitre, Paragraphe, IsChapitre, IsValidationChapitre, Contributeur (Personne, multiple), Valideur (Personne), StatutContribution, StatutValidation</td><td>01, 02</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>ID, IDRapport, IDParagraphe, Chapitre, Paragraphe, Role, EmailContributeurValideur, ContributeurValideur (Personne), Statut, commentaire valideur <span class="confirm">nom exact à confirmer</span></td><td>01, 02 (déclencheur), 03</td></tr>
+<tr><td>SuiviValidationsRapportsReglementaire</td><td>ID, IDRapport, Nom, Statut, ValideurN2 (Personne), Signataire, StatutContribution, StatutValidation, colonnes de dates <span class="confirm">à confirmer</span></td><td>01, 02</td></tr>
+<tr><td>Configuration Email</td><td>Code du modèle, Objet, Corps <span class="confirm">colonnes à confirmer</span></td><td>04</td></tr>
+<tr><td>Lien Application</td><td>Nom (= PowerApps), Lien</td><td>04</td></tr>
+<tr><td>Liens Documents</td><td>IDRapport, NomRapport, Lien</td><td>04</td></tr>
+<tr><td>Administrateurs</td><td>Nom (Personne), AdresseEmail</td><td>02, Catch</td></tr>
+<tr><td>Historique…</td><td>Même structure que les listes sources</td><td>01</td></tr>
+</tbody></table></div>
+<h3>Règle des 3 cas</h3>
+<div class="scroll"><table>
+<thead><tr><th>Cas</th><th>IsChapitre</th><th>IsValidationChapitre</th><th>Notification valideur</th></tr></thead>
+<tbody>
+<tr><td>CAS1 — contribution et validation au chapitre</td><td>Oui</td><td>Non</td><td>Dès que le contributeur termine</td></tr>
+<tr><td>CAS2 — contribution au paragraphe, validation au chapitre</td><td>Non</td><td>Oui</td><td>Quand toutes les contributions du chapitre sont terminées, un seul mail récapitulatif</td></tr>
+<tr><td>CAS3 — tout au paragraphe</td><td>Vide</td><td>Vide</td><td>Dès que le contributeur termine</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="vue">
+<h2><span class="step">3</span> Vue d'ensemble</h2>
+<div class="scroll"><pre>
+ POWER APPS (identité utilisateur)             ADMIN (SharePoint ou écran admin)
+   │ Patch Statut / commentaire                  │ Statut = Lancer / Clôturer
+   ▼                                             ▼
+ SuiviValidationsParagraphes              CampagnesEnCours
+   │ modifié, Editor ≠ compte service          │ créé/modifié, Statut = Lancer (campagneLancee ≠ Oui)
+   │                                           │               ou Statut = Clôturer
+   ▼                                           ▼
+ ┌─────────────────────────────┐      ┌─────────────────────────────┐
+ │ DRG_02_MoteurValidation     │      │ DRG_01_Campagne             │
+ │  Statut a changé ?          │      │  Switch Statut              │
+ │  Switch Evenement           │      │   Lancer   → génère lignes  │
+ │   SOUMISSION                │      │              + mails        │
+ │   VALIDATION                │      │   Clôturer → archive, purge │
+ │   REFUS                     │      └──────────────┬──────────────┘
+ │  Consolidation 2 listes     │                     │
+ └──────────────┬──────────────┘                     │
+                │      ┌────────────────────────┐    │
+                └─────►│ DRG_04_Notification    │◄───┤
+                       │ child flow             │    │
+                       │ modèle + liens + envoi │    │
+                       └────────────────────────┘    │
+                                  ▲                  │
+ ┌─────────────────────────────┐  │                  │
+ │ DRG_03_Relances             │──┘                  │
+ │ Récurrence quotidienne      │                     │
+ └─────────────────────────────┘                     │
+ Écritures des flows = compte de service → ne redéclenchent rien
+</pre></div>
+</section>
+
+<!-- ============ F04 ============ -->
+<section id="f04">
+<h2><span class="step">4</span> Workflows</h2>
+<p>À développer dans l'ordre 04, 01, 02, 03 : le child flow doit exister avant les flows qui l'appellent.</p>
+
+<div class="flowcard">
+<h3>DRG_04_Notification (child flow)</h3>
+<div class="flowcard" style="background: #f5f5f5; border-left: 4px solid #0078d4; padding: 1rem;">
+<p><strong>Changement de conception :</strong> À la différence du document original, DRG_04 ne lit plus SharePoint (pas de Get_modele ni Get_configuration_email). Les flows appelants construisent directement le message complet (objet, corps HTML, corps secondaire, tokens) et le passent en entrée. Cela réduit les appels SharePoint, la charge, et élimine le risque de modèle manquant à l'exécution.</p>
+</div>
+
+
+<dl class="meta">
+<dt>Rôle</dt><dd>Construire et envoyer tous les mails à partir de « Configuration Email »</dd>
+<dt>Déclencheur</dt><dd>Déclencher manuellement un flux (Manually trigger a flow)</dd>
+<dt>Appelé par</dt><dd>01, 02, 03 et les scopes Catch</dd>
+<dt>Réglage clé</dt><dd>Utilisateurs d'exécution seule : connexions « fournies par le flux » (sinon l'appel échoue)</dd>
+</dl>
+<div class="scroll"><pre>
+Manually trigger a flow
+
+▼
+Scope Try
+├─ Get items            Get_lien_app          [Lien Application]
+├─ Get items            Get_lien_doc          [Liens Documents]
+├─ Compose              Tokens_complets
+├─ Initialize variable  varCorps   (String)
+├─ Initialize variable  varObjet   (String)
+├─ Apply to each        Remplacer_tokens     (séquentiel)
+│    ├─ Set variable    varCorps
+│    └─ Set variable    varObjet
+├─ Send an email from a shared mailbox (V2)   Envoyer_mail
+└─ Respond to a PowerApp or flow              Reponse_OK   (Statut = OK)
+Scope Catch  (après : a échoué / a expiré)
+└─ Respond to a PowerApp or flow              Reponse_KO   (Statut = KO, Message)
+</pre></div>
+<h4>Paramètres</h4>
+<ol class="steps">
+<li><strong>Get_lien_app</strong> — Filtre <code>Title eq 'PowerApps'</code>, Nombre max 1.</li>
+<li><strong>Get_lien_doc</strong> — Filtre <code>IDRapport eq @{triggerBody()?['number']}</code>, Nombre max 1. Peut être vide si IDRapport n'est pas passé.</li>
+<li><strong>Tokens_complets</strong> :
+<pre><code>union(
+  json(triggerBody()?['text_4']),
+  createArray(
+    json(concat('{"k":"LienApp","v":"', first(body('Get_lien_app')?['value'])?['Lien'], '"}')),
+    json(concat('{"k":"LienDocument","v":"', coalesce(first(body('Get_lien_doc')?['value'])?['Lien'], ''), '"}'))
+  )
+)</code></pre>
+Attention : <code>text_4</code> suppose que Tokens est le 5e champ d'entrée. Si l'ordre change, mettre à jour l'index.</li>
+<li><strong>varCorps, varCorpsSecondaire, varObjet</strong> — Initialize variable en String, valeur vide.</li>
+<li><strong>Remplacer_tokens</strong> — Entrée : <code>outputs('Tokens_complets')</code>. Contrôle de concurrence activé, degré 1 (obligatoire).
+<pre><code>Corps_temp : 
+replace(variables('varCorps'), concat('{{', item()?['k'], '}}'), string(item()?['v']))
+
+CorpsSecondaire_temp :
+replace(variables('varCorpsSecondaire'), concat('{{', item()?['k'], '}}'), string(item()?['v']))
+
+Objet_temp :
+replace(variables('varObjet'), concat('{{', item()?['k'], '}}'), string(item()?['v']))</code></pre>
+Puis Set variable pour chacun.</li>
+<li><strong>Corps_final</strong> — <code>concat(variables('varCorps'), '<hr/>', variables('varCorpsSecondaire'))</code>. Ou une structure HTML plus élaborée si nécessaire.</li>
+<li><strong>Envoyer_mail</strong> — Adresse de la boîte : <code>drg_SenderEmail</code> ; À : <code>Destinataires</code> ; Objet : <code>varObjet</code> ; Corps : <code>outputs('Corps_final')</code> ; IsHtml : Oui.</li>
+</ol>
+
+<h4>Entrées du flow</h4>
+<div class="scroll"><table>
+<thead><tr><th>Paramètre</th><th>Type</th><th>Exemple</th></tr></thead>
+<tbody>
+<tr><td>Destinataires</td><td>Texte</td><td>"john@bank.fr;marie@bank.fr"</td></tr>
+<tr><td>ObjetMail</td><td>Texte</td><td>"Campagne ouverte — action requise"</td></tr>
+<tr><td>CorpsHTML</td><td>Texte (HTML)</td><td>"&lt;table&gt;…&lt;/table&gt;"</td></tr>
+<tr><td>CorpsSecondaire</td><td>Texte (HTML)</td><td>"&lt;p&gt;Veuillez consulter…&lt;/p&gt;"</td></tr>
+<tr><td>Tokens</td><td>Texte (JSON array)</td><td>'[{"k":"NomRapport","v":"RACI 2025"}]'</td></tr>
+<tr><td>IDRapport</td><td>Nombre</td><td>2025</td></tr>
+</tbody></table></div>
+
+<h4>Tokens disponibles dans les modèles</h4>
+<p><code>{{NomRapport}}</code> <code>{{Chapitre}}</code> <code>{{Paragraphe}}</code> <code>{{TableauParagraphes}}</code> <code>{{Commentaire}}</code> <code>{{DateFermeture}}</code> <code>{{Echeance}}</code> <code>{{LienApp}}</code> <code>{{LienDocument}}</code></p>
+<h4>Codes de modèle à créer dans Configuration Email</h4>
+<div class="scroll"><table>
+<thead><tr><th>Code</th><th>Envoyé par</th><th>Destinataire</th></tr></thead>
+<tbody>
+<tr><td>CAMPAGNE_OUVERTE</td><td>01</td><td>Chaque contributeur</td></tr>
+<tr><td>CONTRIBUTION_TERMINEE</td><td>02 (CAS1, CAS3)</td><td>Valideur N1</td></tr>
+<tr><td>CONTRIBUTION_REVUE</td><td>02 après un refus</td><td>Valideur N1</td></tr>
+<tr><td>CHAPITRE_PRET</td><td>02 (CAS2)</td><td>Valideur N1 du chapitre</td></tr>
+<tr><td>CONTRIBUTION_REFUSEE</td><td>02</td><td>Contributeur(s)</td></tr>
+<tr><td>VALIDATION_N1_TERMINEE</td><td>02</td><td>Valideur N2</td></tr>
+<tr><td>RELANCE</td><td>03</td><td>Contributeurs en attente</td></tr>
+</tbody></table></div>
+<p><strong>Tokens standards disponibles pour remplacement dans les textes HTML :</strong></p>
+<div class="scroll"><table>
+<thead><tr><th>Token</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>{{NomRapport}}</code></td><td>Nom du rapport (CampagnesEnCours.NomRapport)</td></tr>
+<tr><td><code>{{Chapitre}}</code></td><td>Libellé du chapitre</td></tr>
+<tr><td><code>{{Paragraphe}}</code></td><td>Libellé du paragraphe</td></tr>
+<tr><td><code>{{DateFermeture}}</code></td><td>Date limite de la campagne (formatée jj/mm/aaaa)</td></tr>
+<tr><td><code>{{Commentaire}}</code></td><td>Commentaire du valideur (en cas de refus)</td></tr>
+<tr><td><code>{{LienApp}}</code></td><td>Lien vers Power Apps (depuis Lien Application)</td></tr>
+<tr><td><code>{{LienDocument}}</code></td><td>Lien vers le rapport (depuis Liens Documents, si IDRapport fourni)</td></tr>
+<tr><td><code>Tout token personnalisé</code></td><td>Passé en entrée via le tableau Tokens</td></tr>
+</tbody></table></div>
+<p>Les flows appelants passent directement le contenu complet (objet, corps HTML, corps secondaire) sans lire Configuration Email.</p>
+</div>
+</section>
+
+<!-- ============ F01 ============ -->
+<section id="f01">
+<div class="flowcard">
+<h3>DRG_01_Campagne</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_LancementCampagne, DRG_ContributeursValideurs, DRG_HistorisationCampagne, flux manuel de l'étape 5</dd>
+<dt>Déclencheur</dt><dd>SharePoint — Lorsqu'un élément est créé ou modifié, liste CampagnesEnCours</dd>
+<dt>Concurrence</dt><dd>Activée, degré 1</dd>
+</dl>
+<h4>Trigger conditions (2 lignes, combinées en ET)</h4>
+<pre><code>@or(
+  and(equals(triggerOutputs()?['body/Statut/Value'], 'Lancer'),
+      not(equals(triggerOutputs()?['body/campagneLancee'], true))),
+  equals(triggerOutputs()?['body/Statut/Value'], 'Clôturer')
+)</code></pre>
+<pre><code>@not(equals(toLower(triggerOutputs()?['body/Editor/Email']), 'compte.service@domaine.fr'))</code></pre>
+
+<div class="scroll"><pre>
+When an item is created or modified   [CampagnesEnCours]
+▼
+Scope Try
+├─ Compose  Ctx
+├─ Switch   Selon_statut   on  outputs('Ctx')?['statut']
+│
+│  ├── Case "Lancer"
+│  │    ├─ Get items        Get_structure          [GestionRapportsReglementaire]
+│  │    ├─ Get items        Get_suivi_existant     [SuiviValidationsParagraphes]
+│  │    ├─ Select           Cles_existantes
+│  │    ├─ Apply to each    Pour_chaque_paragraphe          (concurrence 10)
+│  │    │    ├─ Select        Lignes_contributeurs
+│  │    │    ├─ Select        Lignes_valideur
+│  │    │    ├─ Filter array  Lignes_a_creer
+│  │    │    └─ Apply to each Creer_lignes                  (concurrence 10)
+│  │    │         └─ Create item  Creer_suivi_paragraphe   [SuiviValidationsParagraphes]
+│  │    ├─ Get items        Get_suivi_rapport      [SuiviValidationsRapportsReglementaire]
+│  │    ├─ Condition        Suivi_rapport_absent
+│  │    │    └─ Oui : Create item  Creer_suivi_rapport
+│  │    ├─ Get items        Get_lignes_contrib     [SuiviValidationsParagraphes]
+│  │    ├─ Select           Emails_contrib
+│  │    ├─ Compose          Emails_uniques
+│  │    ├─ Apply to each    Mail_par_contributeur           (concurrence 10)
+│  │    │    ├─ Filter array      Paragraphes_du_contrib
+│  │    │    ├─ Create HTML table Tableau_contrib
+│  │    │    └─ Run a Child Flow  Notifier_ouverture   → DRG_04
+│  │    └─ Update item      Ouvrir_campagne        [CampagnesEnCours]
+│  │
+│  └── Case "Clôturer"
+│       ├─ Get items        Get_suivi_a_archiver   [SuiviValidationsParagraphes]
+│       ├─ Apply to each    Archiver_paragraphes            (concurrence 10)
+│       │    └─ Create item  Creer_histo_paragraphe [Historique…]
+│       ├─ Get items        Get_rapport_a_archiver [SuiviValidationsRapportsReglementaire]
+│       ├─ Apply to each    Archiver_rapport
+│       │    └─ Create item  Creer_histo_rapport    [Historique…]
+│       ├─ Apply to each    Purger_paragraphes              (concurrence 10)
+│       │    └─ Delete item
+│       ├─ Apply to each    Purger_rapport
+│       │    └─ Delete item
+│       └─ Update item      Cloturer_campagne      [CampagnesEnCours]
+▼
+Scope Catch → bloc standard
+</pre></div>
+
+<h4>Paramètres</h4>
+<ol class="steps">
+<li><strong>Ctx</strong>
+<pre><code>{
+  "id": @{triggerOutputs()?['body/ID']},
+  "idRapport": @{triggerOutputs()?['body/IDRapport']},
+  "nomRapport": "@{triggerOutputs()?['body/NomRapport']}",
+  "statut": "@{triggerOutputs()?['body/Statut/Value']}",
+  "dateFermeture": "@{formatDateTime(triggerOutputs()?['body/DateFermeture'],'dd/MM/yyyy')}"
+}</code></pre>
+Si IDRapport est une colonne de recherche (lookup), utiliser <code>body/IDRapport/Id</code> <span class="confirm">À confirmer</span>.</li>
+<li><strong>Get_structure</strong> — Filtre : <code>IDRapport eq @{outputs('Ctx')?['idRapport']}</code>. Pagination activée, seuil 5000.</li>
+<li><strong>Get_suivi_existant</strong> — Filtre : <code>IDRapport eq @{outputs('Ctx')?['idRapport']}</code>. Pagination 5000. Permet de relancer le flow sans doublon.</li>
+<li><strong>Cles_existantes</strong> — Select, mode texte (bouton « basculer en texte ») :
+<pre><code>concat(item()?['IDParagraphe'], '|', item()?['Role'], '|', toLower(item()?['EmailContributeurValideur']))</code></pre></li>
+<li><strong>Lignes_contributeurs</strong> — De : <code>items('Pour_chaque_paragraphe')?['Contributeur']</code>. Mappage :
+<pre><code>Cle        : concat(items('Pour_chaque_paragraphe')?['ID'], '|Contributeur|', toLower(item()?['Email']))
+Role       : Contributeur
+Email      : toLower(item()?['Email'])
+Claims     : item()?['Claims']</code></pre></li>
+<li><strong>Lignes_valideur</strong> — De : <code>createArray(items('Pour_chaque_paragraphe')?['Valideur'])</code> (si la colonne Valideur est multiple, utiliser directement la colonne). Même mappage avec Role = Valideur. Ajouter une condition <code>not(empty(items('Pour_chaque_paragraphe')?['Valideur']))</code> si certains paragraphes n'ont pas de valideur (CAS2 : valideur porté par la ligne chapitre <span class="confirm">À confirmer</span>).</li>
+<li><strong>Lignes_a_creer</strong> — De : <code>union(body('Lignes_contributeurs'), body('Lignes_valideur'))</code>. Mode avancé :
+<pre><code>@not(contains(body('Cles_existantes'), item()?['Cle']))</code></pre></li>
+<li><strong>Creer_suivi_paragraphe</strong> — Liste SuiviValidationsParagraphes :
+<pre><code>Title                      : items('Pour_chaque_paragraphe')?['Paragraphe']
+IDRapport                  : outputs('Ctx')?['idRapport']
+IDParagraphe               : items('Pour_chaque_paragraphe')?['ID']
+Chapitre                   : items('Pour_chaque_paragraphe')?['Chapitre']
+Paragraphe                 : items('Pour_chaque_paragraphe')?['Paragraphe']
+Role                       : items('Creer_lignes')?['Role']
+EmailContributeurValideur  : items('Creer_lignes')?['Email']
+ContributeurValideur Claims: items('Creer_lignes')?['Claims']
+Statut                     : En cours</code></pre>
+Créée par le compte de service : ne déclenche pas DRG_02.</li>
+<li><strong>Get_suivi_rapport</strong> — Filtre <code>IDRapport eq …</code>, Nombre max 1. <strong>Suivi_rapport_absent</strong> : <code>empty(body('Get_suivi_rapport')?['value'])</code>. <strong>Creer_suivi_rapport</strong> : IDRapport, Nom = nomRapport, StatutContribution = En cours, StatutValidation = En cours. ValideurN2 et Signataire restent saisis par l'administrateur (étape 3 du guide).</li>
+<li><strong>Get_lignes_contrib</strong> — Filtre <code>IDRapport eq @{outputs('Ctx')?['idRapport']} and Role eq 'Contributeur'</code>. Colonnes : <code>EmailContributeurValideur,Chapitre,Paragraphe</code>.</li>
+<li><strong>Emails_contrib</strong> — Select mode texte : <code>toLower(item()?['EmailContributeurValideur'])</code>. <strong>Emails_uniques</strong> : <code>union(body('Emails_contrib'), body('Emails_contrib'))</code>.</li>
+<li><strong>Paragraphes_du_contrib</strong> — De : <code>body('Get_lignes_contrib')?['value']</code> ; condition <code>@equals(toLower(item()?['EmailContributeurValideur']), items('Mail_par_contributeur'))</code>.</li>
+<li><strong>Tableau_contrib</strong> — Colonnes personnalisées : Chapitre = <code>item()?['Chapitre']</code>, Paragraphe = <code>item()?['Paragraphe']</code>.</li>
+<li><strong>Notifier_ouverture</strong> — Child flow DRG_04 :
+<pre><code>Destinataires    : join(body('Emails_contrib'), ';')
+ObjetMail        : "Campagne ouverte — action requise"
+CorpsHTML        : body('Tableau_contrib')
+CorpsSecondaire  : "<p>Merci de consulter l'application pour fournir vos contributions.</p>"
+Tokens           : json(concat('[{"k":"NomRapport","v":"', outputs('Ctx')?['nomRapport'], '"},{"k":"DateFermeture","v":"', outputs('Ctx')?['dateFermeture'], '"}]'))
+IDRapport        : outputs('Ctx')?['idRapport']</code></pre>
+</li>
+<li><strong>Ouvrir_campagne</strong> — Statut = Ouverte ; campagneLancee = Oui ; DateLancement = <code>coalesce(triggerOutputs()?['body/DateLancement'], utcNow())</code>. Cette mise à jour est faite par le compte de service et Statut ≠ Lancer : aucun nouveau run.</li>
+<li><strong>Clôturer</strong> — Filtres <code>IDRapport eq …</code> (pagination 5000). Creer_histo_* recopie toutes les colonnes. Avant les purges, ajouter une Condition <strong>Archivage_complet</strong>. Elle s'appuie sur un Filter array <code>Archives_ok</code> placé juste avant : De <code>result('Archiver_paragraphes')</code>, condition <code>@equals(item()?['status'],'Succeeded')</code>. Condition : <code>equals(length(body('Get_suivi_a_archiver')?['value']), length(body('Archives_ok')))</code>. Purger uniquement si Oui ; sinon <em>Terminate</em> en échec. <strong>Cloturer_campagne</strong> : Statut = Clôturée <span class="confirm">valeur de choix à confirmer</span>, campagneLancee = Non.</li>
+</ol>
+</div>
+</section>
+
+<!-- ============ F02 ============ -->
+<section id="f02">
+<div class="flowcard">
+<h3>DRG_02_MoteurValidation</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_Validation</dd>
+<dt>Déclencheur</dt><dd>SharePoint — Lorsqu'un élément est créé ou modifié, liste SuiviValidationsParagraphes</dd>
+<dt>Concurrence</dt><dd>Activée, degré 1 (indispensable pour le CAS2)</dd>
+</dl>
+<h4>Trigger conditions</h4>
+<pre><code>@not(equals(toLower(triggerOutputs()?['body/Editor/Email']), 'compte.service@domaine.fr'))</code></pre>
+<pre><code>@contains(createArray('Terminée','Validé','Refusé'), triggerOutputs()?['body/Statut/Value'])</code></pre>
+
+<div class="scroll"><pre>
+When an item is created or modified   [SuiviValidationsParagraphes]
+▼
+Get changes for an item or a file (properties only)   Get_changements
+▼
+Condition  Statut_a_change        (Non → Terminate Succeeded)
+▼
+Scope Try
+├─ Compose   Ctx
+├─ Get item  Get_paragraphe                [GestionRapportsReglementaire]  Id = IDParagraphe
+├─ Compose   Cas
+├─ Compose   Evenement
+├─ Condition Transition_autorisee         (Non → Terminate Cancelled + mail admin)
+├─ Switch    Selon_evenement
+│
+│  ├── Case "SOUMISSION"
+│  │    ├─ Get items  Get_valideurs_paragraphe
+│  │    ├─ Compose    Modele_soumission
+│  │    ├─ Condition  Est_cas2
+│  │    │    ├─ Oui:
+│  │    │    │   ├─ Get items   Get_contrib_restantes   (Top 1)
+│  │    │    │   └─ Condition   Chapitre_complet
+│  │    │    │        └─ Oui:
+│  │    │    │            ├─ Get items         Get_paragraphes_chapitre
+│  │    │    │            ├─ Create HTML table Tableau_chapitre
+│  │    │    │            ├─ Select + Compose  Emails_valideurs_chapitre
+│  │    │    │            └─ Run a Child Flow  Notifier_chapitre_pret
+│  │    │    └─ Non:
+│  │    │        └─ Run a Child Flow  Notifier_valideur
+│  │    └─ Update item  Maj_gestion_contribution   [GestionRapportsReglementaire]
+│  │
+│  ├── Case "VALIDATION"
+│  │    └─ Update item  Maj_gestion_validation     [GestionRapportsReglementaire]
+│  │
+│  └── Case "REFUS"
+│       ├─ Get items     Get_contributeurs_a_renvoyer
+│       ├─ Apply to each Renvoyer_contributeurs
+│       │    └─ Update item  Statut = Refusé - Valideur
+│       ├─ Select + Compose  Emails_contributeurs
+│       ├─ Run a Child Flow  Notifier_refus
+│       └─ Update item  Maj_gestion_refus          [GestionRapportsReglementaire]
+│
+├─ Scope  Consolidation_rapport
+│    ├─ Get items   Get_toutes_lignes_rapport
+│    ├─ Filter array × 4  (contrib, contrib_terminees, valid, valid_ok)
+│    ├─ Compose     Statuts_rapport
+│    ├─ Get items   Get_suivi_rapport  (Top 1)
+│    ├─ Update item Maj_suivi_rapport
+│    └─ Condition   Premiere_validation_complete
+│         └─ Oui: Run a Child Flow  Notifier_N2
+▼
+Scope Catch → bloc standard
+</pre></div>
+
+<h4>Paramètres</h4>
+<ol class="steps">
+<li><strong>Get_changements</strong> — Site, liste, Id = <code>triggerOutputs()?['body/ID']</code>, Depuis = <code>triggerOutputs()?['body/{TriggerWindowStartToken}']</code>, Jusqu'à : laisser vide.<br>
+<strong>Statut_a_change</strong> : <code>body('Get_changements')?['ColumnHasChanged']?['Statut']</code> est égal à <code>true</code>. Évite de retraiter une ligne quand l'utilisateur ne modifie que le commentaire.</li>
+<li><strong>Ctx</strong>
+<pre><code>{
+  "id": @{triggerOutputs()?['body/ID']},
+  "idRapport": @{triggerOutputs()?['body/IDRapport']},
+  "idParagraphe": @{triggerOutputs()?['body/IDParagraphe']},
+  "chapitre": "@{replace(triggerOutputs()?['body/Chapitre'], '''', '''''')}",
+  "paragraphe": "@{triggerOutputs()?['body/Paragraphe']}",
+  "role": "@{triggerOutputs()?['body/Role']}",
+  "statut": "@{triggerOutputs()?['body/Statut/Value']}",
+  "email": "@{toLower(triggerOutputs()?['body/EmailContributeurValideur'])}",
+  "editeur": "@{toLower(triggerOutputs()?['body/Editor/Email'])}",
+  "commentaire": "@{triggerOutputs()?['body/CommentaireValideur']}"
+}</code></pre>
+Le <code>replace</code> double les apostrophes du chapitre pour les filtres OData (« L'établissement »). Si Role est une colonne Choix : <code>body/Role/Value</code>.</li>
+<li><strong>Cas</strong>
+<pre><code>if(equals(body('Get_paragraphe')?['IsChapitre'], true), 'CAS1',
+   if(equals(body('Get_paragraphe')?['IsValidationChapitre'], true), 'CAS2', 'CAS3'))</code></pre></li>
+<li><strong>Evenement</strong>
+<pre><code>if(and(equals(outputs('Ctx')?['role'],'Contributeur'), equals(outputs('Ctx')?['statut'],'Terminée')), 'SOUMISSION',
+ if(and(equals(outputs('Ctx')?['role'],'Valideur'), equals(outputs('Ctx')?['statut'],'Validé')), 'VALIDATION',
+ if(and(equals(outputs('Ctx')?['role'],'Valideur'), equals(outputs('Ctx')?['statut'],'Refusé')), 'REFUS', 'INCONNU')))</code></pre></li>
+<li><strong>Transition_autorisee</strong> — mode avancé :
+<pre><code>@and(
+  not(equals(outputs('Evenement'), 'INCONNU')),
+  or(equals(outputs('Ctx')?['editeur'], outputs('Ctx')?['email']),
+     contains(body('Emails_admins'), outputs('Ctx')?['editeur']))
+)</code></pre>
+Ajouter avant : Get items <code>Get_admins</code> [Administrateurs] + Select texte <code>Emails_admins</code> = <code>toLower(item()?['AdresseEmail'])</code>. Branche Non : Update item de la ligne avec l'ancien statut (<code>body('Get_changements')</code> ne donne pas l'ancienne valeur : remettre « En cours »), mail admin, Terminate « Cancelled ».</li>
+<li><strong>Get_valideurs_paragraphe</strong> — Filtre :
+<pre><code>IDParagraphe eq @{outputs('Ctx')?['idParagraphe']} and Role eq 'Valideur'</code></pre></li>
+<li><strong>Modele_soumission</strong> — Un commentaire valideur déjà présent signifie un retour après refus :
+<pre><code>if(empty(first(body('Get_valideurs_paragraphe')?['value'])?['CommentaireValideur']),
+   'CONTRIBUTION_TERMINEE', 'CONTRIBUTION_REVUE')</code></pre></li>
+<li><strong>Est_cas2</strong> — <code>outputs('Cas')</code> est égal à <code>CAS2</code>.</li>
+<li><strong>Get_contrib_restantes</strong> — Nombre max 1 :
+<pre><code>IDRapport eq @{outputs('Ctx')?['idRapport']} and Chapitre eq '@{outputs('Ctx')?['chapitre']}' and Role eq 'Contributeur' and Statut ne 'Terminée'</code></pre>
+<strong>Chapitre_complet</strong> : <code>empty(body('Get_contrib_restantes')?['value'])</code>. Grâce à la concurrence à 1, un seul run peut conclure que le chapitre est complet.</li>
+<li><strong>Get_paragraphes_chapitre</strong> — même filtre sans la condition de statut. <strong>Tableau_chapitre</strong> : colonnes Paragraphe, Contributeur (<code>item()?['EmailContributeurValideur']</code>) sur les lignes Role = Contributeur (Filter array préalable). <strong>Emails_valideurs_chapitre</strong> : Select texte sur les lignes Role = Valideur, puis <code>join(union(body('Select'),body('Select')), ';')</code>.</li>
+<li><strong>Notifier_chapitre_pret</strong> — Child flow DRG_04 :
+<pre><code>Destinataires    : join(body('Emails_valideurs_chapitre'), ';')
+ObjetMail        : concat("Chapitre à valider : ", outputs('Ctx')?['chapitre'])
+CorpsHTML        : body('Tableau_chapitre')
+CorpsSecondaire  : "<p>Toutes les contributions du chapitre sont prêtes. Veuillez procéder à la validation.</p>"
+Tokens           : json('[]')
+IDRapport        : outputs('Ctx')?['idRapport']</code></pre>
+</li>
+<li><strong>Select Emails_valideurs_par</strong> (avant Notifier_valideur) — Select mode texte de <code>body('Get_valideurs_paragraphe')?['value']</code> :
+<pre><code>toLower(item()?['EmailContributeurValideur'])</code></pre>
+Puis <strong>Notifier_valideur</strong> — Child flow DRG_04 (voir paramètres complets dans la section Paramètres de DRG_04).</li>
+<li><strong>Maj_gestion_contribution</strong> — Id = idParagraphe ; StatutContribution = Terminée.</li>
+<li><strong>Maj_gestion_validation</strong> — StatutValidation = Validé.</li>
+<li><strong>Get_contributeurs_a_renvoyer</strong> — CAS1 : tout le chapitre ; sinon : le paragraphe.
+<pre><code>if(equals(outputs('Cas'),'CAS1'),
+  concat('IDRapport eq ', outputs('Ctx')?['idRapport'], ' and Chapitre eq ''', outputs('Ctx')?['chapitre'], ''' and Role eq ''Contributeur'''),
+  concat('IDParagraphe eq ', outputs('Ctx')?['idParagraphe'], ' and Role eq ''Contributeur'''))</code></pre>
+Mettre cette expression directement dans le champ Filtre.</li>
+<li><strong>Renvoyer_contributeurs</strong> — Update item : Id = <code>items('Renvoyer_contributeurs')?['ID']</code>, Statut = Refusé - Valideur. Écrit par le compte de service : pas de redéclenchement.</li>
+<li><strong>Notifier_refus</strong> — Child flow DRG_04 :
+<pre><code>Destinataires    : join(body('Emails_contributeurs'), ';')
+ObjetMail        : concat("Contribution refusée : ", outputs('Ctx')?['chapitre'], " — ", outputs('Ctx')?['paragraphe'])
+CorpsHTML        : "<p>Votre contribution a été refusée pour la raison suivante :</p>"
+CorpsSecondaire  : concat("<p><em>", outputs('Ctx')?['commentaire'], "</em></p><p>Veuillez fournir une nouvelle version.</p>")
+Tokens           : json('[]')</code></pre>
+</li>
+<li><strong>Maj_gestion_refus</strong> — StatutValidation = Refusé ; StatutContribution = Refusé - Valideur.</li>
+<li><strong>Consolidation_rapport</strong>
+<pre><code>Get_toutes_lignes_rapport : IDRapport eq @{outputs('Ctx')?['idRapport']}   (pagination 5000,
+                            colonnes Role,Statut)
+Contrib            : @equals(item()?['Role'],'Contributeur')
+Contrib_terminees  : @and(equals(item()?['Role'],'Contributeur'), equals(item()?['Statut']?['Value'],'Terminée'))
+Valid              : @equals(item()?['Role'],'Valideur')
+Valid_ok           : @and(equals(item()?['Role'],'Valideur'), equals(item()?['Statut']?['Value'],'Validé'))
+
+Statuts_rapport :
+{
+  "contribution": "@{if(equals(length(body('Contrib')), length(body('Contrib_terminees'))), 'Terminée', 'En cours')}",
+  "validation":   "@{if(equals(length(body('Valid')), length(body('Valid_ok'))), 'Validé', 'En cours')}"
+}</code></pre>
+<strong>Get_suivi_rapport</strong> : filtre IDRapport, Top 1. <strong>Premiere_validation_complete</strong> (évaluée avant la mise à jour, sur l'ancienne valeur) :
+<pre><code>@and(equals(outputs('Statuts_rapport')?['validation'], 'Validé'),
+     not(equals(first(body('Get_suivi_rapport')?['value'])?['StatutValidation']?['Value'], 'Validé')))</code></pre>
+Placer donc la Condition avant <strong>Maj_suivi_rapport</strong> (StatutContribution, StatutValidation), puis la mise à jour. L'ancienne valeur sert de verrou : le N2 n'est prévenu qu'une fois, sans colonne supplémentaire.</li>
+<li><strong>Notifier_N2</strong> — Child flow DRG_04 :
+<pre><code>Destinataires    : first(body('Get_suivi_rapport')?['value'])?['ValideurN2']?['Email']
+ObjetMail        : concat("Validation N1 terminée : ", outputs('Ctx')?['nomRapport'])
+CorpsHTML        : "<p>Toutes les validations N1 du rapport sont terminées.</p>"
+CorpsSecondaire  : "<p>Veuillez procéder à la signature ou à la validation N2.</p>"
+Tokens           : json('[]')
+IDRapport        : outputs('Ctx')?['idRapport']</code></pre>
+</li>
+</ol>
+</div>
+</section>
+
+<!-- ============ F03 ============ -->
+<section id="f03">
+<div class="flowcard">
+<h3>DRG_03_Relances</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_Relances</dd>
+<dt>Déclencheur</dt><dd>Récurrence : 1 jour, 07:00, fuseau (UTC+01:00) Bruxelles, Copenhague, Madrid, Paris</dd>
+<dt>Concurrence</dt><dd>Degré 1</dd>
+</dl>
+<div class="scroll"><pre>
+Recurrence
+▼
+Scope Try
+├─ Compose       Date_J_moins_8
+├─ Compose       Date_J_plus_1
+├─ Get items     Get_campagnes_ouvertes      [CampagnesEnCours]
+├─ Filter array  Campagnes_a_relancer
+└─ Apply to each Pour_chaque_campagne
+     ├─ Compose       Echeance
+     ├─ Get items     Get_contrib_en_attente   [SuiviValidationsParagraphes]
+     ├─ Select        Emails_attente
+     ├─ Compose       Emails_attente_uniques
+     └─ Apply to each Relance_par_personne           (concurrence 10)
+          ├─ Filter array      Lignes_personne
+          ├─ Create HTML table Tableau_relance
+          └─ Run a Child Flow  Notifier_relance   → DRG_04
+▼
+Scope Catch → bloc standard
+</pre></div>
+<h4>Paramètres</h4>
+<ol class="steps">
+<li><strong>Date_J_moins_8</strong> — fermeture dans 8 jours :
+<pre><code>formatDateTime(addDays(convertFromUtc(utcNow(),'Romance Standard Time'), 8), 'yyyy-MM-dd')</code></pre>
+<strong>Date_J_plus_1</strong> — fermeture hier : même expression avec <code>-1</code>.</li>
+<li><strong>Get_campagnes_ouvertes</strong> — Filtre <code>Statut eq 'Ouverte'</code>.</li>
+<li><strong>Campagnes_a_relancer</strong> — mode avancé :
+<pre><code>@or(
+  equals(formatDateTime(item()?['DateFermeture'],'yyyy-MM-dd'), outputs('Date_J_moins_8')),
+  equals(formatDateTime(item()?['DateFermeture'],'yyyy-MM-dd'), outputs('Date_J_plus_1'))
+)</code></pre>
+DateFermeture est stockée en UTC : si la colonne est « date seule », le décalage horaire peut la placer la veille. Utiliser <code>convertFromUtc(item()?['DateFermeture'],'Romance Standard Time','yyyy-MM-dd')</code> si les tests montrent un écart d'un jour.</li>
+<li><strong>Echeance</strong> — <code>if(equals(formatDateTime(items('Pour_chaque_campagne')?['DateFermeture'],'yyyy-MM-dd'), outputs('Date_J_plus_1')), 'dépassée depuis hier', 'dans 8 jours')</code></li>
+<li><strong>Get_contrib_en_attente</strong> — Filtre :
+<pre><code>IDRapport eq @{items('Pour_chaque_campagne')?['IDRapport']} and Role eq 'Contributeur' and Statut ne 'Terminée'</code></pre>
+Cela couvre « En cours » et les refus (Refusé - Valideur / Signataire). Le document parle de « statut différent de Validé » : la règle ci-dessus est l'équivalent logique côté contributeur <span class="confirm">À confirmer</span>.</li>
+<li><strong>Emails_attente</strong>, <strong>Emails_attente_uniques</strong>, <strong>Lignes_personne</strong>, <strong>Tableau_relance</strong> — même construction que dans DRG_01 (Select texte, <code>union</code>, Filter array sur l'email, tableau Chapitre / Paragraphe / Statut).</li>
+<li><strong>Notifier_relance</strong> — Child flow DRG_04 :
+<pre><code>Destinataires    : items('Relance_par_personne')
+ObjetMail        : concat("RELANCE : contributions en attente - ", items('Pour_chaque_campagne')?['NomRapport'])
+CorpsHTML        : body('Tableau_relance')
+CorpsSecondaire  : concat("<p><strong>Échéance : ", outputs('Echeance'), "</strong></p><p>Accédez à l'application pour terminer vos contributions.</p>")
+Tokens           : json('[]')
+IDRapport        : items('Pour_chaque_campagne')?['IDRapport']</code></pre>
+</li>
+</ol>
+</div>
+</section>
+
+<!-- ============ STD ============ -->
+<section id="std">
+<h2><span class="step">5</span> Blocs standards</h2>
+<h3>Try / Catch</h3>
+<div class="scroll"><pre>
+Scope Try
+Scope Catch            Configurer l'exécution après : Try « a échoué », « a expiré »
+├─ Filter array       Erreurs          De : result('Try')   @equals(item()?['status'],'Failed')
+├─ Compose            Message_erreur
+├─ Get items          Get_admins_catch [Administrateurs]
+├─ Select             Emails_admins_catch   (texte : item()?['AdresseEmail'])
+├─ Run a Child Flow   Alerter_admins   → DRG_04 (ObjetDirect / CorpsDirect)
+└─ Terminate          Failed
+</pre></div>
+<pre><code>Message_erreur :
+concat('Flow : ', workflow()?['tags']?['flowDisplayName'],
+       ' | Run : ', workflow()?['run']?['name'],
+       ' | Action : ', first(body('Erreurs'))?['name'],
+       ' | ', coalesce(first(body('Erreurs'))?['error']?['message'], 'voir historique'))</code></pre>
+<p>Dans le Scope Catch de DRG_04, ajouter un appel récursif au child lui-même n'est pas possible (boucle). À la place, envoyer un mail simple via l'action « Envoyer un mail » (Office 365 Outlook) directement aux administrateurs, sans passer par DRG_04 :</p>
+<pre><code>Send an email
+À       : join(body('Emails_admins_catch'), ';')
+Objet   : concat('[ERREUR] Flow ', workflow()?['tags']?['flowDisplayName'])
+Corps   : Message_erreur (voir ci-dessus)</code></pre>
+<p>Si l'action en échec se trouve dans une boucle ou un Switch imbriqué, <code>result('Try')</code> ne montre que le conteneur : le lien vers le run reste la source fiable.</p>
+
+<h3>Destinataires distincts (motif réutilisé partout)</h3>
+<pre><code>Select (texte)  : toLower(item()?['EmailContributeurValideur'])
+Compose         : union(body('Select'), body('Select'))
+Pour un envoi groupé : join(outputs('Compose'), ';')</code></pre>
+
+<h3>Côté Power Apps (inchangé, à vérifier)</h3>
+<ul>
+<li>« Relecture terminée » : <code>Patch(SuiviValidationsParagraphes, ThisItem, {Statut: {Value: "Terminée"}})</code></li>
+<li>« Approuver » : Statut = Validé. « Refuser » : Statut = Refusé et commentaire, bouton désactivé si <code>IsBlank(txtCommentaire.Text)</code>.</li>
+<li>Un seul <code>Patch</code> par clic : deux écritures successives produiraient deux déclenchements.</li>
+<li>Les écrans d'administration renseignent AdresseEmail dans le même Patch que la personne : <code>AdresseEmail: cboPersonne.Selected.Email</code>.</li>
+</ul>
+</section>
+
+<!-- ============ ORDRE ============ -->
+<section id="ordre">
+<h2><span class="step">6</span> Ordre de développement et recette</h2>
+<ol class="steps">
+<li>Vérifier les noms internes des colonnes et le contrôle de version des 4 listes opérationnelles.</li>
+<li>Créer les modèles manquants dans Configuration Email.</li>
+<li>Développer et tester <strong>DRG_04</strong> seul (bouton « Tester » avec des tokens factices).</li>
+<li>Développer <strong>DRG_01</strong>, tester Lancer sur un rapport de test, puis relancer : aucun doublon attendu.</li>
+<li>Développer <strong>DRG_02</strong> et tester les 3 cas.</li>
+<li>Développer <strong>DRG_03</strong> en réglant temporairement les dates de fermeture de la campagne de test.</li>
+<li>Tester Clôturer en dernier.</li>
+<li>Bascule : désactiver les 7 anciens flows <em>avant</em> d'activer les nouveaux.</li>
+</ol>
+<div class="scroll"><table>
+<thead><tr><th>Test</th><th>Résultat attendu</th></tr></thead>
+<tbody>
+<tr><td>Passer une campagne à Lancer deux fois</td><td>Lignes créées une seule fois, statut Ouverte, un mail par contributeur</td></tr>
+<tr><td>Ajouter un paragraphe dans Gestion, repasser à Lancer après avoir remis campagneLancee à Non</td><td>Seule la nouvelle ligne est créée</td></tr>
+<tr><td>CAS1 : terminer, refuser, terminer</td><td>CONTRIBUTION_TERMINEE, CONTRIBUTION_REFUSEE, CONTRIBUTION_REVUE</td></tr>
+<tr><td>CAS2 : 3 contributeurs, 2 terminent ensemble</td><td>Aucun mail ; au 3e, un seul CHAPITRE_PRET</td></tr>
+<tr><td>CAS3 : refus d'un paragraphe sur deux</td><td>Seul le contributeur concerné repasse en Refusé - Valideur</td></tr>
+<tr><td>Modifier uniquement le commentaire d'une ligne</td><td>Run arrêté à Statut_a_change</td></tr>
+<tr><td>Un utilisateur valide la ligne d'un autre directement dans SharePoint</td><td>Transition refusée, admin alerté</td></tr>
+<tr><td>Dernière validation N1 du rapport</td><td>Un seul mail au valideur N2</td></tr>
+<tr><td>Campagne fermant dans 8 jours</td><td>Un mail de relance par contributeur en attente</td></tr>
+<tr><td>Clôturer</td><td>Lignes dans Historique, listes sources vidées pour ce rapport</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="confirmer">
+<h2><span class="step">7</span> À confirmer pendant le développement</h2>
+<ol>
+<li>Noms internes exacts des colonnes (IDRapport simple nombre ou recherche, Role texte ou choix, nom de la colonne commentaire).</li>
+<li>Colonnes de « Configuration Email » (code, objet, corps) et codes de modèles existants.</li>
+<li>Valeurs exactes du choix Statut de CampagnesEnCours (Lancer, Ouverte, Clôturer, Clôturée).</li>
+<li>Noms des listes Historique.</li>
+<li>En CAS1 et CAS2, le valideur est-il porté par chaque paragraphe ou seulement par la ligne chapitre.</li>
+<li>Règle d'information du valideur N2 : proposée ici quand tout le rapport est validé.</li>
+<li>Même compte de service dans les trois environnements (utilisé en dur dans les trigger conditions).</li>
+</ol>
+</section>
+</main>
+</div>
+</body>
+</html>
