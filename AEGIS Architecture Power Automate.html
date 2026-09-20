@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk Flow / AEGIS — Refonte Power Automate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14213D; --paper:#F5F7FB; --panel:#FFFFFF; --rule:#D5DBE7; --muted:#56627A;
+  --accent:#6A2C91; --accent-soft:#EFE6F6;
+  --ok:#2E7D5B; --ok-soft:#E3F2EA; --warn:#9A6414; --warn-soft:#FBF0DC; --ko:#B23A3A; --ko-soft:#F8E4E4;
+  --code-bg:#EEF1F7;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E4E8F2; --paper:#10141F; --panel:#171C2A; --rule:#2B3246; --muted:#9AA4BC;
+    --accent:#C49BE3; --accent-soft:#2A2138;
+    --ok:#6CC49C; --ok-soft:#16291F; --warn:#E3B462; --warn-soft:#2E2413; --ko:#EB8A8A; --ko-soft:#2F1818;
+    --code-bg:#1C2233;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E4E8F2; --paper:#10141F; --panel:#171C2A; --rule:#2B3246; --muted:#9AA4BC;
+  --accent:#C49BE3; --accent-soft:#2A2138;
+  --ok:#6CC49C; --ok-soft:#16291F; --warn:#E3B462; --warn-soft:#2E2413; --ko:#EB8A8A; --ko-soft:#2F1818;
+  --code-bg:#1C2233;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1280px;margin:0 auto}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:2rem 1.25rem;border-right:1px solid var(--rule);font-size:.9rem}
+nav.toc p{font-weight:600;margin:0 0 .75rem}
+nav.toc ol{margin:0;padding-left:1.2rem}
+nav.toc li{margin:.3rem 0}
+nav.toc a{color:var(--ink);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{padding:2.5rem clamp(1rem,4vw,3.5rem) 5rem;min-width:0}
+header.hero{border-bottom:3px solid var(--ink);padding-bottom:2rem;margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.15;margin:0 0 .75rem;max-width:22ch}
+.hero .sub{color:var(--muted);max-width:70ch;margin:0 0 1.75rem}
+.ratio{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem 1.25rem;font-weight:700}
+.ratio .n{font-size:clamp(3rem,9vw,5.5rem);line-height:1;letter-spacing:-.03em}
+.ratio .arrow{font-size:clamp(2rem,6vw,3.5rem);color:var(--accent);font-weight:400}
+.ratio .cap{flex-basis:100%;font-weight:400;color:var(--muted);font-size:.95rem}
+.ratio .cap strong{color:var(--ink)}
+section{margin:3.5rem 0}
+h2{font-size:1.6rem;line-height:1.25;margin:0 0 1rem;padding-top:.5rem}
+h2 .step{display:inline-block;min-width:2.2ch;color:var(--accent)}
+h3{font-size:1.2rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.5rem 0 .4rem}
+p,li{max-width:78ch}
+.scroll{overflow-x:auto;margin:1rem 0;border:1px solid var(--rule);border-radius:4px;background:var(--panel)}
+pre{margin:0;padding:1rem 1.1rem;font-family:var(--mono);font-size:.8rem;line-height:1.45;white-space:pre;color:var(--ink)}
+code{font-family:var(--mono);font-size:.85em;background:var(--code-bg);padding:.1em .35em;border-radius:3px}
+pre code{background:none;padding:0;font-size:inherit}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:.55rem .7rem;border-bottom:1px solid var(--rule)}
+th{background:var(--code-bg);font-weight:600}
+.tag{display:inline-block;padding:.05rem .45rem;border-radius:3px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.t-keep{background:var(--ok-soft);color:var(--ok)}
+.t-merge{background:var(--accent-soft);color:var(--accent)}
+.t-del{background:var(--ko-soft);color:var(--ko)}
+.t-child{background:var(--warn-soft);color:var(--warn)}
+.confirm{background:var(--warn-soft);color:var(--warn);font-weight:600;padding:.05rem .4rem;border-radius:3px;font-size:.85em;white-space:nowrap}
+.note{border-left:4px solid var(--accent);background:var(--panel);padding:.8rem 1rem;margin:1.25rem 0;max-width:80ch}
+.risk{border-left-color:var(--ko)}
+.flowcard{border:1px solid var(--rule);border-top:4px solid var(--accent);background:var(--panel);padding:1.25rem 1.25rem .5rem;margin:2rem 0;border-radius:0 0 4px 4px}
+.flowcard h3{margin-top:0}
+.meta{display:grid;grid-template-columns:max-content 1fr;gap:.25rem 1rem;font-size:.9rem;margin:.5rem 0 1rem}
+.meta dt{font-weight:600;color:var(--muted)}
+.meta dd{margin:0}
+ol.steps>li{margin:.5rem 0}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav.toc{position:static;height:auto;border-right:0;border-bottom:1px solid var(--rule)}
+}
+@media print{nav.toc{display:none}.layout{display:block}.scroll{overflow:visible}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Sommaire">
+  <p>Sommaire</p>
+  <ol>
+    <li><a href="#inventaire">Inventaire des captures</a></li>
+    <li><a href="#asis">Architecture AS-IS</a></li>
+    <li><a href="#redondances">Redondances et décisions</a></li>
+    <li><a href="#tobe">Architecture cible</a></li>
+    <li><a href="#synthese">Synthèse AS-IS / TO-BE</a></li>
+    <li><a href="#modele">Modèle de données et configuration</a></li>
+    <li><a href="#boucles">Anti-boucle et erreurs</a></li>
+    <li><a href="#powerapps">Répartition Power Apps / Flow</a></li>
+    <li><a href="#f01">FLOW 01 — Campagne</a></li>
+    <li><a href="#f02">FLOW 02 — Workflow Engine</a></li>
+    <li><a href="#f03">FLOW 03 — Relances</a></li>
+    <li><a href="#f04">FLOW 04 — Notification (child)</a></li>
+    <li><a href="#alm">DEV → TEST → PROD</a></li>
+    <li><a href="#confirmer">Points à confirmer</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <h1>Risk Flow / AEGIS — refonte de l’automatisation</h1>
+  <p class="sub">Solution « DRG – Gestion des Validations » (CIA BFA28). Analyse établie à partir de la documentation fonctionnelle du 30/10/2025 (17 pages photographiées), complétée par les captures de l’éditeur Power Automate au fil de l’eau (dernière : DRG_04_Notification, 20/09/2026). Les définitions internes des flows n’étant pas encore visibles, tout ce qui n’apparaît pas dans le document est marqué <span class="confirm">À confirmer</span>.</p>
+  <div class="ratio" role="img" aria-label="7 workflows actuels, 4 workflows cibles">
+    <span class="n">7</span><span class="arrow">→</span><span class="n">4</span>
+    <span class="cap"><strong>−3 flows, soit −43 %</strong>. En comptant le flux manuel « SuiviValidationsParagraphes » (Étape 5) s’il est distinct : 8 → 4, soit −50 %. Flows déclenchés par un événement métier : 7 → 3.</span>
+  </div>
+</header>
+
+<!-- ===================================================== -->
+<section id="inventaire">
+<h2><span class="step">1</span> Inventaire des captures</h2>
+<p>Les 17 captures sont des pages d’un document fonctionnel, pas des écrans de l’éditeur Power Automate. On connaît donc le rôle de chaque flow, ses déclencheurs et ses listes, mais pas les actions exactes (variables, Compose, Filter Array, boucles).</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Page</th><th>Contenu</th><th>Apport pour l’analyse</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Objectif, CIA BFA28, environnements</td><td>3 environnements Power Apps (BFPPR-SHARED-DEV-DRG / TEST-DRG / DRG) et 3 sites SharePoint (préfixes DEV_, TEST_, aucun en PROD)</td></tr>
+<tr><td>2–3</td><td>Application Risk-Flow</td><td>Écran à deux onglets Contributeur / Validateur, bouton « Relecture terminée », Approuver / Refuser avec commentaire. Toute interaction écrit dans <code>SuiviValidationsParagraphes</code>. Variables d’environnement déjà utilisées (listes, URL du site, adresse d’envoi)</td></tr>
+<tr><td>4</td><td>Liste des flux + Flux 1 et 2</td><td>7 flows nommés ; LancementCampagne et ContributeursValideurs ont le même déclencheur</td></tr>
+<tr><td>5</td><td>Flux 3 et 4</td><td>DRG_Validation (branches contributeur / valideur), DRG_Relances à J-8 et J+1</td></tr>
+<tr><td>6</td><td>Flux 5, 6, 7 + listes de référence</td><td>MiseAJourUtilisateur / Administrateur (renseignent l’email), HistorisationCampagne (archive puis supprime)</td></tr>
+<tr><td>7–11</td><td>Détail des listes</td><td>Statuts, Roles, Utilisateurs, Rapports Réglementaire, Administrateurs, Liens Documents, Lien Application, Configuration Email</td></tr>
+<tr><td>12–14</td><td>Listes opérationnelles</td><td>Colonnes de CampagnesEnCours, SuiviValidationsRapportsReglementaire, GestionRapportsReglementaire, SuiviValidationsParagraphes</td></tr>
+<tr><td>14–15</td><td>Guide de paramétrage</td><td>Étape 5 : flux manuel lancé depuis Power Apps pour alimenter SuiviValidationsParagraphes, « à automatiser plus tard »</td></tr>
+<tr><td>Éditeur 1–2</td><td>DRG_04_Notification (publié) : déclencheur manuel, vue code du schéma d’entrée</td><td>Premier flow cible en cours d’implémentation (FLOW 04). 7 entrées texte observées (destinataire, objet, prénom, corps, tableau HTML, CC admin, boîte d’envoi) + <code>location</code> <span class="confirm">À confirmer</span>. Corps du flow non visible</td></tr>
+<tr><td>16–17</td><td>Processus et 3 cas d’usage</td><td>Colonnes <code>IsChapitre</code> / <code>IsValidationChapitre</code>, validation N1 puis N2, mails par cas</td></tr>
+</tbody></table></div>
+
+<h3>Fiches des flows existants</h3>
+<div class="scroll"><table>
+<thead><tr><th>Flow</th><th>Trigger</th><th>Liste</th><th>Traitement documenté</th><th>Sorties</th></tr></thead>
+<tbody>
+<tr><td><strong>F1 DRG_LancementCampagne</strong></td><td>Created or modified</td><td>CampagnesEnCours, Statut = « Lancer »</td><td>Récupère les utilisateurs du rapport ayant le rôle Contributeur ; crée une ligne dans SuiviValidationsRapportsReglementaire ; un mail par contributeur avec ses chapitres/paragraphes</td><td>Statut → « Ouverte », champ masqué <code>campagneLancee</code> = oui</td></tr>
+<tr><td><strong>F2 DRG_ContributeursValideurs</strong></td><td>Created or modified <span class="confirm">À confirmer</span></td><td>CampagnesEnCours, Statut = « Lancer »</td><td>Lit GestionRapportsReglementaire (paragraphes, contributeurs, valideurs du rapport) ; pour chaque paragraphe crée une ligne par contributeur et une par valideur</td><td>Lignes dans SuiviValidationsParagraphes (IDRapport, IDParagraphe, titres, rôle, email, personne)</td></tr>
+<tr><td><strong>F3 DRG_Validation</strong></td><td>Modified</td><td>SuiviValidationsParagraphes</td><td>Branche contributeur : met à jour le statut dans 3 listes, mail au valideur (prêt, ou revu après refus). Branche valideur : met à jour 3 listes ; refus → mail contributeur ; acceptation → mail au valideur N2</td><td>Updates SuiviValidationsParagraphes, GestionRapports, SuiviValidationsRapports ; emails</td></tr>
+<tr><td><strong>F4 DRG_Relances</strong></td><td>Recurrence <span class="confirm">fréquence à confirmer</span></td><td>SuiviValidationsParagraphes + dates de CampagnesEnCours / SuiviValidationsRapports</td><td>À J-8 et J+1 de la fermeture : lignes Contributeur dont le statut ≠ « Validé », regroupées par personne</td><td>Un mail par contributeur</td></tr>
+<tr><td><strong>F5 DRG_MiseAJourUtilisateur</strong></td><td>Created</td><td>Utilisateurs</td><td>Copie l’email de la personne dans la colonne AdresseEmail</td><td>Update item</td></tr>
+<tr><td><strong>F6 DRG_MiseAJourAdministrateur</strong></td><td>Created</td><td>Administrateurs</td><td>Idem sur Administrateurs</td><td>Update item</td></tr>
+<tr><td><strong>F7 DRG_HistorisationCampagne</strong></td><td>Modified</td><td>CampagnesEnCours, Statut = « Clôturer » (le document indique aussi « Lancer » : <span class="confirm">À confirmer</span>)</td><td>Copie les lignes vers les listes préfixées « Historique », puis les supprime</td><td>Create item ×N, Delete item ×N</td></tr>
+<tr><td><em>Étape 5 — flux manuel</em></td><td>Power Apps (bouton écran Rapports)</td><td>GestionRapports → SuiviValidationsParagraphes</td><td>Crée ou met à jour les lignes de suivi. Même fonction que F2 <span class="confirm">À confirmer : flow distinct ou ancienne version de F2</span></td><td>Create / Update item</td></tr>
+</tbody></table></div>
+<p>Non visibles pour tous les flows : variables, Compose, Filter Array, boucles, trigger conditions, gestion d’erreur, appels entre flows. <span class="confirm">À confirmer</span> avec les captures de l’éditeur.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="asis">
+<h2><span class="step">2</span> Architecture AS-IS reconstituée</h2>
+<div class="scroll"><pre>
+                         ┌──────────────────────────────┐
+                         │   POWER APPS  « Risk-Flow »  │
+                         │  Onglet Contributeur | Valid.│
+                         └───────┬───────────────┬──────┘
+          Patch statut / commentaire             │ bouton « Rapports » (Étape 5)
+                                 │               ▼
+                                 │      ┌────────────────────────┐
+                                 │      │ Flux manuel Suivi…Par. │──┐
+                                 │      └────────────────────────┘  │
+ ADMIN (SharePoint direct)       ▼                                  │
+   │              ┌─────────────────────────────┐                   │
+   │  Statut      │  SuiviValidationsParagraphes │◄──────────────────┤
+   │  « Lancer »  └──────────────┬──────────────┘                   │
+   ▼                             │ modified                         │
+┌──────────────────┐             ▼                                  │
+│ CampagnesEnCours │     ┌───────────────────┐   update  ┌──────────┴───────────────┐
+└──┬─────┬─────┬───┘     │ F3 DRG_Validation │──────────►│ GestionRapportsReglem.   │
+   │     │     │         └───┬───────┬───────┘   update  │ SuiviValidationsRapports │
+   │     │     │             │       └── update ─┐       └──────────────────────────┘
+   │     │     │             │ mails              └──► SuiviValidationsParagraphes
+   │     │     │             ▼                           (même liste = risque boucle)
+   │     │     │        Valideur N1 / Contributeur / Valideur N2
+   │     │     │
+   │     │     └─ Clôturer ─► F7 Historisation ─► listes « Historique… » + suppression
+   │     │
+   │     └──── Lancer ──────► F2 ContributeursValideurs ─► crée SuiviValidationsParagraphes
+   │                                ▲ lit GestionRapportsReglementaire
+   └────────── Lancer ──────► F1 LancementCampagne ─► crée SuiviValidationsRapports
+                                    │                  mails contributeurs
+                                    └─ met Statut « Ouverte » (re-déclenche F1, F2, F7)
+
+ Recurrence ─► F4 Relances (J-8, J+1) ─► lit SuiviValidationsParagraphes ─► mails
+
+ Utilisateurs    ── created ─► F5 ─► update AdresseEmail (re-déclenche si trigger « modified »)
+ Administrateurs ── created ─► F6 ─► update AdresseEmail
+
+ Référentiels lus par tous les flows : Statuts, Roles, Configuration Email,
+ Liens Documents, Lien Application, Rapports Réglementaire
+</pre></div>
+
+<h3>Lecture du système</h3>
+<p>Le cycle de vie est piloté par deux listes. <code>CampagnesEnCours</code> porte l’événement de campagne (lancement, clôture), modifié à la main par un administrateur. <code>SuiviValidationsParagraphes</code> porte chaque action utilisateur, écrite par Power Apps. Le statut métier est ensuite recopié dans deux autres listes (<code>GestionRapportsReglementaire</code> et <code>SuiviValidationsRapportsReglementaire</code>), ce qui fait trois copies du même statut.</p>
+
+<div class="note risk">
+<strong>Défauts structurels observés</strong>
+<ul>
+<li>F1 et F2 partent du même événement en parallèle. F1 doit envoyer à chaque contributeur la liste de ses paragraphes, alors que ces lignes sont créées par F2 au même moment : condition de course probable.</li>
+<li>F1 remet le statut à « Ouverte » : F1, F2 et F7 se réveillent à nouveau et ne s’arrêtent que grâce à leur condition (déclenchement consommé, runs inutiles).</li>
+<li>F3 modifie la liste qui le déclenche : boucle potentielle, protégée uniquement si une condition existe <span class="confirm">À confirmer</span>.</li>
+<li>Les affectations existent à deux endroits : <code>Utilisateurs</code> (IDRapport + rôle) et <code>GestionRapportsReglementaire</code> (contributeurs/valideurs par paragraphe). F1 lit la première, F2 la seconde : deux sources de vérité.</li>
+<li>Le cas 2 (validation au chapitre) impose d’attendre que toutes les contributions du chapitre soient terminées : sans verrou de concurrence, deux soumissions simultanées peuvent envoyer deux mails ou aucun.</li>
+<li>La liste Statuts contient des doublons de libellé selon TypeStatut (« Refusé - Valideur » en Contribution et en Validation) : les conditions basées sur le texte sont fragiles.</li>
+<li>Le document cite des noms de listes au singulier et au pluriel (SuiviValidationParagraphe / SuiviValidationsParagraphes) : <span class="confirm">nom interne exact à confirmer</span>.</li>
+</ul>
+</div>
+</section>
+
+<!-- ===================================================== -->
+<section id="redondances">
+<h2><span class="step">3</span> Redondances et décisions</h2>
+<div class="scroll"><table>
+<thead><tr><th>Flow</th><th>Constat</th><th>Décision</th><th>Justification technique</th></tr></thead>
+<tbody>
+<tr><td>F1 LancementCampagne</td><td>Même trigger, même liste et même condition que F2 ; dépend de ses résultats</td><td><span class="tag t-merge">FUSIONNER</span></td><td>Un seul flow ordonne les étapes : générer les lignes, puis notifier à partir des lignes créées. Plus de course, un seul run par lancement.</td></tr>
+<tr><td>F2 ContributeursValideurs</td><td>Doublon de trigger avec F1 et doublon fonctionnel avec le flux manuel Étape 5</td><td><span class="tag t-merge">FUSIONNER</span></td><td>Absorbé dans FLOW 01. La génération devient idempotente (clé unique), donc relançable sans doublon.</td></tr>
+<tr><td>Flux manuel Étape 5</td><td>Même logique que F2, déclenché depuis Power Apps</td><td><span class="tag t-del">SUPPRIMER</span></td><td>Le document prévoit déjà de l’automatiser. Si un rejeu manuel reste utile, Power Apps écrit <code>ActionCampagne = "REGENERER"</code> sur la campagne et FLOW 01 le traite.</td></tr>
+<tr><td>F7 HistorisationCampagne</td><td>Même liste et même trigger que F1/F2, seul le statut change</td><td><span class="tag t-merge">FUSIONNER</span></td><td>Branche « CLOTURER » du Switch de FLOW 01. Un seul flow écoute CampagnesEnCours.</td></tr>
+<tr><td>F3 Validation</td><td>Cœur métier, mais branches imbriquées et mise à jour de sa propre liste</td><td><span class="tag t-keep">CONSERVER (refondu)</span></td><td>Devient FLOW 02, Switch sur un événement explicite, trigger conditions anti-boucle, consolidation isolée dans un scope.</td></tr>
+<tr><td>F4 Relances</td><td>Trigger différent (planifié), besoin réel</td><td><span class="tag t-keep">CONSERVER (refondu)</span></td><td>FLOW 03. Filtres OData au lieu de Filter Array, offsets J-8/J+1 en configuration.</td></tr>
+<tr><td>F5 MiseAJourUtilisateur</td><td>Copie Personne.Email dans une colonne texte</td><td><span class="tag t-del">SUPPRIMER</span></td><td>L’email est déjà disponible sur la colonne Personne (<code>Contributeur/Email</code> côté flow, <code>ThisItem.Nom.Email</code> côté Power Apps). Si l’écran d’administration Power Apps crée l’utilisateur, le Patch renseigne la colonne dans la même écriture.</td></tr>
+<tr><td>F6 MiseAJourAdministrateur</td><td>Identique à F5 sur une autre liste</td><td><span class="tag t-del">SUPPRIMER</span></td><td>Même raisonnement. Deux flows de moins sans perte fonctionnelle.</td></tr>
+<tr><td>Envoi de mails (F1, F3, F4)</td><td>Même lecture de Configuration Email, même construction HTML, même boîte d’envoi</td><td><span class="tag t-child">CHILD FLOW</span></td><td>FLOW 04 : un seul endroit pour les modèles, les liens, l’expéditeur, la journalisation. Trois appelants et environ huit modèles justifient le child flow.</td></tr>
+<tr><td>Filtrage par rôle, affichage, commentaire obligatoire</td><td>Logique d’interface</td><td><span class="tag t-merge">POWER APPS</span></td><td>Reste dans l’app ; le contrôle serveur du commentaire de refus est redoublé dans FLOW 02.</td></tr>
+</tbody></table></div>
+
+<h3>Traitements répétés à mutualiser</h3>
+<ul>
+<li><strong>Destinataires</strong> : « lignes de suivi → Select email → union() → join(';') » apparaît dans le lancement, la validation et les relances. Il devient une expression standard (Select + <code>union(body('Select'),body('Select'))</code>), pas un child flow : trop simple pour justifier un appel.</li>
+<li><strong>Tableau HTML des paragraphes d’une personne</strong> : Filter array + Create HTML table, même motif en lancement et relances.</li>
+<li><strong>Lecture de la configuration</strong> : une seule action Get items sur <code>AEGIS_CONFIGURATION</code> puis un objet JSON, au lieu de plusieurs lectures de référentiels.</li>
+<li><strong>Mise à jour du statut dans trois listes</strong> : regroupée dans un scope « Consolidation » unique de FLOW 02.</li>
+</ul>
+</section>
+
+<!-- ===================================================== -->
+<section id="tobe">
+<h2><span class="step">4</span> Architecture cible TO-BE</h2>
+<p>Un flow SharePoint ne peut écouter qu’une liste. Deux listes portent des événements métier, il faut donc deux orchestrateurs. Un orchestrateur unique qui écouterait les deux serait impossible sans passer par un déclencheur Power Apps pour tout, ce qui supprimerait le contrôle côté serveur des modifications faites directement dans SharePoint.</p>
+<div class="scroll"><pre>
+                              ┌─────────────────────────┐
+                              │   POWER APPS Risk-Flow  │
+                              │  UI, filtres, contrôles │
+                              └─────┬─────────────┬─────┘
+      Patch statut + ActionEnAttente│             │ Patch ActionCampagne (écran admin)
+                                    ▼             ▼
+ ┌──────────────────────────────────────┐   ┌──────────────────────────┐
+ │ SuiviValidationsParagraphes          │   │ CampagnesEnCours          │
+ └──────────────────┬───────────────────┘   └─────────────┬────────────┘
+                    │ modified                            │ created / modified
+                    │ trigger cond. : ActionEnAttente≠''  │ trigger cond. : ActionCampagne≠''
+                    ▼                                     ▼
+   ┌───────────────────────────────────┐   ┌───────────────────────────────────┐
+   │ FLOW 02 — AEGIS Workflow Engine   │   │ FLOW 01 — AEGIS Campagne          │
+   │ Switch EventType                  │   │ Switch ActionCampagne             │
+   │  ├ SUBMIT      (contributeur)     │   │  ├ LANCER    génère + notifie     │
+   │  ├ VALIDATE    (valideur N1)      │   │  ├ REGENERER complète les lignes  │
+   │  ├ REJECT      (valideur N1)      │   │  └ CLOTURER  archive + purge      │
+   │  └ default     → log              │   └───────────────┬───────────────────┘
+   │ Scope Consolidation (3 listes)    │                   │
+   └───────────────┬───────────────────┘                   │
+                   │                                       │
+                   │      ┌──────────────────────────┐     │
+                   └─────►│ FLOW 04 — Notification    │◄────┤
+                          │ child flow                │     │
+                          │ modèle + tokens + envoi   │     │
+                          │ + journal AEGIS_LOG       │     │
+                          └──────────────────────────┘     │
+                                      ▲                    │
+   ┌───────────────────────────────┐  │                    │
+   │ FLOW 03 — AEGIS Relances      │──┘                    │
+   │ Recurrence quotidienne 07:00  │                       │
+   │ offsets J-8 / J+1 paramétrés  │                       │
+   └───────────────────────────────┘                       │
+                                                           │
+   Référentiels : AEGIS_CONFIGURATION, AEGIS_EMAIL_TEMPLATES, Statuts, Roles,
+   Rapports Réglementaire, Utilisateurs, Administrateurs     ◄───────────────┘
+   Journal     : AEGIS_LOG (écrit par les scopes Catch et par FLOW 04)
+</pre></div>
+
+<h3>Pourquoi pas un flow technique séparé pour les logs</h3>
+<p>Un flow « Technique » dédié ajouterait un appel HTTP ou child flow à chaque erreur, précisément au moment où quelque chose ne va pas. Un simple <em>Create item</em> dans <code>AEGIS_LOG</code>, placé dans le scope Catch de chaque flow, est plus robuste. La supervision (runs en échec) se fait via le Centre d’administration ou une vue filtrée de <code>AEGIS_LOG</code>.</p>
+
+<h3>Risque de monolithe</h3>
+<p>FLOW 02 reste lisible parce que chaque branche du Switch ne contient qu’un scope, que la consolidation et les notifications sont factorisées, et que les signatures (N2, Signataire) sont réservées comme nouvelles branches sans toucher aux autres. Si le périmètre N2/Signataire grossit fortement, la branche pourra être extraite en child flow sans changer le déclencheur.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="synthese">
+<h2><span class="step">5</span> Synthèse AS-IS / TO-BE</h2>
+<div class="scroll"><table>
+<thead><tr><th>Flow actuel</th><th>Fonction</th><th>Problème</th><th>Décision</th><th>Flow cible</th></tr></thead>
+<tbody>
+<tr><td>DRG_LancementCampagne</td><td>Ouvre la campagne, notifie</td><td>Course avec F2, re-déclenchement</td><td><span class="tag t-merge">Fusionner</span></td><td>FLOW 01</td></tr>
+<tr><td>DRG_ContributeursValideurs</td><td>Génère les lignes de suivi</td><td>Même trigger que F1, non idempotent</td><td><span class="tag t-merge">Fusionner</span></td><td>FLOW 01</td></tr>
+<tr><td>DRG_HistorisationCampagne</td><td>Archive et purge</td><td>Même liste que F1/F2</td><td><span class="tag t-merge">Fusionner</span></td><td>FLOW 01</td></tr>
+<tr><td>DRG_Validation</td><td>Cycle contribution / validation</td><td>Boucle, branches imbriquées, 3 copies du statut</td><td><span class="tag t-keep">Conserver, refondre</span></td><td>FLOW 02</td></tr>
+<tr><td>DRG_Relances</td><td>Relances J-8 / J+1</td><td>Offsets en dur <span class="confirm">À confirmer</span></td><td><span class="tag t-keep">Conserver, refondre</span></td><td>FLOW 03</td></tr>
+<tr><td>DRG_MiseAJourUtilisateur</td><td>Copie email</td><td>Donnée déjà disponible</td><td><span class="tag t-del">Supprimer</span></td><td>Power Apps / colonne Personne</td></tr>
+<tr><td>DRG_MiseAJourAdministrateur</td><td>Copie email</td><td>Donnée déjà disponible</td><td><span class="tag t-del">Supprimer</span></td><td>Power Apps / colonne Personne</td></tr>
+<tr><td>Flux manuel Étape 5</td><td>Génération à la demande</td><td>Doublon de F2</td><td><span class="tag t-del">Supprimer</span></td><td>FLOW 01 (REGENERER)</td></tr>
+<tr><td>—</td><td>Envoi de mails</td><td>Logique dupliquée</td><td><span class="tag t-child">Nouveau child</span></td><td>FLOW 04</td></tr>
+</tbody></table></div>
+<p><strong>Bilan :</strong> 7 flows documentés → 4 flows (3 orchestrateurs + 1 child), soit −43 %. Avec le flux manuel : 8 → 4, soit −50 %. Les runs inutiles disparaissent aussi : un lancement de campagne passe de 6 runs potentiels (F1, F2, F7 déclenchés deux fois) à 1.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="modele">
+<h2><span class="step">6</span> Modèle de données et configuration</h2>
+
+<h3>Colonnes techniques à ajouter</h3>
+<div class="scroll"><table>
+<thead><tr><th>Liste</th><th>Colonne</th><th>Type</th><th>Usage</th></tr></thead>
+<tbody>
+<tr><td>CampagnesEnCours</td><td>ActionCampagne</td><td>Choix : LANCER, REGENERER, CLOTURER (vide par défaut)</td><td>Demande d’action, vidée par FLOW 01. Remplace le déclenchement sur le libellé « Lancer ».</td></tr>
+<tr><td>CampagnesEnCours</td><td>EtatTechnique</td><td>Choix : Brouillon, Lancement en cours, Ouverte, Clôture en cours, Archivée, Erreur</td><td>Remplace <code>campagneLancee</code>, empêche un second lancement</td></tr>
+<tr><td>CampagnesEnCours</td><td>IDCampagne</td><td>Texte (ex. RACI-2025-10)</td><td>Rattachement des lignes de suivi et de l’historique</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>ActionEnAttente</td><td>Choix : SUBMIT, VALIDATE, REJECT (vide par défaut)</td><td>Événement écrit par Power Apps, vidé par FLOW 02</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>CleUnique</td><td>Texte, indexé, valeurs uniques</td><td><code>IDCampagne|IDParagraphe|Role|email</code> : idempotence de la génération</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>IDChapitre, IDCampagne</td><td>Nombre / Texte, indexés</td><td>Filtres OData fiables (au lieu du titre de chapitre)</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>CommentaireValideur, DateDecision, DecisionPar</td><td>Texte multiligne / Date / Personne</td><td>Traçabilité de la décision (exigence réglementaire)</td></tr>
+<tr><td>SuiviValidationsParagraphes</td><td>DernierRunId, DerniereErreur</td><td>Texte</td><td>Diagnostic sans ouvrir l’historique des runs</td></tr>
+<tr><td>GestionRapportsReglementaire</td><td>IDChapitre</td><td>Nombre</td><td>Regroupement des paragraphes d’un chapitre (cas 2)</td></tr>
+</tbody></table></div>
+<p>Indexer dans chaque liste les colonnes filtrées (IDRapport, IDCampagne, Role, Statut, ActionEnAttente) pour rester sous le seuil de 5 000 éléments sans erreur de requête.</p>
+
+<h3>Statuts : utiliser un code, pas un libellé</h3>
+<p>Ajouter une colonne <code>CodeStatut</code> à la liste Statuts et référencer ce code dans Power Apps et dans les flows.</p>
+<div class="scroll"><table>
+<thead><tr><th>CodeStatut</th><th>Libellé</th><th>TypeStatut</th></tr></thead>
+<tbody>
+<tr><td>C_EN_COURS</td><td>En cours</td><td>Contribution</td></tr>
+<tr><td>C_TERMINEE</td><td>Terminée</td><td>Contribution</td></tr>
+<tr><td>C_REFUS_VAL</td><td>Refusé - Valideur</td><td>Contribution</td></tr>
+<tr><td>C_REFUS_SIG</td><td>Refusé - Signataire</td><td>Contribution</td></tr>
+<tr><td>V_EN_COURS</td><td>En cours</td><td>Validation</td></tr>
+<tr><td>V_A_VALIDER</td><td>À valider <span class="confirm">nouveau, à confirmer</span></td><td>Validation</td></tr>
+<tr><td>V_VALIDE</td><td>Validé</td><td>Validation</td></tr>
+<tr><td>V_REFUSE</td><td>Refusé</td><td>Validation</td></tr>
+<tr><td>V_REFUS_VAL / V_REFUS_SIG</td><td>Refusé - Valideur / Signataire</td><td>Validation</td></tr>
+</tbody></table></div>
+
+<h3>Configuration centralisée</h3>
+<p>Les variables d’environnement existantes restent la source pour ce qui change d’un environnement à l’autre. La liste <code>AEGIS_CONFIGURATION</code> porte ce qui est métier et modifiable sans redéploiement ; elle absorbe « Lien Application » et « Liens Documents ».</p>
+<div class="scroll"><table>
+<thead><tr><th>Élément</th><th>Où</th><th>Exemple</th></tr></thead>
+<tbody>
+<tr><td>URL du site SharePoint</td><td>Variable d’environnement <code>aegis_SiteUrl</code></td><td>…/sites/DEV_DRG_Gestion_Validations_Rapports_Reglementaire</td></tr>
+<tr><td>Identifiants des listes (GUID)</td><td>Variables d’environnement <code>aegis_List_*</code></td><td>Une par liste, type « Liste de données SharePoint »</td></tr>
+<tr><td>Boîte d’envoi</td><td>Variable d’environnement <code>aegis_SenderMailbox</code></td><td>Compte de service ou boîte partagée</td></tr>
+<tr><td>Mode test (redirection des mails)</td><td>Variable d’environnement <code>aegis_MailRedirectTo</code></td><td>Vide en PROD, adresse de recette en DEV/TEST</td></tr>
+<tr><td>Offsets de relance</td><td>AEGIS_CONFIGURATION <code>RELANCE_OFFSETS</code></td><td><code>[-8, 1]</code></td></tr>
+<tr><td>Lien Power Apps</td><td>AEGIS_CONFIGURATION <code>APP_URL</code></td><td>URL play/e/… par environnement</td></tr>
+<tr><td>Lien document d’un rapport</td><td>AEGIS_CONFIGURATION <code>DOC_URL_&lt;IDRapport&gt;</code></td><td>DOC_URL_1</td></tr>
+<tr><td>Boîte fonctionnelle en copie</td><td>AEGIS_CONFIGURATION <code>MAIL_CC_FONCTIONNEL</code></td><td>Adresse d’équipe <span class="confirm">À confirmer</span></td></tr>
+<tr><td>Modèles de mail</td><td>Liste <code>AEGIS_EMAIL_TEMPLATES</code> (ex-Configuration Email)</td><td>CodeModele, Objet, CorpsHTML, Actif</td></tr>
+</tbody></table></div>
+<p>Colonnes de <code>AEGIS_CONFIGURATION</code> : Title (clé), Valeur (texte multiligne), Categorie, Actif. Colonnes de <code>AEGIS_LOG</code> : Title (flow), RunId, Niveau (Info/Erreur), IDElement, Evenement, Message, Date.</p>
+
+<h3>Modèles de mail à prévoir</h3>
+<div class="scroll"><table>
+<thead><tr><th>CodeModele</th><th>Déclencheur</th><th>Destinataire</th></tr></thead>
+<tbody>
+<tr><td>CAMPAGNE_OUVERTE</td><td>FLOW 01 LANCER</td><td>Chaque contributeur, avec ses paragraphes</td></tr>
+<tr><td>CONTRIB_PRETE</td><td>FLOW 02 SUBMIT (cas 1 et 3)</td><td>Valideur N1</td></tr>
+<tr><td>CONTRIB_REVUE</td><td>FLOW 02 SUBMIT après refus</td><td>Valideur N1</td></tr>
+<tr><td>CHAPITRE_PRET</td><td>FLOW 02 SUBMIT (cas 2, toutes contributions terminées)</td><td>Valideur N1 du chapitre, récapitulatif</td></tr>
+<tr><td>CONTRIB_REFUSEE</td><td>FLOW 02 REJECT</td><td>Contributeur(s), avec commentaire</td></tr>
+<tr><td>VALIDATION_N1_OK</td><td>FLOW 02 VALIDATE <span class="confirm">à chaque validation ou quand tout le rapport est validé : à confirmer</span></td><td>Valideur N2</td></tr>
+<tr><td>RELANCE</td><td>FLOW 03</td><td>Contributeurs en retard</td></tr>
+<tr><td>ERREUR_TECHNIQUE</td><td>Scopes Catch</td><td>Administrateurs</td></tr>
+</tbody></table></div>
+<p>Tokens dans les modèles : <code>{{NomRapport}}</code>, <code>{{Chapitre}}</code>, <code>{{Paragraphe}}</code>, <code>{{TableauParagraphes}}</code>, <code>{{Commentaire}}</code>, <code>{{DateFermeture}}</code>, <code>{{LienApp}}</code>, <code>{{LienDocument}}</code>.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="boucles">
+<h2><span class="step">7</span> Anti-boucle, concurrence et gestion d’erreur</h2>
+
+<h3>Principe : un événement explicite, consommé par le flow</h3>
+<div class="scroll"><pre>
+Power Apps  : Patch(Statut, Commentaire, ActionEnAttente = "SUBMIT")
+                 │
+                 ▼  modified
+Trigger     : condition  ActionEnAttente non vide   → run
+Flow        : traitement … puis Update item : ActionEnAttente = ""
+                 │
+                 ▼  modified
+Trigger     : condition  ActionEnAttente vide       → aucun run
+</pre></div>
+<p>Le flow ne se déclenche que sur une intention posée par l’app. Ses propres écritures vident cette intention, donc elles ne relancent rien. Les mises à jour faites par la consolidation sur <em>d’autres</em> lignes de la même liste (par exemple la ligne valideur) ne touchent jamais <code>ActionEnAttente</code>, elles ne déclenchent donc rien non plus.</p>
+
+<h4>Trigger conditions (paramètres du déclencheur)</h4>
+<p>FLOW 02 :</p>
+<div class="scroll"><pre><code>@not(empty(triggerOutputs()?['body/ActionEnAttente/Value']))</code></pre></div>
+<p>FLOW 01 :</p>
+<div class="scroll"><pre><code>@not(empty(triggerOutputs()?['body/ActionCampagne/Value']))</code></pre></div>
+<p>Filet de sécurité supplémentaire, en seconde ligne (les lignes se combinent en ET) : ignorer les modifications faites par le compte de service, sauf si l’action est posée.</p>
+<div class="scroll"><pre><code>@or(
+  not(equals(toLower(triggerOutputs()?['body/Editor/Email']), toLower('&lt;compte-service&gt;'))),
+  not(empty(triggerOutputs()?['body/ActionEnAttente/Value']))
+)</code></pre></div>
+<p>Les trigger conditions n’acceptent pas les variables d’environnement de façon fiable dans toutes les versions : garder l’adresse du compte de service en dur ici, ou se contenter de la première condition qui suffit à elle seule. <span class="confirm">À valider en DEV</span></p>
+
+<h3>Concurrence</h3>
+<ul>
+<li>FLOW 02 : <strong>Concurrency control activé, degré 1</strong>. Le cas 2 compte les contributions terminées d’un chapitre ; deux soumissions simultanées ne doivent pas se croiser. Les volumes (quelques centaines de lignes par campagne) rendent la file d’attente acceptable.</li>
+<li>FLOW 01 : degré 1 également, un lancement et une clôture ne doivent jamais tourner ensemble.</li>
+<li>Boucles internes : parallélisme 10 à 20 uniquement pour les créations indépendantes et les envois de mails.</li>
+</ul>
+
+<h3>Gestion d’erreur standard (tous les flows)</h3>
+<div class="scroll"><pre>
+Scope  Try
+   └─ tout le traitement
+Scope  Catch      (Configure run after : has failed, has timed out)
+   ├─ Compose  ErrDetail = result('Try')  filtré sur status = Failed
+   ├─ Create item  AEGIS_LOG  (Niveau = Erreur, RunId = workflow()?['run']?['name'])
+   ├─ Update item  élément source : EtatTechnique/DerniereErreur, ActionEnAttente = ""
+   ├─ Run child flow  FLOW 04  (ERREUR_TECHNIQUE → administrateurs)
+   └─ Terminate  Failed   (le run reste visible en échec)
+</pre></div>
+<p>Pour extraire le message d’erreur : action <em>Filter array</em> sur <code>result('Try')</code> avec <code>@equals(item()?['status'],'Failed')</code>, puis <code>first(body('Filter_erreurs'))?['error']?['message']</code>.</p>
+<p>Politique de réessai : laisser la politique par défaut (exponentielle, 4 essais) sur les actions SharePoint et Outlook ; la désactiver sur <em>Delete item</em> pendant l’archivage pour ne pas masquer une incohérence.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="powerapps">
+<h2><span class="step">8</span> Répartition Power Apps / Power Automate</h2>
+<div class="scroll"><table>
+<thead><tr><th>Couche</th><th>Responsabilité</th><th>Implémentation</th></tr></thead>
+<tbody>
+<tr><td>Logique UI</td><td>Choix du rapport, onglets, filtres par rôle, recherche, activation des boutons</td><td><code>Filter()</code> délégable sur IDRapport, Role, email ; <code>With()</code> ; <code>UpdateContext()</code></td></tr>
+<tr><td>Logique métier (saisie)</td><td>Commentaire obligatoire si refus, transitions permises selon le statut courant</td><td>Contrôles dans l’app <em>et</em> revérifiés par FLOW 02</td></tr>
+<tr><td>Écriture de l’intention</td><td>Statut + ActionEnAttente en une seule écriture</td><td><code>Patch()</code> unique par ligne ; <code>Patch(liste, collection)</code> pour plusieurs lignes d’un chapitre</td></tr>
+<tr><td>Orchestration</td><td>Consolidation, cas 2, notifications, N2</td><td>FLOW 02</td></tr>
+<tr><td>Contrôle serveur</td><td>Refuser une transition invalide même si la ligne est modifiée directement dans SharePoint</td><td>Branche « contrôle » de FLOW 02 ; permissions SharePoint restreintes (les utilisateurs ne modifient que via l’app, idéalement lecture seule hors app <span class="confirm">À confirmer avec la sécurité</span>)</td></tr>
+<tr><td>Référentiels</td><td>Email des utilisateurs / administrateurs</td><td>Colonne Personne ; écran admin : <code>Patch(Utilisateurs, Defaults(Utilisateurs), {Nom: cbo.Selected, AdresseEmail: cbo.Selected.Email, …})</code></td></tr>
+</tbody></table></div>
+
+<h4>Exemple Power Fx : bouton « Relecture terminée »</h4>
+<div class="scroll"><pre><code>With(
+    { l: LookUp(SuiviValidationsParagraphes, ID = ThisItem.ID) },
+    If(
+        l.Statut.Value in ["En cours", "Refusé - Valideur", "Refusé - Signataire"],
+        Patch(
+            SuiviValidationsParagraphes, l,
+            {
+                Statut: { Value: "Terminée" },
+                ActionEnAttente: { Value: "SUBMIT" }
+            }
+        );
+        Notify("Contribution envoyée au valideur.", NotificationType.Success),
+        Notify("Cette contribution a déjà été envoyée.", NotificationType.Warning)
+    )
+)</code></pre></div>
+
+<h4>Exemple Power Fx : bouton « Refuser »</h4>
+<div class="scroll"><pre><code>If(
+    IsBlank(Trim(txtCommentaire.Text)),
+    Notify("Ajoutez un commentaire pour expliquer le refus.", NotificationType.Error),
+    Patch(
+        SuiviValidationsParagraphes, ThisItem,
+        {
+            Statut: { Value: "Refusé" },
+            CommentaireValideur: txtCommentaire.Text,
+            ActionEnAttente: { Value: "REJECT" }
+        }
+    )
+)</code></pre></div>
+<p>La date de décision et l’auteur sont posés par FLOW 02 (horodatage serveur), pas par l’app.</p>
+</section>
+
+<!-- ===================================================== -->
+<section id="f01">
+<h2><span class="step">9</span> Workflows à implémenter</h2>
+
+<div class="flowcard">
+<h3>FLOW 01 — AEGIS Campagne</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_LancementCampagne, DRG_ContributeursValideurs, DRG_HistorisationCampagne, flux manuel Étape 5</dd>
+<dt>Trigger</dt><dd>SharePoint — When an item is created or modified, liste CampagnesEnCours (site et liste en variables d’environnement)</dd>
+<dt>Réglages</dt><dd>Trigger condition <code>ActionCampagne</code> non vide ; concurrence 1 ; Split On activé</dd>
+<dt>Durée</dt><dd>Quelques minutes pour quelques centaines de lignes</dd>
+</dl>
+
+<div class="scroll"><pre>
+TRIGGER  CampagnesEnCours created/modified
+│
+▼
+TRIGGER CONDITION  ActionCampagne ≠ ''
+│
+▼
+Scope TRY
+│
+├─ COMPOSE  Ctx
+│     { idCampagne, idRapport, nomRapport, action, dateFermeture, itemId }
+│
+├─ GET ITEMS  AEGIS_CONFIGURATION  (filter: Actif eq 1)
+├─ COMPOSE  Cfg   (objet JSON clé/valeur)
+│
+├─ UPDATE ITEM  campagne : EtatTechnique = "… en cours"
+│
+├─ SWITCH  Ctx.action
+│   │
+│   ├── LANCER / REGENERER
+│   │     ├─ Condition : LANCER et EtatTechnique déjà « Ouverte » → stop (log Info)
+│   │     ├─ GET ITEMS  GestionRapportsReglementaire  (IDRapport eq X)
+│   │     ├─ GET ITEMS  SuiviValidationsParagraphes   (IDCampagne eq Y, select CleUnique)
+│   │     ├─ SELECT     ClesExistantes
+│   │     ├─ APPLY TO EACH paragraphe  (parallélisme 10)
+│   │     │     ├─ SELECT  lignes contributeurs
+│   │     │     ├─ SELECT  ligne(s) valideur
+│   │     │     ├─ FILTER ARRAY  nouvelles lignes (CleUnique absente)
+│   │     │     └─ APPLY TO EACH  → CREATE ITEM SuiviValidationsParagraphes
+│   │     ├─ Condition : LANCER
+│   │     │     ├─ CREATE ITEM  SuiviValidationsRapportsReglementaire (si absent)
+│   │     │     ├─ GET ITEMS  lignes Contributeur de la campagne
+│   │     │     ├─ SELECT + union()  emails distincts
+│   │     │     └─ APPLY TO EACH email (parallélisme 10)
+│   │     │           ├─ FILTER ARRAY  lignes de ce contributeur
+│   │     │           ├─ CREATE HTML TABLE  Chapitre | Paragraphe
+│   │     │           └─ RUN CHILD FLOW  FLOW 04  CAMPAGNE_OUVERTE
+│   │     └─ UPDATE ITEM  campagne : Statut = Ouverte, EtatTechnique = Ouverte,
+│   │                     DateLancement = utcNow() si vide, ActionCampagne = ''
+│   │
+│   ├── CLOTURER
+│   │     ├─ GET ITEMS  SuiviValidationsParagraphes (IDCampagne eq Y)
+│   │     ├─ APPLY TO EACH → CREATE ITEM  HistoriqueSuiviValidationsParagraphes
+│   │     ├─ idem  SuiviValidationsRapportsReglementaire → Historique…
+│   │     ├─ Condition : nb créés = nb lus  (sinon erreur, aucune suppression)
+│   │     ├─ APPLY TO EACH → DELETE ITEM  lignes sources
+│   │     └─ UPDATE ITEM  campagne : Statut = Clôturée, EtatTechnique = Archivée,
+│   │                     ActionCampagne = ''
+│   │
+│   └── default → CREATE ITEM AEGIS_LOG (action inconnue) ; ActionCampagne = ''
+│
+▼
+Scope CATCH  → log, EtatTechnique = Erreur, ActionCampagne = '', mail admin, Terminate
+</pre></div>
+
+<h4>Actions exactes</h4>
+<ol class="steps">
+<li><strong>Compose « Ctx »</strong>
+<pre><code>{
+  "itemId": @{triggerOutputs()?['body/ID']},
+  "idRapport": @{triggerOutputs()?['body/IDRapport']},
+  "idCampagne": "@{triggerOutputs()?['body/IDCampagne']}",
+  "nomRapport": "@{triggerOutputs()?['body/NomRapport']}",
+  "action": "@{triggerOutputs()?['body/ActionCampagne/Value']}",
+  "etat": "@{triggerOutputs()?['body/EtatTechnique/Value']}",
+  "dateFermeture": "@{triggerOutputs()?['body/DateFermeture']}"
+}</code></pre>
+Si <code>IDCampagne</code> est vide, le calculer ici : <code>concat(outputs('Ctx')?['idRapport'], '-', formatDateTime(utcNow(),'yyyyMMdd'))</code> et l’écrire dans la mise à jour de début.</li>
+<li><strong>Get items AEGIS_CONFIGURATION</strong> — Filter Query <code>Actif eq 1</code>, Select <code>Title,Valeur</code>. Puis <strong>Compose « Cfg »</strong> :
+<pre><code>json(concat('{', join(body('Select_cfg'), ','), '}'))</code></pre>
+avec <em>Select_cfg</em> (mode texte) : <code>concat('"', item()?['Title'], '":"', replace(item()?['Valeur'],'"','\"'), '"')</code>. Lecture ensuite par <code>outputs('Cfg')?['APP_URL']</code>. Ce bloc est répété dans FLOW 02 et 03 : trois actions, pas de child flow nécessaire.</li>
+<li><strong>Get items GestionRapportsReglementaire</strong> — Filter Query <code>IDRapport eq @{outputs('Ctx')?['idRapport']}</code> ; Top Count 5000 ; Pagination activée (seuil 5000).</li>
+<li><strong>Get items SuiviValidationsParagraphes (existant)</strong> — Filter <code>IDCampagne eq '@{outputs('Ctx')?['idCampagne']}'</code>, Select <code>CleUnique</code>. <strong>Select « ClesExistantes »</strong> en mode texte : <code>item()?['CleUnique']</code>.</li>
+<li><strong>Apply to each paragraphe</strong> sur la sortie de GestionRapports.
+  <ul>
+  <li><strong>Select « LignesContrib »</strong> — From <code>items('Paragraphe')?['Contributeur']</code> (colonne Personne multiple) :
+<pre><code>{
+  "Title": "@{items('Paragraphe')?['Paragraphe']}",
+  "IDRapport": @{items('Paragraphe')?['IDRapport']},
+  "IDCampagne": "@{outputs('Ctx')?['idCampagne']}",
+  "IDParagraphe": @{items('Paragraphe')?['ID']},
+  "IDChapitre": @{items('Paragraphe')?['IDChapitre']},
+  "Chapitre": "@{items('Paragraphe')?['Chapitre']}",
+  "Role": "Contributeur",
+  "Email": "@{toLower(item()?['Email'])}",
+  "Claims": "@{item()?['Claims']}",
+  "CleUnique": "@{concat(outputs('Ctx')?['idCampagne'],'|',items('Paragraphe')?['ID'],'|Contributeur|',toLower(item()?['Email']))}"
+}</code></pre></li>
+  <li><strong>Select « LignesValid »</strong> — même schéma sur <code>createArray(items('Paragraphe')?['Valideur'])</code> (ou directement la colonne si elle est multiple), Role = « Valideur ». Pour le cas 2, ne créer la ligne valideur que sur la ligne chapitre si c’est la règle retenue <span class="confirm">À confirmer</span>.</li>
+  <li><strong>Filter array « ANouvelles »</strong> — From <code>union(body('LignesContrib'), body('LignesValid'))</code>, condition avancée :
+<pre><code>@not(contains(body('ClesExistantes'), item()?['CleUnique']))</code></pre></li>
+  <li><strong>Apply to each → Create item</strong> SuiviValidationsParagraphes : Title, IDRapport, IDCampagne, IDParagraphe, IDChapitre, Chapitre, Paragraphe, Role, EmailContributeurValideur, ContributeurValideur Claims = <code>items(...)?['Claims']</code>, Statut = « En cours », CleUnique. ActionEnAttente laissé vide : la création ne déclenche pas FLOW 02.</li>
+  </ul>
+  <p class="note">Si une campagne dépasse environ 1 000 lignes, remplacer la boucle de création par un <em>Send an HTTP request to SharePoint</em> en <code>$batch</code> (paquets de 100). Pour les volumes observés (5 rapports), la boucle parallélisée suffit.</p>
+</li>
+<li><strong>Create item SuiviValidationsRapportsReglementaire</strong> — précédé d’un Get items <code>IDCampagne eq '…'</code> Top 1 ; créer seulement si <code>empty(body(...)?['value'])</code>. Champs : IDRapport, Nom, IDCampagne, StatutContribution = En cours, StatutValidation = En cours. ValideurN2 et Signataire restent saisis par l’administrateur (Étape 3 du guide).</li>
+<li><strong>Destinataires</strong> — Get items lignes Contributeur de la campagne (Select <code>EmailContributeurValideur,Chapitre,Title</code>) ; Select mode texte <code>item()?['EmailContributeurValideur']</code> ; Compose « Emails » : <code>union(body('Select_emails'), body('Select_emails'))</code>.</li>
+<li><strong>Apply to each email</strong> — Filter array <code>@equals(item()?['EmailContributeurValideur'], items('Email'))</code> ; Create HTML table (colonnes personnalisées Chapitre, Paragraphe) ; Run a Child Flow FLOW 04 avec :
+<pre><code>TemplateCode : CAMPAGNE_OUVERTE
+To           : @{items('Email')}
+Prenom       : prénom du contributeur (colonne Personne)
+TableauHtml  : @{body('Tableau')}
+TokensJson   : [{"k":"NomRapport","v":"…"},{"k":"DateFermeture","v":"…"},{"k":"IDRapport","v":"…"}]
+ContextId    : @{outputs('Ctx')?['idCampagne']}
+CallerFlow   : AEGIS_01_Campagne</code></pre></li>
+<li><strong>Update item campagne</strong> — Statut « Ouverte », EtatTechnique « Ouverte », ActionCampagne vide (champ choix vidé via l’expression <code>null</code> en mode avancé), DateLancement <code>coalesce(triggerOutputs()?['body/DateLancement'], utcNow())</code>.</li>
+<li><strong>CLOTURER</strong> — Get items, Apply to each (parallélisme 10) Create item dans les listes Historique en recopiant IDCampagne ; Compose « Controle » : <code>equals(length(body('Get_suivi')?['value']), length(outputs('Creations')))</code> (en pratique compter via <code>length(body('Filter_ok'))</code> sur <code>result()</code> de la boucle) ; suppression seulement si vrai.</li>
+</ol>
+</div>
+</section>
+
+<!-- ===================================================== -->
+<section id="f02">
+<div class="flowcard">
+<h3>FLOW 02 — AEGIS Workflow Engine</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_Validation</dd>
+<dt>Trigger</dt><dd>SharePoint — When an item is created or modified, liste SuiviValidationsParagraphes</dd>
+<dt>Réglages</dt><dd>Trigger condition <code>ActionEnAttente</code> non vide ; concurrence 1</dd>
+<dt>Événements</dt><dd>SUBMIT, VALIDATE, REJECT ; extensions prévues VALIDATE_N2, SIGN, REJECT_SIGN</dd>
+</dl>
+
+<div class="scroll"><pre>
+TRIGGER  SuiviValidationsParagraphes modified
+│
+▼
+TRIGGER CONDITION  ActionEnAttente ≠ ''
+│
+▼
+Scope TRY
+│
+├─ COMPOSE  Ctx  { itemId, event, role, statut, idCampagne, idRapport,
+│                  idParagraphe, idChapitre, email, commentaire, editor }
+├─ GET ITEMS  AEGIS_CONFIGURATION → COMPOSE Cfg
+├─ GET ITEM   GestionRapportsReglementaire (idParagraphe)
+│               → IsChapitre, IsValidationChapitre, Valideur
+├─ COMPOSE  Cas   = CAS1 | CAS2 | CAS3
+│
+├─ SCOPE  Contrôle serveur
+│     ├─ event cohérent avec role ?   (SUBMIT ⇔ Contributeur, VALIDATE/REJECT ⇔ Valideur)
+│     ├─ editor = personne de la ligne ou administrateur ?
+│     ├─ REJECT ⇒ commentaire non vide ?
+│     └─ sinon → Update item (statut précédent restauré si connu), log, stop
+│
+├─ SWITCH  Ctx.event
+│   │
+│   ├── SUBMIT
+│   │     ├─ UPDATE ITEM  ligne : ActionEnAttente = ''
+│   │     ├─ Condition  Cas = CAS2
+│   │     │     ├─ GET ITEMS  contributions du chapitre non terminées  (Top 1)
+│   │     │     ├─ vide ? → GET ITEMS paragraphes du chapitre → HTML
+│   │     │     │           UPDATE ligne(s) valideur : À valider
+│   │     │     │           CHILD FLOW 04  CHAPITRE_PRET
+│   │     │     └─ non vide → rien (attente des autres contributeurs)
+│   │     └─ sinon (CAS1 / CAS3)
+│   │           ├─ UPDATE ligne valideur du paragraphe : À valider
+│   │           └─ CHILD FLOW 04  CONTRIB_PRETE ou CONTRIB_REVUE
+│   │
+│   ├── VALIDATE
+│   │     ├─ UPDATE ITEM  ligne : Validé, DateDecision, DecisionPar, ActionEnAttente = ''
+│   │     └─ (N2 traité dans la consolidation)
+│   │
+│   ├── REJECT
+│   │     ├─ UPDATE ITEM  ligne : Refusé, DateDecision, DecisionPar, ActionEnAttente = ''
+│   │     ├─ GET ITEMS  lignes Contributeur du paragraphe (ou du chapitre en CAS1)
+│   │     ├─ APPLY TO EACH → UPDATE  Statut = Refusé - Valideur
+│   │     └─ CHILD FLOW 04  CONTRIB_REFUSEE  (To = emails contributeurs)
+│   │
+│   └── default → log + ActionEnAttente = ''
+│
+├─ SCOPE  Consolidation
+│     ├─ GET ITEMS  toutes les lignes du paragraphe  (IDCampagne, IDParagraphe)
+│     ├─ COMPOSE  StatutContribParagraphe / StatutValidParagraphe
+│     ├─ UPDATE ITEM  GestionRapportsReglementaire (paragraphe)
+│     ├─ GET ITEMS  toutes les lignes de la campagne (select Role, Statut)
+│     ├─ COMPOSE  compteurs  (total, terminées, validées, refusées)
+│     ├─ UPDATE ITEM  SuiviValidationsRapportsReglementaire
+│     └─ Condition  tout validé et N2 pas encore notifié
+│           └─ CHILD FLOW 04  VALIDATION_N1_OK → Valideur N2 ; flag NotifN2Envoyee
+│
+▼
+Scope CATCH → log, DerniereErreur, ActionEnAttente = '', mail admin, Terminate
+</pre></div>
+
+<h4>Actions exactes</h4>
+<ol class="steps">
+<li><strong>Compose « Ctx »</strong>
+<pre><code>{
+  "itemId": @{triggerOutputs()?['body/ID']},
+  "event": "@{triggerOutputs()?['body/ActionEnAttente/Value']}",
+  "role": "@{triggerOutputs()?['body/Role']}",
+  "statut": "@{triggerOutputs()?['body/Statut/Value']}",
+  "idCampagne": "@{triggerOutputs()?['body/IDCampagne']}",
+  "idRapport": @{triggerOutputs()?['body/IDRapport']},
+  "idParagraphe": @{triggerOutputs()?['body/IDParagraphe']},
+  "idChapitre": @{triggerOutputs()?['body/IDChapitre']},
+  "email": "@{toLower(triggerOutputs()?['body/EmailContributeurValideur'])}",
+  "commentaire": "@{triggerOutputs()?['body/CommentaireValideur']}",
+  "editor": "@{toLower(triggerOutputs()?['body/Editor/Email'])}"
+}</code></pre>
+Le rôle est une colonne texte dans la capture de SuiviValidationsParagraphes ; si c’est un choix, utiliser <code>body/Role/Value</code>. <span class="confirm">À confirmer</span></li>
+<li><strong>Get item GestionRapportsReglementaire</strong> — Id = <code>outputs('Ctx')?['idParagraphe']</code>.</li>
+<li><strong>Compose « Cas »</strong>
+<pre><code>if(equals(body('Get_gestion')?['IsChapitre'], true), 'CAS1',
+  if(equals(body('Get_gestion')?['IsValidationChapitre'], true), 'CAS2', 'CAS3'))</code></pre></li>
+<li><strong>Contrôle serveur</strong> — Condition unique (expression) :
+<pre><code>@and(
+  or(
+    and(equals(outputs('Ctx')?['event'],'SUBMIT'), equals(outputs('Ctx')?['role'],'Contributeur')),
+    and(contains(createArray('VALIDATE','REJECT'), outputs('Ctx')?['event']), equals(outputs('Ctx')?['role'],'Valideur'))
+  ),
+  or(equals(outputs('Ctx')?['editor'], outputs('Ctx')?['email']),
+     contains(outputs('AdminEmails'), outputs('Ctx')?['editor'])),
+  or(not(equals(outputs('Ctx')?['event'],'REJECT')), not(empty(trim(outputs('Ctx')?['commentaire']))))
+)</code></pre>
+<code>AdminEmails</code> : Get items Administrateurs + Select <code>toLower(item()?['Nom']?['Email'])</code>. Branche Non : Update item (ActionEnAttente vide, DerniereErreur « transition refusée »), log, <em>Terminate Cancelled</em>.</li>
+<li><strong>SUBMIT, cas 2</strong> — Get items SuiviValidationsParagraphes, Filter Query :
+<pre><code>IDCampagne eq '@{outputs('Ctx')?['idCampagne']}' and IDChapitre eq @{outputs('Ctx')?['idChapitre']} and Role eq 'Contributeur' and Statut ne 'Terminée'</code></pre>
+Top Count 1. Condition <code>empty(body('Get_restants')?['value'])</code>. Si vrai : Get items des lignes Contributeur du chapitre → Create HTML table → Get items lignes Valideur du chapitre → Update Statut « À valider » → FLOW 04 <code>CHAPITRE_PRET</code> (To = email valideur, union pour dédoublonner).</li>
+<li><strong>SUBMIT, cas 1 et 3</strong> — Get items lignes Valideur du paragraphe (<code>IDParagraphe eq … and Role eq 'Valideur'</code>). Choix du modèle :
+<pre><code>if(greater(length(body('Get_decisions_precedentes')?['value']),0),'CONTRIB_REVUE','CONTRIB_PRETE')</code></pre>
+où <em>Get_decisions_precedentes</em> cherche une ligne valideur du même paragraphe avec <code>DateDecision ne null and Statut eq 'Refusé'</code>. Plus simple si l’historique n’est pas requis : tester <code>triggerOutputs()?['body/CommentaireValideur']</code> non vide sur la ligne valideur.</li>
+<li><strong>VALIDATE / REJECT</strong> — Update item : Statut, <code>DateDecision = utcNow()</code>, <code>DecisionPar Claims = concat('i:0#.f|membership|', outputs('Ctx')?['editor'])</code>, ActionEnAttente vide. REJECT : Get items lignes Contributeur (filtre IDParagraphe, ou IDChapitre en CAS1), Apply to each Update Statut « Refusé - Valideur », FLOW 04 <code>CONTRIB_REFUSEE</code> avec le commentaire en token.</li>
+<li><strong>Consolidation</strong> — Get items lignes de la campagne, Select <code>Role, Statut/Value, IDParagraphe</code>. Compteurs sans boucle :
+<pre><code>nbContrib   : length(body('Filter_contrib'))
+nbTerminees : length(body('Filter_contrib_terminees'))
+nbValid     : length(body('Filter_valid'))
+nbValidees  : length(body('Filter_valid_ok'))
+StatutContribution : if(equals(nbContrib, nbTerminees), 'Terminée', 'En cours')
+StatutValidation   : if(equals(nbValid, nbValidees), 'Validé',
+                       if(greater(nbRefusees,0), 'Refusé', 'En cours'))</code></pre>
+Un seul Update item sur SuiviValidationsRapportsReglementaire (statuts + compteurs + date). Même logique au niveau du paragraphe pour GestionRapportsReglementaire.</li>
+<li><strong>Notification N2</strong> — Condition <code>and(equals(StatutValidation,'Validé'), not(equals(body('Get_suivi_rapport')?['NotifN2Envoyee'], true)))</code> → FLOW 04 <code>VALIDATION_N1_OK</code> vers <code>ValideurN2/Email</code>, puis Update <code>NotifN2Envoyee = true</code> (colonne à ajouter). Le document dit aussi « informe le valideur N2 » à chaque acceptation : la règle exacte est <span class="confirm">À confirmer</span>, le flag évite dans tous les cas les envois multiples.</li>
+</ol>
+</div>
+</section>
+
+<!-- ===================================================== -->
+<section id="f03">
+<div class="flowcard">
+<h3>FLOW 03 — AEGIS Relances</h3>
+<dl class="meta">
+<dt>Remplace</dt><dd>DRG_Relances</dd>
+<dt>Trigger</dt><dd>Recurrence : tous les jours à 07:00, fuseau Romance Standard Time, jours ouvrés <span class="confirm">jours ouvrés à confirmer</span></dd>
+<dt>Réglages</dt><dd>Concurrence 1</dd>
+</dl>
+
+<div class="scroll"><pre>
+RECURRENCE  quotidien 07:00
+│
+▼
+Scope TRY
+├─ GET ITEMS AEGIS_CONFIGURATION → COMPOSE Cfg
+├─ COMPOSE  DatesCibles = today − offset pour chaque offset de RELANCE_OFFSETS
+├─ GET ITEMS  CampagnesEnCours  (EtatTechnique eq 'Ouverte')
+├─ FILTER ARRAY  campagnes dont DateFermeture ∈ DatesCibles
+├─ Condition : aucune → fin (log Info)
+└─ APPLY TO EACH campagne
+      ├─ GET ITEMS  SuiviValidationsParagraphes
+      │     IDCampagne eq '…' and Role eq 'Contributeur'
+      │     and Statut ne 'Terminée'     (voir règle ci-dessous)
+      ├─ SELECT + union()  emails distincts
+      └─ APPLY TO EACH email  (parallélisme 10)
+            ├─ FILTER ARRAY  lignes de la personne
+            ├─ CREATE HTML TABLE
+            └─ CHILD FLOW 04  RELANCE  (J-8 ou J+1 en token)
+</pre></div>
+
+<h4>Actions exactes</h4>
+<ol class="steps">
+<li><strong>Compose « Offsets »</strong> : <code>json(coalesce(outputs('Cfg')?['RELANCE_OFFSETS'], '[-8,1]'))</code>.</li>
+<li><strong>Select « DatesCibles »</strong> (mode texte) sur <code>outputs('Offsets')</code> : <code>formatDateTime(addDays(convertFromUtc(utcNow(),'Romance Standard Time'), mul(item(), -1)), 'yyyy-MM-dd')</code>. Un offset de −8 donne une fermeture 8 jours après aujourd’hui (J-8), un offset de 1 une fermeture hier (J+1).</li>
+<li><strong>Filter array campagnes</strong> : <code>@contains(body('DatesCibles'), formatDateTime(item()?['DateFermeture'],'yyyy-MM-dd'))</code>.</li>
+<li><strong>Règle de sélection</strong> : le document dit « statut différent de Validé » sur les lignes Contributeur, alors que les lignes Contributeur portent des statuts de contribution (Terminée, Refusé - Valideur…). La règle cohérente est : relancer les contributeurs dont le statut est <code>En cours</code> ou <code>Refusé - Valideur</code> / <code>Refusé - Signataire</code>. Filter Query :
+<pre><code>IDCampagne eq '…' and Role eq 'Contributeur' and Statut ne 'Terminée'</code></pre>
+<span class="confirm">À confirmer avec le métier</span></li>
+<li><strong>Destinataires</strong> et tableau : même motif que FLOW 01 (Select, union, Filter array, Create HTML table). Token <code>Echeance</code> : <code>if(less(offset,0),'dans 8 jours','dépassée')</code>.</li>
+</ol>
+</div>
+</section>
+
+<!-- ===================================================== -->
+<section id="f04">
+<div class="flowcard">
+<h3>FLOW 04 — AEGIS Notification (child flow)</h3>
+<dl class="meta">
+<dt>Implémentation</dt><dd><strong>DRG_04_Notification</strong>, publié (captures de l’éditeur du 20/09/2026 : déclencheur, vue code)</dd>
+<dt>Remplace</dt><dd>Les blocs d’envoi dupliqués de F1, F3, F4</dd>
+<dt>Trigger</dt><dd>Manually trigger a flow (<code>Request</code> / <code>Button</code>), entrées texte</dd>
+<dt>Réponse</dt><dd>Respond to a PowerApp or flow : Statut (OK/KO), Message, EnvoyeA <span class="confirm">présence actuelle à confirmer</span></dd>
+<dt>Prérequis</dt><dd>Flow dans la même solution que ses appelants <span class="confirm">À confirmer pour DRG_04</span> ; propriétaire : le compte de service ; « Run-only users » → connexions fournies par le flow, sinon l’appel échoue ; droit <em>Send As</em> du compte de connexion sur la boîte partagée</dd>
+</dl>
+
+<h4>Contrat observé dans DRG_04_Notification</h4>
+<div class="scroll"><table>
+<thead><tr><th>Clé</th><th>Titre</th><th>Description</th><th>Décision</th></tr></thead>
+<tbody>
+<tr><td>text_4</td><td>varUtilisateurEmail</td><td>Adresse du destinataire</td><td><span class="tag t-keep">Conserver</span> renommé <code>To</code> (plusieurs adresses séparées par <code>;</code>)</td></tr>
+<tr><td>text_5</td><td>ObjectEmail</td><td>Objet du mail</td><td><span class="tag t-keep">Conserver</span> renommé <code>Subject</code>, optionnel (mode direct)</td></tr>
+<tr><td>text_6</td><td>PrenomContributeur</td><td>Pour « Bonjour {Prenom} »</td><td><span class="tag t-keep">Conserver</span> renommé <code>Prenom</code>, alimente le token <code>{{Prenom}}</code></td></tr>
+<tr><td>text_7</td><td>CorpsPrincipalEmail</td><td>Texte après le tableau</td><td><span class="tag t-keep">Conserver</span> renommé <code>BodyHtml</code>, optionnel (mode direct)</td></tr>
+<tr><td>text_8</td><td>TableauCSS</td><td>Tableau HTML</td><td><span class="tag t-merge">Transformer</span> en <code>TableauHtml</code> : sortie brute de Create HTML table, le CSS est appliqué par le child</td></tr>
+<tr><td>text_9</td><td>MailAdmin</td><td>Adresse en CC</td><td><span class="tag t-merge">Transformer</span> en <code>Cc</code> optionnel ; l’adresse admin vient de <code>MAIL_CC_FONCTIONNEL</code></td></tr>
+<tr><td>text_10</td><td>EnvoyerEnTantQue</td><td>Boîte partagée d’envoi</td><td><span class="tag t-del">Supprimer</span> : variable d’environnement <code>aegis_SenderMailbox</code></td></tr>
+<tr><td>location</td><td>—</td><td>Contenu non visible (ligne 57)</td><td><span class="confirm">À confirmer</span>, à supprimer s’il n’est pas utilisé</td></tr>
+</tbody></table></div>
+<p>Les clés commencent à <code>text_4</code> : des entrées <code>text</code> à <code>text_3</code> ont probablement été supprimées <span class="confirm">À confirmer</span>. La liste <code>required</code> et les actions du corps ne sont pas encore visibles.</p>
+
+<div class="note"><strong>Pourquoi sortir MailAdmin et EnvoyerEnTantQue du contrat.</strong> Passés en entrée, ils devraient être renseignés dans chaque appelant (F01, F02, F03, scopes Catch) : l’adresse admin et la boîte d’envoi seraient à nouveau dupliquées et différentes d’un environnement à l’autre. En configuration, un seul endroit à modifier et une valeur par environnement via la solution.</div>
+
+<div class="note"><strong>Pourquoi garder TableauHtml en entrée séparée</strong> (plutôt qu’en token dans TokensJson) : le HTML contient des guillemets et des balises qui cassent un JSON construit par <code>concat</code>. Une entrée texte dédiée évite tout échappement.</div>
+
+<h4>Contrat cible (hybride)</h4>
+<p>Le child accepte deux modes. <strong>Mode direct</strong> : l’appelant fournit Objet et Corps (contrat actuel de DRG_04). <strong>Mode modèle</strong> : l’appelant fournit un <code>TemplateCode</code> et les textes viennent de <code>AEGIS_EMAIL_TEMPLATES</code>. Le mode direct permet de migrer tout de suite ; le mode modèle rend les textes modifiables sans redéploiement. Choix du mode par défaut pour les nouveaux appelants : <span class="confirm">À valider (étape 6)</span>.</p>
+<div class="scroll"><table>
+<thead><tr><th>Entrée</th><th>Clé</th><th>Obligatoire</th><th>Usage</th></tr></thead>
+<tbody>
+<tr><td>To</td><td>text_4</td><td>Oui</td><td>Destinataires, séparés par <code>;</code></td></tr>
+<tr><td>Subject</td><td>text_5</td><td>Si pas de TemplateCode</td><td>Objet (mode direct), prioritaire sur le modèle s’il est renseigné</td></tr>
+<tr><td>Prenom</td><td>text_6</td><td>Non</td><td>Token <code>{{Prenom}}</code> ; « Bonjour, » si vide</td></tr>
+<tr><td>BodyHtml</td><td>text_7</td><td>Si pas de TemplateCode</td><td>Texte après le tableau (mode direct)</td></tr>
+<tr><td>TableauHtml</td><td>text_8</td><td>Non</td><td>Token <code>{{TableauParagraphes}}</code></td></tr>
+<tr><td>Cc</td><td>text_9</td><td>Non</td><td>Copie supplémentaire ; <code>MAIL_CC_FONCTIONNEL</code> ajouté automatiquement</td></tr>
+<tr><td>TemplateCode</td><td>nouvelle</td><td>Non</td><td>Active le mode modèle (CAMPAGNE_OUVERTE, CONTRIB_PRETE…)</td></tr>
+<tr><td>TokensJson</td><td>nouvelle</td><td>Non</td><td>Autres tokens, tableau <code>[{"k":…,"v":…}]</code></td></tr>
+<tr><td>ContextId</td><td>nouvelle</td><td>Oui</td><td>IDCampagne ou ID de l’élément, pour AEGIS_LOG</td></tr>
+<tr><td>CallerFlow</td><td>nouvelle</td><td>Oui</td><td>Nom du flow appelant, pour AEGIS_LOG</td></tr>
+</tbody></table></div>
+<p>Les clés des nouvelles entrées sont attribuées par le designer (<code>text_11</code>, <code>text_12</code>…) : les relever après création et ne plus supprimer/recréer une entrée, sinon les mappings des appelants cassent. Les entrées optionnelles non transmises sont absentes du <code>triggerBody()</code> : toujours les lire avec <code>coalesce(…, '')</code>.</p>
+
+<div class="scroll"><pre>
+TRIGGER  Manually trigger a flow
+│   To, Subject, Prenom, BodyHtml, TableauHtml, Cc,
+│   TemplateCode, TokensJson, ContextId, CallerFlow
+▼
+Scope TRY
+├─ COMPOSE  Mode = if(empty(TemplateCode), 'DIRECT', 'MODELE')
+├─ CONDITION  Mode = MODELE
+│   ├─ oui : GET ITEMS AEGIS_EMAIL_TEMPLATES (Title eq TemplateCode and Actif eq 1, Top 1)
+│   │        modèle absent → Respond KO
+│   └─ non : Subject ou BodyHtml vide → Respond KO
+├─ GET ITEMS  AEGIS_CONFIGURATION → COMPOSE Cfg
+├─ COMPOSE  ObjetBrut / CorpsBrut
+│             DIRECT : Subject ; « Bonjour {{Prenom}}, » + {{TableauParagraphes}} + BodyHtml
+│             MODELE : Objet et CorpsHTML du modèle
+├─ COMPOSE  Paires = TokensJson ∪ {Prenom, TableauParagraphes, LienApp, LienDocument}
+├─ INITIALIZE VARIABLE  Corps = CorpsBrut
+├─ APPLY TO EACH paire (séquentiel) → SET VARIABLE Corps = replace(...)
+├─ COMPOSE  Objet (même remplacement, tokens simples)
+├─ COMPOSE  CorpsFinal = CSS (config) + Corps
+├─ COMPOSE  Destinataires = redirection DEV/TEST ou To ; Cc = Cc ; MAIL_CC_FONCTIONNEL
+├─ SEND AN EMAIL FROM A SHARED MAILBOX (V2)  (aegis_SenderMailbox)
+├─ CREATE ITEM  AEGIS_LOG  (Info, Mode, TemplateCode, To, ContextId, CallerFlow)
+└─ RESPOND  OK
+Scope CATCH → CREATE ITEM AEGIS_LOG (Erreur) → RESPOND KO
+</pre></div>
+
+<h4>Actions exactes</h4>
+<ol class="steps">
+<li><strong>Compose « CorpsBrut »</strong> :
+<pre><code>if(equals(outputs('Mode'),'DIRECT'),
+   concat('&lt;p&gt;Bonjour {{Prenom}},&lt;/p&gt;',
+          '{{TableauParagraphes}}',
+          coalesce(triggerBody()?['text_7'], '')),
+   first(body('Get_modele')?['value'])?['CorpsHTML'])</code></pre>
+Un texte avant le tableau n’apparaît pas dans le contrat actuel <span class="confirm">À confirmer</span> (peut-être dans les entrées supprimées).</li>
+<li><strong>Compose « Paires »</strong> : les entrées dédiées et la configuration s’ajoutent aux tokens libres.
+<pre><code>union(
+  json(coalesce(triggerBody()?['text_12'], '[]')),
+  createArray(
+    json(concat('{"k":"Prenom","v":"', coalesce(triggerBody()?['text_6'], ''), '"}')),
+    json(concat('{"k":"LienApp","v":"', outputs('Cfg')?['APP_URL'], '"}')),
+    json(concat('{"k":"LienDocument","v":"',
+      coalesce(outputs('Cfg')?[concat('DOC_URL_', first(body('Filter_IDRapport'))?['v'])], ''), '"}'))
+  )
+)</code></pre>
+<em>Filter_IDRapport</em> : Filter array sur le tableau d’entrée, <code>@equals(item()?['k'],'IDRapport')</code>. <code>text_12</code> = clé de TokensJson, à ajuster après création.</li>
+<li><strong>Tableau hors boucle</strong> : le HTML du tableau n’entre pas dans le JSON ; il est inséré après la boucle par <code>replace(variables('Corps'), '{{TableauParagraphes}}', coalesce(triggerBody()?['text_8'], ''))</code>.</li>
+<li><strong>Remplacement</strong> : boucle séquentielle, <em>Set variable</em> Corps = <code>replace(variables('Corps'), concat('{{', item()?['k'], '}}'), string(item()?['v']))</code>. Seul cas où une variable et une boucle séquentielle sont justifiées (remplacements cumulés, une dizaine d’itérations).</li>
+<li><strong>Style du tableau</strong> : le bloc <code>&lt;style&gt;</code> est stocké dans AEGIS_CONFIGURATION <code>MAIL_TABLE_CSS</code> et préfixé au corps. Plus aucun appelant ne transporte de CSS.</li>
+<li><strong>Redirection hors PROD</strong> :
+<pre><code>if(empty(parameters('aegis_MailRedirectTo (aegis_MailRedirectTo)')),
+   triggerBody()?['text_4'],
+   parameters('aegis_MailRedirectTo (aegis_MailRedirectTo)'))</code></pre>
+Préfixer l’objet par <code>[DEV]</code> ou <code>[TEST]</code> dans ce cas et vider le Cc.</li>
+<li><strong>Send an email from a shared mailbox (V2)</strong> — Original Mailbox = <code>aegis_SenderMailbox</code> ; Cc = <code>join(createArray(Cc, MAIL_CC_FONCTIONNEL), ';')</code> en ignorant les vides ; Is HTML oui.</li>
+</ol>
+<p>Pourquoi un child flow ici et pas pour les destinataires : ce bloc fait une dizaine d’actions, lit deux listes, porte la règle de redirection, le style et le journal. Le dupliquer trois fois ferait diverger les mails ; l’appeler coûte un run supplémentaire par mail, acceptable aux volumes DRG.</p>
+<p><strong>Nommage</strong> : <code>DRG_04_Notification</code> reprend le numéro de l’ancien F4 (DRG_Relances). Pendant la bascule, les deux coexisteront : préférer un préfixe distinct pour les flows cibles (ex. <code>AEGIS_04_Notification</code>) <span class="confirm">À confirmer</span>.</p>
+</div>
+</section>
+
+<!-- ===================================================== -->
+<section id="alm">
+<h2><span class="step">10</span> Passage DEV → TEST → PROD</h2>
+<ul>
+<li><strong>Une solution unique</strong> « DRG – Gestion des Validations » contenant l’app, les 4 flows, les variables d’environnement et les références de connexion (SharePoint, Office 365 Outlook) liées au compte de service.</li>
+<li><strong>Variables d’environnement</strong> : site, GUID de chaque liste (y compris AEGIS_CONFIGURATION, AEGIS_EMAIL_TEMPLATES, AEGIS_LOG et Historique…), boîte d’envoi, redirection des mails. Valeurs fournies par un fichier de paramètres au moment de l’import (pipeline ou <code>pac solution import --settings-file</code>).</li>
+<li><strong>Aucune valeur en dur</strong> : ni URL, ni email de personne, ni ID de rapport dans les flows. Les données de test visibles dans les captures (comptes nominatifs) restent dans les listes DEV.</li>
+<li><strong>Solution managée</strong> en TEST et PROD ; les listes de configuration sont alimentées par script PnP ou export/import de liste, pas à la main.</li>
+<li><strong>Ordre d’import</strong> : listes et colonnes techniques → solution → activation des flows dans l’ordre 04, 02, 03, 01 (le child doit être actif avant ses appelants).</li>
+<li><strong>Bascule</strong> : désactiver les 7 anciens flows en même temps que l’activation des nouveaux, jamais les deux en parallèle sur la même liste (double traitement).</li>
+</ul>
+
+<h3>Plan de recette minimal</h3>
+<div class="scroll"><table>
+<thead><tr><th>Scénario</th><th>Attendu</th></tr></thead>
+<tbody>
+<tr><td>Lancer une campagne deux fois</td><td>Un seul jeu de lignes, un seul mail par contributeur</td></tr>
+<tr><td>REGENERER après ajout d’un paragraphe</td><td>Seules les nouvelles lignes sont créées, aucun mail</td></tr>
+<tr><td>CAS1 soumission / refus / resoumission</td><td>CONTRIB_PRETE, CONTRIB_REFUSEE, CONTRIB_REVUE</td></tr>
+<tr><td>CAS2 avec 3 contributeurs dont 2 soumettent en même temps</td><td>Aucun mail tant que le 3e n’a pas soumis, puis exactement un CHAPITRE_PRET</td></tr>
+<tr><td>CAS3 refus d’un paragraphe sur deux</td><td>Seul le contributeur concerné est notifié</td></tr>
+<tr><td>Modification directe dans SharePoint par un non-valideur avec ActionEnAttente = VALIDATE</td><td>Transition refusée, journalisée</td></tr>
+<tr><td>Refus sans commentaire (contournement de l’app)</td><td>Refusé côté serveur</td></tr>
+<tr><td>Toutes validations N1 terminées</td><td>Un seul mail au valideur N2</td></tr>
+<tr><td>Relance J-8 et J+1</td><td>Un mail par personne, avec la liste de ses paragraphes</td></tr>
+<tr><td>Clôture avec échec d’une copie</td><td>Aucune suppression, EtatTechnique = Erreur, mail admin</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ===================================================== -->
+<section id="confirmer">
+<h2><span class="step">11</span> Points à confirmer avant de figer</h2>
+<p>L’architecture est proposée mais pas encore stabilisée : elle repose sur la documentation, pas sur les définitions réelles des flows. Les captures de l’éditeur Power Automate (vue complète de chaque flow, paramètres du déclencheur, conditions développées) permettront de valider ou corriger les points suivants.</p>
+<ol>
+<li>La liste des flux en page 4 est-elle complète, ou le haut de la liste est-il coupé ?</li>
+<li>Le flux manuel de l’Étape 5 existe-t-il encore à côté de DRG_ContributeursValideurs ?</li>
+<li>Statut déclencheur exact de DRG_HistorisationCampagne (« Clôturer » ou « Lancer ») et nom exact des listes Historique.</li>
+<li>F1 lit-il les contributeurs dans <code>Utilisateurs</code> ou dans <code>GestionRapportsReglementaire</code> ?</li>
+<li>F3 utilise-t-il une trigger condition, et comment évite-t-il sa propre boucle ?</li>
+<li>Type des colonnes Role, Statut, Contributeur, Valideur (texte, choix, personne simple ou multiple).</li>
+<li>En cas 1 et 2, la ligne valideur est-elle créée par paragraphe ou une seule fois par chapitre ?</li>
+<li>Règle d’information du valideur N2 : à chaque validation ou quand le rapport est entièrement validé.</li>
+<li>Règle de relance : quels statuts de contribution sont relancés.</li>
+<li>Les utilisateurs ont-ils un accès direct en écriture aux listes SharePoint en dehors de l’app.</li>
+<li>DRG_04_Notification : actions du corps, propriété <code>location</code>, liste <code>required</code>, présence d’un « Respond to a PowerApp or flow », appartenance à la solution, flows qui l’appellent déjà.</li>
+<li>Mode par défaut du child de notification : direct (objet/corps fournis par l’appelant) ou modèle (<code>AEGIS_EMAIL_TEMPLATES</code>).</li>
+<li>Périmètre du Signataire et du Valideur N2 dans ce lot (le guide indique qu’aucun statut ne leur est attribué automatiquement pour le premier lot).</li>
+</ol>
+</section>
+</main>
+</div>
+</body>
+</html>
