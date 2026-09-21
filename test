@@ -1,3 +1,7 @@
+[{"k":"NomRapport","v":"COREP T3 2026"},{"k":"Statut","v":"Validé"},{"k":"Validateur","v":"Jean Martin"},{"k":"DateEcheance","v":"30/09/2026"}]
+
+
+
 union(
   json(coalesce(triggerBody()?['text_4'], '[]')),
   createArray(
