@@ -1,3 +1,15 @@
+union(
+  json(coalesce(triggerBody()?['text_4'], '[]')),
+  createArray(
+    addProperty(addProperty(json('{}'), 'k', 'LienApp'), 'v',
+      coalesce(first(body('Get_lien_app')?['value'])?['Lien'], '')),
+    addProperty(addProperty(json('{}'), 'k', 'LienDocument'), 'v',
+      coalesce(first(body('Get_lien_doc')?['value'])?['Lien'], ''))
+  )
+)
+
+
+
 
 union(
   if(
