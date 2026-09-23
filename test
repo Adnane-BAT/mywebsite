@@ -1,3 +1,21 @@
+join(
+    xpath(
+        xml(
+            json(
+                concat(
+                    '{"root":{"person":',
+                    string(item()?['Contributeur']),
+                    '}}'
+                )
+            )
+        ),
+        '/root/person/DisplayName/text()'
+    ),
+    '<br>'
+)
+
+
+
 concat(
   '<p><strong>Action :</strong> ', 
   coalesce(first(body('Erreurs'))?['name'], 'Inconnu'), 
