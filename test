@@ -1,3 +1,13 @@
+Nominal — campagne assignée à 1 utilisateur → 1 mail envoyé, 1 log « Envoyé »
+	2.	Utilisateur sans email valide (compte désactivé, champ vide) — aucun mail, log « Anomalie », pas de plantage
+	3.	Doublons — même utilisateur ciblé par plusieurs campagnes en simultané → dédup ou 1 mail par campagne selon la règle métier
+	4.	Multi-campagnes actives pour un même utilisateur — chaque campagne génère son propre log, pas de mélange de contenu
+	5.	Relance campagne déjà notifiée pour cet utilisateur — aucun renvoi (idempotence par couple utilisateur/campagne)
+	6.	Aucun utilisateur éligible (filtre trop restrictif) — fin propre, statut « Aucun envoi »
+	7.	Volume — campagne visant +100 utilisateurs → pagination et parallélisme=1 OK
+	8.	Échec d'envoi (email invalide côté Outlook) — log erreur pour cet utilisateur seul, les autres envois continuent
+	9.	Utilisateur inactif/quitté — exclu du ciblage, log explicite si applicable
+
 
 Bonjour Romain,
 
