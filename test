@@ -1,3 +1,18 @@
+
+
+xpath(
+    xml(
+        json(
+            concat(
+                '{"root":{"item":',
+                string(body('Get_lignes_contrib')?['value']),
+                '}}'
+            )
+        )
+    ),
+    '//Contributeur/Email/text()'
+)
+
 Nominal — campagne assignée à 1 utilisateur → 1 mail envoyé, 1 log « Envoyé »
 	2.	Utilisateur sans email valide (compte désactivé, champ vide) — aucun mail, log « Anomalie », pas de plantage
 	3.	Doublons — même utilisateur ciblé par plusieurs campagnes en simultané → dédup ou 1 mail par campagne selon la règle métier
