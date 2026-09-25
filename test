@@ -1,4 +1,15 @@
-
+xpath(
+    xml(
+        json(
+            concat(
+                '{"root":{"item":',
+                string(body('Get_lignes_contrib')?['value']),
+                '}}'
+            )
+        )
+    ),
+    '//Contributeur/Email/text()'
+)
 
 xpath(
     xml(
