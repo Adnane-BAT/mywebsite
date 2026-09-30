@@ -1,3 +1,32 @@
+
+Slide – Analyse par question
+
+* Filtrer par score, risque, arrêté et réseau
+* Comparer les réponses par question
+* Identifier les questions les plus en écart
+* Visualiser la répartition Oui / Non / N.A.
+
+Slide – Contrôle questionnaire semestriel
+
+* Suivre l’avancement des contrôles N2.2
+* Visualiser les volumes OK / KO / N.A.
+* Comparer les établissements entre eux
+* Identifier la répartition des KO par direction
+
+Slide – Contrôles en écart
+
+* Sélectionner un établissement à contrôler
+* Consulter les questions en écart
+* Saisir le résultat du contrôle N2.2
+* Ajouter un commentaire et valider
+
+Slide – Validation du contrôle
+
+* Confirmer l’enregistrement du contrôle
+* Afficher la question et l’établissement concernés
+* Tracer la date de validation
+* Revenir au formulaire pour poursuivre les contrôles
+
 xpath(
     xml(
         json(
