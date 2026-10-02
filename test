@@ -1,3 +1,42 @@
+Set(gUserEmail; Lower(User().Email));;
+With(
+    { r: cbxm_RapportReglementaire.Selected.ID };
+    Concurrent(
+        Set(gIsContrib; !IsBlank(LookUp(DRG_SuiviValidationsParagraphes_VE;
+            IDRapport = r && Role = "Contributeur" && EmailContributeurValideur = gUserEmail)));
+        Set(gIsValid; !IsBlank(LookUp(DRG_SuiviValidationsParagraphes_VE;
+            IDRapport = r && Role = "Valideur" && EmailContributeurValideur = gUserEmail)))
+    )
+);;
+Reset(Header_Contrib_Valideur)
+
+Filter(
+    menuContributionValidationColl;
+    (Id = 1 && gIsContrib) || (Id = 2 && gIsValid)
+)
+
+3. Default de Header_Contrib_Valideur
+First(Filter(
+    menuContributionValidationColl;
+    (Id = 1 && gIsContrib) || (Id = 2 && gIsValid)
+))
+
+4. Galerie principale
+
+Remplace la condition sur l'onglet par :
+
+powerfx
+Role = If(Header_Contrib_Valideur.Selected.Id = 1; "Contributeur"; "Valideur")
+
+À vérifier dans ton app
+
+Ouvre btn_Menu.OnSelect. S'il alimente une variable (par exemple Set(varMenu; ThisItem.Id)) que la galerie principale utilise au lieu de .Selected, ajoute la même ligne à la fin du OnChange du point 1. Sinon, l'onglet affiché et les lignes ne seront plus synchronisés après un changement de rapport :
+
+powerfx
+Set(varMenu; First(Header_Contrib_Valideur.AllItems).Id)
+
+
+
 
 Slide – Analyse par question
 
