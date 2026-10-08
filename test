@@ -1,3 +1,91 @@
+
+# Power Automate : insérer plusieurs emails dans une colonne Personne SharePoint (multi-valeurs)
+
+## Contexte
+
+Une colonne Excel contient plusieurs emails séparés par `;`.
+Objectif : insérer toutes ces personnes dans une seule cellule d'une colonne
+SharePoint de type Personne (sélection multiple), via le format `Claims`.
+
+Exemple d'entrée Excel :
+
+    jean.dupont@bpce.fr; marie.martin@bpce.fr;
+
+Format attendu par SharePoint :
+
+    [
+      {"Claims": "jean.dupont@bpce.fr"},
+      {"Claims": "marie.martin@bpce.fr"}
+    ]
+
+## Prérequis
+
+- Colonne SharePoint de type Personne avec "Autoriser plusieurs sélections" = Oui
+- Les emails doivent correspondre à des utilisateurs du tenant
+
+## Étapes
+
+### 1. Lister les lignes Excel
+
+Action : Excel Online (Business) > Lister les lignes présentes dans un tableau
+
+### 2. Boucler sur chaque ligne
+
+Action : Contrôle > Appliquer à chacun
+Sortie : value (de "Lister les lignes")
+
+Les étapes suivantes sont à l'intérieur de la boucle.
+
+### 3. Découper et nettoyer les emails
+
+Action : Opérations sur les données > Filtrer le tableau
+
+- De (expression) :
+
+      split(items('Appliquer_à_chacun')?['Emails'], ';')
+
+- Condition :
+  - gauche (expression) : `trim(item())`
+  - opérateur : n'est pas égal à
+  - droite : (vide)
+
+Remplacer `Emails` par le nom de la colonne Excel et `Appliquer_à_chacun`
+par le nom de la boucle (espaces remplacés par `_`).
+
+### 4. Construire le tableau Claims
+
+Action : Opérations sur les données > Sélectionner
+
+- De : Corps de "Filtrer le tableau"
+- Mapper :
+  - clé : `Claims`
+  - valeur (expression) : `trim(item())`
+
+Variante si l'email seul ne fonctionne pas :
+
+    concat('i:0#.f|membership|', trim(item()))
+
+Variante sans doublons (champ "De" du Sélectionner) :
+
+    union(body('Filtrer_le_tableau'), body('Filtrer_le_tableau'))
+
+### 5. Écrire dans SharePoint
+
+Action : SharePoint > Créer un élément (ou Mettre à jour l'élément)
+
+1. Sur la colonne Personne, cliquer sur "Basculer vers l'entrée d'un tableau entier"
+2. Insérer la Sortie de l'action "Sélectionner"
+
+## Dépannage
+
+| Symptôme | Cause probable |
+|---|---|
+| "The specified user could not be found" | Email invalide ou externe au tenant |
+| Une seule personne insérée | Mode tableau entier non activé, ou colonne non multi-sélection |
+| Expression invalide sur `items(...)` | Nom de la boucle incorrect dans l'expression |
+
+
+
 Set(gUserEmail; Lower(User().Email));;
 With(
     { r: cbxm_RapportReglementaire.Selected.ID };
