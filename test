@@ -1,3 +1,27 @@
+TRIGGER — When an item is created or modified (ta liste)
+│  Trigger condition : Statut = 'Terminée'
+│  Concurrency control = 1
+▼
+GET ITEMS — Lignes_chapitre
+│  Filter Query : IdChapitre eq @{triggerOutputs()?['body/IdChapitre']}
+│  (+ and Role eq 'Contributeur' si la table mélange les rôles)
+▼
+FILTER ARRAY — Lignes_terminees
+│  From : body('Lignes_chapitre')?['value']
+│  Condition : item()?['Statut']?['Value'] = 'Terminée'
+▼
+CONDITION — Tout_termine
+│  length(body('Lignes_terminees'))
+│  est égal à
+│  length(body('Lignes_chapitre')?['value'])
+│
+├─ Oui
+│   ├─ SELECT — Emails (destinataires)
+│   ├─ COMPOSE — join(union(...), ';')
+│   ├─ SEND AN EMAIL (V2)
+│   └─ UPDATE ITEM — flag « mail envoyé » (anti-doublon)
+│
+└─ Non → rien
 
 # Power Automate : insérer plusieurs emails dans une colonne Personne SharePoint (multi-valeurs)
 
