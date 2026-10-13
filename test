@@ -1,3 +1,15 @@
+Statut validation → Campagne active (pour les chapitres).
+Voir mon flux → Validation → Contribution.
+Commentaire non actif pour les valideurs.
+Bug – Erreur variable DRG_SuiviValidation_VE : erreur réseau lors du Patch.
+Le tri – Important ⚠️
+Fonction Sort(...) avec Order.
+Tri côté contributeur et valideur.
+Connexion à régler.
+
+
+
+
 @if(equals(coalesce(body('Get_statut_actuel')?['StatutGlobal']?['Value'], ''), 'Terminée'), 'DEJA_TERMINE',
   if(equals(outputs('Message_-_cntBlanks'), outputs('Message_-_Total')), '',
     if(equals(outputs('Message_-_cntTermines'), outputs('Message_-_Total')), 'Terminée',
