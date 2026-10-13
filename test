@@ -1,3 +1,11 @@
+@if(equals(coalesce(body('Get_statut_actuel')?['StatutGlobal']?['Value'], ''), 'Terminée'), 'DEJA_TERMINE',
+  if(equals(outputs('Message_-_cntBlanks'), outputs('Message_-_Total')), '',
+    if(equals(outputs('Message_-_cntTermines'), outputs('Message_-_Total')), 'Terminée',
+      if(equals(outputs('Message_-_cntRefuses'), outputs('Message_-_Total')), 'Refusé',
+        'En cours'))))
+
+
+
 TRIGGER — When an item is created or modified (ta liste)
 │  Trigger condition : Statut = 'Terminée'
 │  Concurrency control = 1
