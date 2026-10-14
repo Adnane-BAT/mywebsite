@@ -1,3 +1,21 @@
+
+
+ForAll(
+    paragrapheValidationColl As ResultValidation;
+    Patch(
+        DRG_SuiviValidationsParagraphes_VE;
+        LookUp(
+            DRG_SuiviValidationsParagraphes_VE;
+            ID = ResultValidation.ID
+        );
+        {
+            Statut: ResultValidation.Statut;
+            DateContributionValidation: ResultValidation.DateContributionValidation;
+            ContributionValidationPar: ResultValidation.ContributionValidationPar
+        }
+    )
+)
+
 Statut validation → Campagne active (pour les chapitres).
 Voir mon flux → Validation → Contribution.
 Commentaire non actif pour les valideurs.
