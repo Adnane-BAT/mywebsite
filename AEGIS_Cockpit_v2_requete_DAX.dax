@@ -1,0 +1,315 @@
+// AEGIS — Cockpit v2 : adapté au modèle Risk-Flow Vue global
+// Tables utilisées : CampagnesEnCours, SuiviValidationParagraphe, Utilisateurs, _Mesures
+// À coller dans la vue Requête DAX, puis « Update model with changes »
+
+DEFINE
+    // ---------- 01 Calendrier campagne ----------
+    MEASURE '_Mesures'[Date fermeture] =
+        MAX ( CampagnesEnCours[DateFermeture] )
+
+    MEASURE '_Mesures'[Date lancement] =
+        MAX ( CampagnesEnCours[DateLancement] )
+
+    MEASURE '_Mesures'[Jours avant fermeture] =
+        DATEDIFF ( TODAY (), [Date fermeture], DAY )
+
+    MEASURE '_Mesures'[Libellé compte à rebours] =
+        VAR j = [Jours avant fermeture]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( j ), "—",
+                j > 0, "J-" & j,
+                j = 0, "Jour J",
+                "J+" & ABS ( j )
+            )
+
+    MEASURE '_Mesures'[% temps écoulé] =
+        VAR total = DATEDIFF ( [Date lancement], [Date fermeture], DAY )
+        VAR ecoule = DATEDIFF ( [Date lancement], TODAY (), DAY )
+        RETURN
+            MIN ( 1, MAX ( 0, DIVIDE ( ecoule, total ) ) )
+
+    MEASURE '_Mesures'[Jours ouvrés restants] =
+        MAX ( 0, NETWORKDAYS ( TODAY (), [Date fermeture] ) )
+
+    // ---------- 02 Volumes (unité = paragraphe) ----------
+    MEASURE '_Mesures'[Nb paragraphes] =
+        DISTINCTCOUNT ( SuiviValidationParagraphe[IDParagraphe] )
+
+    // Soumis = toutes les lignes Contributeur du paragraphe sont « Terminée »
+    MEASURE '_Mesures'[Nb soumis] =
+        COALESCE (
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    VAR nbC =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur"
+                        )
+                    VAR nbT =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur",
+                            SuiviValidationParagraphe[Statut] = "Terminée"
+                        )
+                    RETURN
+                        nbC > 0 && nbC = nbT
+                )
+            ),
+            0
+        )
+
+    // Refusé = au moins une ligne Contributeur dont le statut contient « Refus »
+    MEASURE '_Mesures'[Nb refusés à reprendre] =
+        COALESCE (
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    NOT ISBLANK (
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur",
+                            FILTER (
+                                VALUES ( SuiviValidationParagraphe[Statut] ),
+                                CONTAINSSTRING ( SuiviValidationParagraphe[Statut], "Refus" )
+                            )
+                        )
+                    )
+                )
+            ),
+            0
+        )
+
+    // Validé = toutes les lignes Valideur du paragraphe sont « Validé »
+    MEASURE '_Mesures'[Nb validés N1] =
+        COALESCE (
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    VAR nbV =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Valideur"
+                        )
+                    VAR nbOK =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Valideur",
+                            SuiviValidationParagraphe[Statut] = "Validé"
+                        )
+                    RETURN
+                        nbV > 0 && nbV = nbOK
+                )
+            ),
+            0
+        )
+
+    MEASURE '_Mesures'[Nb à valider] =
+        MAX ( 0, [Nb soumis] - [Nb validés N1] )
+
+    MEASURE '_Mesures'[Nb non soumis] =
+        MAX ( 0, [Nb paragraphes] - [Nb soumis] - [Nb refusés à reprendre] )
+
+    // ---------- 03 KPI ----------
+    MEASURE '_Mesures'[% Contribution] =
+        DIVIDE ( [Nb soumis], [Nb paragraphes] )
+
+    MEASURE '_Mesures'[% Validation N1] =
+        DIVIDE ( [Nb validés N1], [Nb paragraphes] )
+
+    // Sans journal d'événements : refus actuellement en cours / décisions visibles
+    MEASURE '_Mesures'[Taux de refus] =
+        DIVIDE ( [Nb refusés à reprendre], [Nb validés N1] + [Nb refusés à reprendre] )
+
+    // Écart en jours entre la dernière action du valideur et celle du contributeur
+    MEASURE '_Mesures'[Délai de décision (j)] =
+        MEDIANX (
+            VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+            VAR nbV =
+                CALCULATE (
+                    COUNTROWS ( SuiviValidationParagraphe ),
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                )
+            VAR nbOK =
+                CALCULATE (
+                    COUNTROWS ( SuiviValidationParagraphe ),
+                    SuiviValidationParagraphe[Role] = "Valideur",
+                    SuiviValidationParagraphe[Statut] = "Validé"
+                )
+            VAR dc =
+                CALCULATE (
+                    MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                    SuiviValidationParagraphe[Role] = "Contributeur"
+                )
+            VAR dv =
+                CALCULATE (
+                    MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                )
+            RETURN
+                IF (
+                    nbV > 0 && nbV = nbOK && NOT ISBLANK ( dc ) && NOT ISBLANK ( dv ) && dv >= dc,
+                    CONVERT ( dv - dc, DOUBLE )
+                )
+        )
+
+    // ---------- 04 Atterrissage ----------
+    // Paragraphes soumis au cours des 7 derniers jours (≈ 5 jours ouvrés), par jour ouvré
+    MEASURE '_Mesures'[Rythme soumission] =
+        VAR n =
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    VAR nbC =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur"
+                        )
+                    VAR nbT =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur",
+                            SuiviValidationParagraphe[Statut] = "Terminée"
+                        )
+                    VAR dc =
+                        CALCULATE (
+                            MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                            SuiviValidationParagraphe[Role] = "Contributeur"
+                        )
+                    RETURN
+                        nbC > 0 && nbC = nbT && dc >= TODAY () - 7
+                )
+            )
+        RETURN
+            DIVIDE ( COALESCE ( n, 0 ), 5 )
+
+    MEASURE '_Mesures'[Atterrissage prévu] =
+        MIN (
+            1,
+            DIVIDE ( [Nb soumis] + [Rythme soumission] * [Jours ouvrés restants], [Nb paragraphes] )
+        )
+
+    MEASURE '_Mesures'[Libellé atterrissage] =
+        "Atterrissage " & FORMAT ( [Atterrissage prévu], "0 %" )
+
+    // ---------- 05 Par rapport / porte N2 ----------
+    // Rôle N2 cherché dans Utilisateurs : contient « N2 » (à confirmer)
+    MEASURE '_Mesures'[Nb valideurs N2] =
+        VAR r = SELECTEDVALUE ( SuiviValidationParagraphe[IDRapport] )
+        RETURN
+            COALESCE (
+                COUNTROWS (
+                    FILTER (
+                        ALL ( Utilisateurs ),
+                        Utilisateurs[IDRapport] = r
+                            && CONTAINSSTRING ( Utilisateurs[Role], "N2" )
+                    )
+                ),
+                0
+            )
+
+    MEASURE '_Mesures'[Porte N2] =
+        VAR v = [% Validation N1]
+        RETURN
+            IF (
+                HASONEVALUE ( SuiviValidationParagraphe[IDRapport] ),
+                SWITCH (
+                    TRUE (),
+                    [Nb valideurs N2] = 0, "N2 non renseigné",
+                    v = 1, "Prêt pour N2",
+                    v >= 0.8, "Ouverture proche",
+                    "En attente N1"
+                )
+            )
+
+    // ---------- 06 Alertes ----------
+    MEASURE '_Mesures'[Nb rapports sans N2] =
+        COALESCE (
+            COUNTROWS (
+                FILTER ( VALUES ( SuiviValidationParagraphe[IDRapport] ), [Nb valideurs N2] = 0 )
+            ),
+            0
+        )
+
+    MEASURE '_Mesures'[Nb chapitres partiellement soumis] =
+        COALESCE (
+            COUNTROWS (
+                FILTER (
+                    SUMMARIZE (
+                        SuiviValidationParagraphe,
+                        SuiviValidationParagraphe[IDRapport],
+                        SuiviValidationParagraphe[Chapitre]
+                    ),
+                    VAR nbC =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur"
+                        )
+                    VAR nbT =
+                        CALCULATE (
+                            COUNTROWS ( SuiviValidationParagraphe ),
+                            SuiviValidationParagraphe[Role] = "Contributeur",
+                            SuiviValidationParagraphe[Statut] = "Terminée"
+                        )
+                    RETURN
+                        nbT > 0 && nbT < nbC
+                )
+            ),
+            0
+        )
+
+    MEASURE '_Mesures'[Libellé alerte N2] =
+        VAR n = [Nb rapports sans N2]
+        RETURN
+            IF ( n > 0, n & " rapport(s) sans valideur N2" )
+
+    MEASURE '_Mesures'[Libellé alerte chapitres] =
+        VAR n = [Nb chapitres partiellement soumis]
+        RETURN
+            IF ( n > 0, n & " chapitre(s) partiellement soumis" )
+
+    MEASURE '_Mesures'[Dernière action] =
+        "Dernière action " & FORMAT ( MAX ( SuiviValidationParagraphe[DateContributionValidation] ), "dd/MM HH:mm" )
+
+    // ---------- 07 Couleurs (mise en forme conditionnelle → Valeur du champ) ----------
+    MEASURE '_Mesures'[Couleur taux de refus] =
+        IF ( [Taux de refus] >= 0.15, "#C2410C", "#0E1B2C" )
+
+    MEASURE '_Mesures'[Couleur atterrissage] =
+        SWITCH (
+            TRUE (),
+            [Atterrissage prévu] >= 0.95, "#16357A",
+            [Atterrissage prévu] >= 0.8, "#0E1B2C",
+            "#C2410C"
+        )
+
+    MEASURE '_Mesures'[Couleur compte à rebours] =
+        IF ( [Jours avant fermeture] <= 3, "#C2410C", "#7FA6EC" )
+
+    MEASURE '_Mesures'[Couleur Porte N2] =
+        SWITCH (
+            [Porte N2],
+            "N2 non renseigné", "#C2410C",
+            "Ouverture proche", "#1F5FD1",
+            "Prêt pour N2", "#16357A",
+            "#4A5568"
+        )
+
+    MEASURE '_Mesures'[Couleur barre contribution] =
+        IF ( [% Contribution] < [% temps écoulé] - 0.15, "#C2410C", "#1F5FD1" )
+
+EVALUATE
+    ROW (
+        "Nb paragraphes", [Nb paragraphes],
+        "Soumis", [Nb soumis],
+        "Refusés", [Nb refusés à reprendre],
+        "Non soumis", [Nb non soumis],
+        "Validés N1", [Nb validés N1],
+        "% Contribution", [% Contribution],
+        "% Validation N1", [% Validation N1],
+        "Délai décision (j)", [Délai de décision (j)],
+        "Atterrissage", [Atterrissage prévu],
+        "Compte à rebours", [Libellé compte à rebours]
+    )
