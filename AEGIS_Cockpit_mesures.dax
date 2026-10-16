@@ -1,0 +1,338 @@
+// =====================================================================
+//  AEGIS — Page « Cockpit campagne » : mesures DAX
+// =====================================================================
+//  Modèle attendu (noms à adapter à ton modèle) :
+//
+//  Paragraphes   = GestionRapportsReglementaire (1 ligne par paragraphe)
+//                  IDParagraphe, IDRapport, IDChapitre,
+//                  StatutContribution  (En cours | Terminée | Refusé - Valideur | Refusé - Signataire)
+//                  StatutValidation    (En cours | À valider | Validé | Refusé)
+//                  -> statuts consolidés par FLOW 02 (scope Consolidation)
+//
+//  Evenements    = journal des actions (AEGIS_LOG filtré sur les événements métier)
+//                  IDCampagne, IDParagraphe, Evenement (SUBMIT | VALIDATE | REJECT | RELANCE),
+//                  DateEvenement (date/heure), DateJour (date seule)
+//                  -> prérequis : FLOW 02 écrit une ligne par événement avec IDParagraphe
+//
+//  Campagnes     = CampagnesEnCours : IDCampagne, DateLancement, DateFermeture
+//  SuiviRapports = SuiviValidationsRapportsReglementaire : IDRapport, ValideurN2 (email)
+//  Dates         = table calendrier : Date, JourOuvre (TRUE/FALSE)
+//
+//  Relations : SuiviRapports[IDRapport] 1 → * Paragraphes[IDRapport]
+//              Dates[Date]             1 → * Evenements[DateJour]
+//              Campagnes[IDCampagne]   1 → * Evenements[IDCampagne]
+//
+//  Si tu utilises les CodeStatut (C_TERMINEE, V_VALIDE…) plutôt que les libellés,
+//  remplace simplement les chaînes dans les filtres.
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 01 Calendrier campagne
+// ---------------------------------------------------------------------
+
+Date fermeture =
+MAX ( Campagnes[DateFermeture] )
+
+Date lancement =
+MAX ( Campagnes[DateLancement] )
+
+Jours avant fermeture =
+DATEDIFF ( TODAY (), [Date fermeture], DAY )
+
+Libellé compte à rebours =
+VAR j = [Jours avant fermeture]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( j ), "—",
+        j > 0, "J-" & j,
+        j = 0, "Jour J",
+        "J+" & ABS ( j )
+    )
+
+% temps écoulé =
+VAR total = DATEDIFF ( [Date lancement], [Date fermeture], DAY )
+VAR ecoule = DATEDIFF ( [Date lancement], TODAY (), DAY )
+RETURN
+    MIN ( 1, MAX ( 0, DIVIDE ( ecoule, total ) ) )
+
+Jours ouvrés restants =
+NETWORKDAYS ( TODAY (), [Date fermeture] )
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 02 Volumes
+// ---------------------------------------------------------------------
+
+Nb paragraphes =
+COUNTROWS ( Paragraphes )
+
+Nb non soumis =
+CALCULATE ( [Nb paragraphes], Paragraphes[StatutContribution] = "En cours" )
+
+Nb refusés à reprendre =
+CALCULATE (
+    [Nb paragraphes],
+    Paragraphes[StatutContribution] IN { "Refusé - Valideur", "Refusé - Signataire" }
+)
+
+Nb soumis =
+CALCULATE ( [Nb paragraphes], Paragraphes[StatutContribution] = "Terminée" )
+
+Nb validés N1 =
+CALCULATE ( [Nb paragraphes], Paragraphes[StatutValidation] = "Validé" )
+
+Nb à valider =
+[Nb soumis] - [Nb validés N1]
+
+// Contrôle : doit être égal à [Nb paragraphes]
+Contrôle somme statuts =
+[Nb non soumis] + [Nb à valider] + [Nb validés N1] + [Nb refusés à reprendre]
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 03 KPI
+// ---------------------------------------------------------------------
+
+% Contribution =
+DIVIDE ( [Nb soumis], [Nb paragraphes] )
+
+% Validation N1 =
+DIVIDE ( [Nb validés N1], [Nb paragraphes] )
+
+Nb décisions =
+CALCULATE (
+    COUNTROWS ( Evenements ),
+    Evenements[Evenement] IN { "VALIDATE", "REJECT" }
+)
+
+Nb refus =
+CALCULATE ( COUNTROWS ( Evenements ), Evenements[Evenement] = "REJECT" )
+
+Taux de refus =
+DIVIDE ( [Nb refus], [Nb décisions] )
+
+// Médiane, en jours, entre une soumission et la décision qui la suit
+Délai de décision (j) =
+VAR Decisions =
+    FILTER ( Evenements, Evenements[Evenement] IN { "VALIDATE", "REJECT" } )
+RETURN
+    MEDIANX (
+        Decisions,
+        VAR c = Evenements[IDCampagne]
+        VAR p = Evenements[IDParagraphe]
+        VAR d = Evenements[DateEvenement]
+        VAR s =
+            CALCULATE (
+                MAX ( Evenements[DateEvenement] ),
+                REMOVEFILTERS ( Evenements ),
+                Evenements[IDCampagne] = c,
+                Evenements[IDParagraphe] = p,
+                Evenements[Evenement] = "SUBMIT",
+                Evenements[DateEvenement] < d
+            )
+        RETURN
+            IF ( NOT ISBLANK ( s ), CONVERT ( d - s, DOUBLE ) )
+    )
+
+Paragraphes refusés 2 fois ou plus =
+COUNTROWS (
+    FILTER (
+        VALUES ( Evenements[IDParagraphe] ),
+        CALCULATE ( COUNTROWS ( Evenements ), Evenements[Evenement] = "REJECT" ) >= 2
+    )
+)
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 04 Atterrissage (projection)
+// ---------------------------------------------------------------------
+
+// Début de la fenêtre : 5e jour ouvré avant aujourd'hui
+Début fenêtre 5 j ouvrés =
+MINX (
+    TOPN (
+        5,
+        FILTER ( ALL ( Dates ), Dates[Date] < TODAY () && Dates[JourOuvre] = TRUE () ),
+        Dates[Date], DESC
+    ),
+    Dates[Date]
+)
+
+// Rythme moyen de soumission sur les 5 derniers jours ouvrés (paragraphes / jour)
+// Approximation : compte les paragraphes soumis dans la fenêtre, resoumissions comprises
+Rythme soumission =
+VAR debut = [Début fenêtre 5 j ouvrés]
+VAR n =
+    CALCULATE (
+        DISTINCTCOUNT ( Evenements[IDParagraphe] ),
+        Evenements[Evenement] = "SUBMIT",
+        Evenements[DateJour] >= debut,
+        Evenements[DateJour] < TODAY (),
+        REMOVEFILTERS ( Dates )
+    )
+RETURN
+    DIVIDE ( n, 5 )
+
+Atterrissage prévu =
+VAR projete = [Nb soumis] + [Rythme soumission] * [Jours ouvrés restants]
+RETURN
+    MIN ( 1, DIVIDE ( projete, [Nb paragraphes] ) )
+
+Libellé atterrissage =
+"Atterrissage " & FORMAT ( [Atterrissage prévu], "0 %" )
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 05 Trajectoire (graphique en courbes, axe = Dates[Date])
+// ---------------------------------------------------------------------
+
+% Contribution cumulée =
+VAR d = MAX ( Dates[Date] )
+VAR n =
+    CALCULATE (
+        DISTINCTCOUNT ( Evenements[IDParagraphe] ),
+        Evenements[Evenement] = "SUBMIT",
+        Evenements[DateJour] <= d,
+        REMOVEFILTERS ( Dates )
+    )
+RETURN
+    IF ( d <= TODAY () && d >= [Date lancement], DIVIDE ( n, [Nb paragraphes] ) )
+
+% Validation cumulée =
+VAR d = MAX ( Dates[Date] )
+VAR n =
+    CALCULATE (
+        DISTINCTCOUNT ( Evenements[IDParagraphe] ),
+        Evenements[Evenement] = "VALIDATE",
+        Evenements[DateJour] <= d,
+        REMOVEFILTERS ( Dates )
+    )
+RETURN
+    IF ( d <= TODAY () && d >= [Date lancement], DIVIDE ( n, [Nb paragraphes] ) )
+
+Rythme idéal =
+VAR d = MAX ( Dates[Date] )
+RETURN
+    IF (
+        d >= [Date lancement] && d <= [Date fermeture],
+        DIVIDE (
+            DATEDIFF ( [Date lancement], d, DAY ),
+            DATEDIFF ( [Date lancement], [Date fermeture], DAY )
+        )
+    )
+
+// Ligne pointillée : part d'aujourd'hui et va jusqu'à la fermeture
+Projection contribution =
+VAR d = MAX ( Dates[Date] )
+RETURN
+    IF (
+        d >= TODAY () && d <= [Date fermeture],
+        MIN (
+            1,
+            DIVIDE (
+                [Nb soumis] + [Rythme soumission] * NETWORKDAYS ( TODAY (), d ),
+                [Nb paragraphes]
+            )
+        )
+    )
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 06 Tableau par rapport (lignes = SuiviRapports[Nom])
+// ---------------------------------------------------------------------
+//  [Nb paragraphes], [% Contribution] et [% Validation N1] fonctionnent tels quels
+//  grâce à la relation SuiviRapports → Paragraphes.
+
+Porte N2 =
+VAR n2 = SELECTEDVALUE ( SuiviRapports[ValideurN2] )
+VAR v = [% Validation N1]
+RETURN
+    SWITCH (
+        TRUE (),
+        ISBLANK ( n2 ) || n2 = "", "N2 non renseigné",
+        v = 1, "N2 notifié",
+        v >= 0.8, "Ouverture proche",
+        "En attente N1"
+    )
+
+Couleur Porte N2 =
+SWITCH (
+    [Porte N2],
+    "N2 non renseigné", "#C2410C",
+    "Ouverture proche", "#1F5FD1",
+    "N2 notifié", "#16357A",
+    "#4A5568"
+)
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 07 Alertes « À surveiller »
+// ---------------------------------------------------------------------
+
+Nb rapports sans N2 =
+COUNTROWS (
+    FILTER (
+        SuiviRapports,
+        ISBLANK ( SuiviRapports[ValideurN2] ) || SuiviRapports[ValideurN2] = ""
+    )
+)
+
+// Chapitres en validation au chapitre (cas 2) partiellement soumis
+Nb chapitres bloqués =
+COUNTROWS (
+    FILTER (
+        SUMMARIZE ( Paragraphes, Paragraphes[IDRapport], Paragraphes[IDChapitre] ),
+        VAR total = CALCULATE ( COUNTROWS ( Paragraphes ) )
+        VAR soumis =
+            CALCULATE ( COUNTROWS ( Paragraphes ), Paragraphes[StatutContribution] = "Terminée" )
+        RETURN
+            soumis > 0 && soumis < total
+    )
+)
+
+Dernière relance =
+CALCULATE (
+    MAX ( Evenements[DateEvenement] ),
+    Evenements[Evenement] = "RELANCE",
+    REMOVEFILTERS ( Dates )
+)
+
+Libellé alerte N2 =
+VAR n = [Nb rapports sans N2]
+RETURN
+    IF ( n > 0, n & " rapport(s) sans valideur N2 : la notification N2 sera bloquée" )
+
+Libellé alerte chapitres =
+VAR n = [Nb chapitres bloqués]
+RETURN
+    IF ( n > 0, n & " chapitre(s) partiellement soumis : validation au chapitre en attente" )
+
+Libellé alerte refus =
+VAR n = [Paragraphes refusés 2 fois ou plus]
+RETURN
+    IF ( n > 0, n & " paragraphe(s) refusé(s) deux fois ou plus" )
+
+
+// ---------------------------------------------------------------------
+//  Dossier : 08 Couleurs (mise en forme conditionnelle → Valeur du champ)
+// ---------------------------------------------------------------------
+
+Couleur taux de refus =
+SWITCH ( TRUE (), [Taux de refus] >= 0.15, "#C2410C", "#0E1B2C" )
+
+Couleur atterrissage =
+SWITCH (
+    TRUE (),
+    [Atterrissage prévu] >= 0.95, "#16357A",
+    [Atterrissage prévu] >= 0.8, "#0E1B2C",
+    "#C2410C"
+)
+
+Couleur compte à rebours =
+SWITCH ( TRUE (), [Jours avant fermeture] <= 3, "#C2410C", "#7FA6EC" )
+
+// Pour la barre d'avancement par rapport : orange si contribution < temps écoulé - 15 pts
+Couleur barre contribution =
+IF ( [% Contribution] < [% temps écoulé] - 0.15, "#C2410C", "#1F5FD1" )
