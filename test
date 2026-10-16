@@ -1,3 +1,44 @@
+
+DEFINE
+    MEASURE '_Mesures'[% Contribution cumulée] =
+        VAR d = MAX ( Dates[Date] )
+        VAR n =
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    VAR nbC = CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ), SuiviValidationParagraphe[Role] = "Contributeur" )
+                    VAR nbT = CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ), SuiviValidationParagraphe[Role] = "Contributeur", SuiviValidationParagraphe[Statut] = "Terminée" )
+                    VAR dc = CALCULATE ( MAX ( SuiviValidationParagraphe[DateContributionValidation] ), SuiviValidationParagraphe[Role] = "Contributeur" )
+                    RETURN nbC > 0 && nbC = nbT && dc < d + 1
+                )
+            )
+        RETURN IF ( d <= TODAY (), DIVIDE ( COALESCE ( n, 0 ), [Nb paragraphes] ) )
+
+    MEASURE '_Mesures'[% Validation cumulée] =
+        VAR d = MAX ( Dates[Date] )
+        VAR n =
+            COUNTROWS (
+                FILTER (
+                    VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                    VAR nbV = CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ), SuiviValidationParagraphe[Role] = "Valideur" )
+                    VAR nbOK = CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ), SuiviValidationParagraphe[Role] = "Valideur", SuiviValidationParagraphe[Statut] = "Validé" )
+                    VAR dv = CALCULATE ( MAX ( SuiviValidationParagraphe[DateContributionValidation] ), SuiviValidationParagraphe[Role] = "Valideur" )
+                    RETURN nbV > 0 && nbV = nbOK && dv < d + 1
+                )
+            )
+        RETURN IF ( d <= TODAY (), DIVIDE ( COALESCE ( n, 0 ), [Nb paragraphes] ) )
+
+    MEASURE '_Mesures'[Rythme idéal] =
+        VAR d = MAX ( Dates[Date] )
+        RETURN DIVIDE ( DATEDIFF ( [Date lancement], d, DAY ), DATEDIFF ( [Date lancement], [Date fermeture], DAY ) )
+
+    MEASURE '_Mesures'[Projection contribution] =
+        VAR d = MAX ( Dates[Date] )
+        RETURN IF ( d >= TODAY (), MIN ( 1, DIVIDE ( [Nb soumis] + [Rythme soumission] * NETWORKDAYS ( TODAY (), d ), [Nb paragraphes] ) ) )
+
+EVALUATE ROW ( "ok", 1 )
+
+
 https://claude.ai/artifact/ML3pX4N7n1mLjiXRWUaAZJ#page-dcb81aee8d83
 
 ForAll(
