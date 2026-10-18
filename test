@@ -1,3 +1,35 @@
+
+DEFINE
+    MEASURE '_Mesures'[Cellule chapitre] =
+        IF (
+            NOT ISBLANK ( [Nb assignés] ),
+            IF (
+                ISINSCOPE ( SuiviValidationParagraphe[Chapitre] ),
+                " ",
+                FORMAT ( [% soumis contributeur], "0 %" )
+            )
+        )
+
+    MEASURE '_Mesures'[Couleur cellule chapitre] =
+        VAR nbC = [Nb assignés]
+        VAR nbRefus = [Nb refus contributeur]
+        VAR nbT =
+            CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ),
+                SuiviValidationParagraphe[Role] = "Contributeur",
+                SuiviValidationParagraphe[Statut] = "Terminée" )
+        VAR paras =
+            CALCULATETABLE ( VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+                SuiviValidationParagraphe[Role] = "Contributeur" )
+        VAR nbV =
+            CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ),
+                REMOVEFILTERS ( SuiviValidationParagraphe[EmailContributeurValideur], SuiviValidationParagraphe[NomContributeur] ),
+                SuiviValidationParagraphe[Role] = "Valideur",
+                SuiviValidationParagraphe[IDParagraphe] IN paras )
+        VAR nbOK =
+            CALCULATE ( COUNTROWS ( SuiviValidationParagraphe ),
+                REMOVEFILT
+
+
 // =====================================================================
 // MESURES DAX – GRAPHE "TRAJECTOIRE VERS LA FERMETURE"
 // Table de mesures : _Mesures
