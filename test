@@ -1,4 +1,15 @@
-
+let
+    Source =
+        OData.Feed(
+            pSiteSharepoint
+                & "/_api/web/lists/getbytitle('"
+                & pListNameSuiviValidationParagraphe
+                & "')/items?$select=ID,IDRapport,Rapport,Sommaire,Chapitre,IDParagraphe,Paragraphe,Ordre,Role,EmailContributeurValideur,Statut,ContributionValidationPar,DateContributionValidation",
+            null,
+            [Implementation = "2.0"]
+        )
+in
+    Source
 DEFINE
     MEASURE '_Mesures'[% Contribution cumulée] =
         VAR d = MAX ( Dates[Date] )
