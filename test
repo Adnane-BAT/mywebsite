@@ -1,3 +1,28 @@
+
+% Contribution cumulée =
+VAR d = MAX('Date'[Date])
+VAR AvecContrib =
+    CALCULATETABLE(
+        VALUES(SuiviValidationParagraphe[IDParagraphe]),
+        REMOVEFILTERS('Date'),
+        SuiviValidationParagraphe[Role] = "Contributeur"
+    )
+VAR PasEncore =
+    CALCULATETABLE(
+        VALUES(SuiviValidationParagraphe[IDParagraphe]),
+        REMOVEFILTERS('Date'),
+        SuiviValidationParagraphe[Role] = "Contributeur",
+        FILTER(
+            ALL(SuiviValidationParagraphe[Statut], SuiviValidationParagraphe[DateContributionValidation]),
+            SuiviValidationParagraphe[Statut] <> "Terminée"
+                || SuiviValidationParagraphe[DateContributionValidation] > d
+        )
+    )
+RETURN
+IF(d > TODAY(), BLANK(),
+    DIVIDE(COUNTROWS(EXCEPT(AvecContrib, PasEncore)), [Nb paragraphes]))
+
+
 let
     Source =
         OData.Feed(
