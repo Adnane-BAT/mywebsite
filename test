@@ -1,3 +1,160 @@
+// =====================================================================
+// MESURES DAX – GRAPHE "TRAJECTOIRE VERS LA FERMETURE"
+// Table de mesures : _Mesures
+// Prérequis :
+//   - Table 'Date' couvrant au moins le 01/10 -> 24/10, marquée comme table de dates
+//   - SuiviValidationParagraphe[DateContributionValidation] typée en Date/heure (pas Texte)
+//   - Mesures existantes utilisées : [Nb paragraphes], [Nb soumis], [Atterrissage prévu]
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+// 1. JALONS
+// ---------------------------------------------------------------------
+
+Lancement = DATE ( 2026, 10, 1 )
+
+Fermeture = DATE ( 2026, 10, 24 )
+
+Aujourdhui = TODAY ()
+
+
+// ---------------------------------------------------------------------
+// 2. CONTRIBUTION CUMULÉE
+// Un paragraphe est soumis à la date d s'il n'a aucune ligne
+// Contributeur "non terminée à d".
+// Format : Pourcentage
+// ---------------------------------------------------------------------
+
+% Contribution cumulée =
+VAR d = MAX ( 'Date'[Date] )
+VAR AvecContrib =
+    CALCULATETABLE (
+        VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+        REMOVEFILTERS ( 'Date' ),
+        SuiviValidationParagraphe[Role] = "Contributeur"
+    )
+VAR PasEncore =
+    CALCULATETABLE (
+        VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+        REMOVEFILTERS ( 'Date' ),
+        SuiviValidationParagraphe[Role] = "Contributeur",
+        FILTER (
+            ALL (
+                SuiviValidationParagraphe[Statut],
+                SuiviValidationParagraphe[DateContributionValidation]
+            ),
+            SuiviValidationParagraphe[Statut] <> "Terminée"
+                || SuiviValidationParagraphe[DateContributionValidation] > d
+        )
+    )
+RETURN
+    IF (
+        d > TODAY (),
+        BLANK (),
+        DIVIDE ( COUNTROWS ( EXCEPT ( AvecContrib, PasEncore ) ), [Nb paragraphes] )
+    )
+
+
+// ---------------------------------------------------------------------
+// 3. VALIDATION N1 CUMULÉE
+// /!\ Adapter "Valideur" et "Validée" aux valeurs réelles de Role / Statut
+// Format : Pourcentage
+// ---------------------------------------------------------------------
+
+% Validation N1 cumulée =
+VAR d = MAX ( 'Date'[Date] )
+VAR AvecValid =
+    CALCULATETABLE (
+        VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+        REMOVEFILTERS ( 'Date' ),
+        SuiviValidationParagraphe[Role] = "Valideur"
+    )
+VAR PasEncore =
+    CALCULATETABLE (
+        VALUES ( SuiviValidationParagraphe[IDParagraphe] ),
+        REMOVEFILTERS ( 'Date' ),
+        SuiviValidationParagraphe[Role] = "Valideur",
+        FILTER (
+            ALL (
+                SuiviValidationParagraphe[Statut],
+                SuiviValidationParagraphe[DateContributionValidation]
+            ),
+            SuiviValidationParagraphe[Statut] <> "Validée"
+                || SuiviValidationParagraphe[DateContributionValidation] > d
+        )
+    )
+RETURN
+    IF (
+        d > TODAY (),
+        BLANK (),
+        DIVIDE ( COUNTROWS ( EXCEPT ( AvecValid, PasEncore ) ), [Nb paragraphes] )
+    )
+
+
+// ---------------------------------------------------------------------
+// 4. RYTHME IDÉAL (diagonale en tirets, 0 % au lancement -> 100 % à la fermeture)
+// Format : Pourcentage
+// ---------------------------------------------------------------------
+
+Rythme idéal =
+DIVIDE (
+    MAX ( 'Date'[Date] ) - [Lancement],
+    [Fermeture] - [Lancement]
+)
+
+
+// ---------------------------------------------------------------------
+// 5. PROJECTION (pointillés d'aujourd'hui jusqu'à l'atterrissage)
+// Format : Pourcentage
+// ---------------------------------------------------------------------
+
+Projection =
+VAR d = MAX ( 'Date'[Date] )
+VAR t = TODAY ()
+VAR actuel =
+    CALCULATE ( DIVIDE ( [Nb soumis], [Nb paragraphes] ), REMOVEFILTERS ( 'Date' ) )
+VAR cible =
+    CALCULATE ( [Atterrissage prévu], REMOVEFILTERS ( 'Date' ) )
+RETURN
+    IF (
+        d < t,
+        BLANK (),
+        actuel + ( cible - actuel ) * DIVIDE ( d - t, [Fermeture] - t )
+    )
+
+
+// ---------------------------------------------------------------------
+// 6. POINT D'ATTERRISSAGE (cercle + étiquette à la date de fermeture)
+// Format : Pourcentage
+// ---------------------------------------------------------------------
+
+Point atterrissage =
+IF (
+    MAX ( 'Date'[Date] ) = [Fermeture],
+    CALCULATE ( [Atterrissage prévu], REMOVEFILTERS ( 'Date' ) )
+)
+
+
+// =====================================================================
+// RÉGLAGES DU VISUEL (graphique en courbes)
+// =====================================================================
+// Axe X  : 'Date'[Date], type Continu, filtre visuel 01/10 -> 24/10
+// Axe Y  : les 5 mesures (Contribution, Validation, Rythme idéal,
+//          Projection, Point atterrissage), min 0 / max 1, format %
+//
+// Format > Lignes, par série :
+//   % Contribution cumulée  : trait plein, #1F4FC1, épaisseur 2
+//   % Validation N1 cumulée : trait plein, #14215A, épaisseur 2
+//   Rythme idéal            : tirets, gris
+//   Projection              : pointillés, #1F4FC1
+//   Point atterrissage      : épaisseur 0, marqueur cercle taille 8
+//
+// Étiquettes de données : uniquement sur "Point atterrissage", titre affiché
+//   (renommer la série "Atterrissage" dans le visuel)
+//
+// Analyse > Ligne constante X : valeur fx = [Aujourdhui], étiquette "AUJOURD'HUI"
+// =====================================================================
 
 % Contribution cumulée =
 VAR d = MAX('Date'[Date])
