@@ -1,3 +1,15 @@
+With(
+    { rec: If(IsBlank(Table1.Selected); First(MaListeSharePoint); Table1.Selected) };
+    UpdateContext({ deleteMode: false; selectedRecord: rec });;
+    Launch(
+        "https://groupebpce.sharepoint.com/sites/QuestionnairesemestrielCPN2.2/Shared%20Documents/Etablissements/" &
+        EncodeUrl(rec.'CODE ETABLISSEMENT') & "/Pistes%20d'audit/" &
+        EncodeUrl(rec.ARRETE) & "/" &
+        EncodeUrl(rec.REF_QUESTION) & "/"
+    )
+)
+
+
 
 DEFINE
     MEASURE '_Mesures'[Cellule chapitre] =
