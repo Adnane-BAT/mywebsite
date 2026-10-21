@@ -1,3 +1,13 @@
+    Objectif : annoncer un TJM de 700 € et viser au minimum 680 €.
+* Commencer par le besoin : faire préciser la mission, sa durée, le rythme et le niveau d’autonomie attendu.
+* Mettre en avant l’adéquation : expérience en environnement financier chez KPMG, analyse et fiabilisation des données, automatisation des contrôles et reporting avec Power BI, Alteryx et Power Platform.
+* Annoncer le tarif clairement : « Pour ce périmètre, je me positionne à 700 € par jour. »
+* Laisser le commercial répondre : ne pas justifier davantage tout de suite et ne pas baisser spontanément.
+* Clarifier le budget : « Est-ce votre budget de vente au client ou le TJM qui me serait reversé ? »
+* S’il évoque un tarif inférieur : « Quel est le budget maximal prévu pour mon profil ? »
+* Négocier une éventuelle baisse contre une contrepartie : durée ferme, démarrage rapide ou périmètre bien défini.
+* Avant de conclure : confirmer le TJM final, la durée, les frais éventuels et les délais de paiement.
+
 With(
     { rec: If(IsBlank(Table1.Selected); First(MaListeSharePoint); Table1.Selected) };
     UpdateContext({ deleteMode: false; selectedRecord: rec });;
