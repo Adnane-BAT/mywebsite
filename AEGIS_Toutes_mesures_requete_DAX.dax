@@ -1,11 +1,12 @@
-// AEGIS — Toutes les mesures (Cockpit + Trajectoire + Contributeurs)
+// AEGIS — Toutes les mesures, par page : 1 Cockpit · 2 Trajectoire · 3 Contributeurs · 4 Valideurs
 // Modèle Risk-Flow Vue global
 // Tables utilisées : CampagnesEnCours, SuiviValidationParagraphe, Utilisateurs, Dates, _Mesures
 // Les mesures déjà présentes seront mises à jour, les autres créées
 // À coller dans la vue Requête DAX, puis « Update model with changes »
 
 DEFINE
-    // ---------- 01 Calendrier campagne ----------
+    // ==================== 1 COCKPIT ====================
+    // ---------- 1.1 Calendrier ----------
     MEASURE '_Mesures'[Date fermeture] =
         MAX ( CampagnesEnCours[DateFermeture] )
 
@@ -35,7 +36,7 @@ DEFINE
     MEASURE '_Mesures'[Jours ouvrés restants] =
         MAX ( 0, NETWORKDAYS ( TODAY (), [Date fermeture] ) )
 
-    // ---------- 02 Volumes (unité = paragraphe) ----------
+    // ---------- 1.2 Volumes (unité = paragraphe) ----------
     MEASURE '_Mesures'[Nb paragraphes] =
         DISTINCTCOUNT ( SuiviValidationParagraphe[IDParagraphe] )
 
@@ -114,7 +115,7 @@ DEFINE
     MEASURE '_Mesures'[Nb non soumis] =
         MAX ( 0, [Nb paragraphes] - [Nb soumis] - [Nb refusés à reprendre] )
 
-    // ---------- 03 KPI ----------
+    // ---------- 1.3 KPI ----------
     MEASURE '_Mesures'[% Contribution] =
         DIVIDE ( [Nb soumis], [Nb paragraphes] )
 
@@ -157,7 +158,7 @@ DEFINE
                 )
         )
 
-    // ---------- 04 Atterrissage ----------
+    // ---------- 1.4 Atterrissage ----------
     // Paragraphes soumis au cours des 7 derniers jours (≈ 5 jours ouvrés), par jour ouvré
     MEASURE '_Mesures'[Rythme soumission] =
         VAR n =
@@ -196,7 +197,7 @@ DEFINE
     MEASURE '_Mesures'[Libellé atterrissage] =
         "Atterrissage " & FORMAT ( [Atterrissage prévu], "0 %" )
 
-    // ---------- 05 Par rapport / porte N2 ----------
+    // ---------- 1.5 Par rapport / porte N2 ----------
     // Rôle N2 cherché dans Utilisateurs : contient « N2 » (à confirmer)
     MEASURE '_Mesures'[Nb valideurs N2] =
         VAR r = SELECTEDVALUE ( SuiviValidationParagraphe[IDRapport] )
@@ -226,7 +227,7 @@ DEFINE
                 )
             )
 
-    // ---------- 06 Alertes ----------
+    // ---------- 1.6 Alertes ----------
     MEASURE '_Mesures'[Nb rapports sans N2] =
         COALESCE (
             COUNTROWS (
@@ -275,7 +276,7 @@ DEFINE
     MEASURE '_Mesures'[Dernière action] =
         "Dernière action " & FORMAT ( MAX ( SuiviValidationParagraphe[DateContributionValidation] ), "dd/MM HH:mm" )
 
-    // ---------- 07 Couleurs (mise en forme conditionnelle → Valeur du champ) ----------
+    // ---------- 1.7 Couleurs (mise en forme conditionnelle → Field value) ----------
     MEASURE '_Mesures'[Couleur taux de refus] =
         IF ( [Taux de refus] >= 0.15, "#C2410C", "#0E1B2C" )
 
@@ -302,7 +303,8 @@ DEFINE
     MEASURE '_Mesures'[Couleur barre contribution] =
         IF ( [% Contribution] < [% temps écoulé] - 0.15, "#C2410C", "#1F5FD1" )
 
-    // ---------- 08 Trajectoire (axe X = Dates[Date]) ----------
+    // ==================== 2 TRAJECTOIRE ====================
+    // (axe X = Dates[Date], table sans relation)
     MEASURE '_Mesures'[Aujourd'hui] =
         TODAY ()
 
@@ -389,7 +391,8 @@ DEFINE
     MEASURE '_Mesures'[Point atterrissage] =
         IF ( MAX ( Dates[Date] ) = [Date fermeture], [Atterrissage prévu] )
 
-    // ---------- 09 Contributeurs : charge × avancement ----------
+    // ==================== 3 CONTRIBUTEURS ====================
+    // ---------- 3.1 Charge × avancement (nuage) ----------
     MEASURE '_Mesures'[Nb assignés] =
         CALCULATE (
             COUNTROWS ( SuiviValidationParagraphe ),
@@ -431,7 +434,7 @@ DEFINE
     MEASURE '_Mesures'[Couleur point] =
         IF ( [% soumis contributeur] < 0.5, "#C2410C", "#1F5FD1" )
 
-    // ---------- 10 Contributeurs : carte des chapitres (matrice) ----------
+    // ---------- 3.2 Carte des chapitres (matrice) ----------
     MEASURE '_Mesures'[Cellule chapitre] =
         IF (
             NOT ISBLANK ( [Nb assignés] ),
@@ -480,6 +483,245 @@ DEFINE
                 nbV > 0 && nbV = nbOK, "#16357A",
                 "#7FA6EC"
             )
+
+    // ==================== 4 VALIDEURS ====================
+    // ---------- 4.1 File d'attente (contribution terminée, décision non prise) ----------
+    MEASURE '_Mesures'[Nb en attente valideur] =
+        COUNTROWS (
+            FILTER (
+                CALCULATETABLE (
+                    SuiviValidationParagraphe,
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                ),
+                VAR p = SuiviValidationParagraphe[IDParagraphe]
+                VAR s = SuiviValidationParagraphe[Statut]
+                VAR nbC =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR nbT =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur",
+                        SuiviValidationParagraphe[Statut] = "Terminée"
+                    )
+                VAR dc =
+                    CALCULATE (
+                        MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR age = INT ( TODAY () - dc )
+                RETURN
+                    nbC > 0 && nbC = nbT
+                        && s <> "Validé"
+                        && NOT CONTAINSSTRING ( s, "Refus" )
+            )
+        )
+
+    MEASURE '_Mesures'[Nb attente 0-2 j] =
+        COUNTROWS (
+            FILTER (
+                CALCULATETABLE (
+                    SuiviValidationParagraphe,
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                ),
+                VAR p = SuiviValidationParagraphe[IDParagraphe]
+                VAR s = SuiviValidationParagraphe[Statut]
+                VAR nbC =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR nbT =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur",
+                        SuiviValidationParagraphe[Statut] = "Terminée"
+                    )
+                VAR dc =
+                    CALCULATE (
+                        MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR age = INT ( TODAY () - dc )
+                RETURN
+                    nbC > 0 && nbC = nbT
+                        && s <> "Validé"
+                        && NOT CONTAINSSTRING ( s, "Refus" )
+                        && age <= 2
+            )
+        )
+
+    MEASURE '_Mesures'[Nb attente 3-5 j] =
+        COUNTROWS (
+            FILTER (
+                CALCULATETABLE (
+                    SuiviValidationParagraphe,
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                ),
+                VAR p = SuiviValidationParagraphe[IDParagraphe]
+                VAR s = SuiviValidationParagraphe[Statut]
+                VAR nbC =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR nbT =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur",
+                        SuiviValidationParagraphe[Statut] = "Terminée"
+                    )
+                VAR dc =
+                    CALCULATE (
+                        MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR age = INT ( TODAY () - dc )
+                RETURN
+                    nbC > 0 && nbC = nbT
+                        && s <> "Validé"
+                        && NOT CONTAINSSTRING ( s, "Refus" )
+                        && age >= 3 && age <= 5
+            )
+        )
+
+    MEASURE '_Mesures'[Nb attente > 5 j] =
+        COUNTROWS (
+            FILTER (
+                CALCULATETABLE (
+                    SuiviValidationParagraphe,
+                    SuiviValidationParagraphe[Role] = "Valideur"
+                ),
+                VAR p = SuiviValidationParagraphe[IDParagraphe]
+                VAR s = SuiviValidationParagraphe[Statut]
+                VAR nbC =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR nbT =
+                    CALCULATE (
+                        COUNTROWS ( SuiviValidationParagraphe ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur",
+                        SuiviValidationParagraphe[Statut] = "Terminée"
+                    )
+                VAR dc =
+                    CALCULATE (
+                        MAX ( SuiviValidationParagraphe[DateContributionValidation] ),
+                        REMOVEFILTERS ( SuiviValidationParagraphe ),
+                        SuiviValidationParagraphe[IDParagraphe] = p,
+                        SuiviValidationParagraphe[Role] = "Contributeur"
+                    )
+                VAR age = INT ( TODAY () - dc )
+                RETURN
+                    nbC > 0 && nbC = nbT
+                        && s <> "Validé"
+                        && NOT CONTAINSSTRING ( s, "Refus" )
+                        && age > 5
+            )
+        )
+
+    MEASURE '_Mesures'[% attente > 5 j] =
+        DIVIDE ( [Nb attente > 5 j], [Nb en attente valideur] )
+
+    // ---------- 4.2 Décisions ----------
+    MEASURE '_Mesures'[Nb lignes valideur] =
+        CALCULATE (
+            COUNTROWS ( SuiviValidationParagraphe ),
+            SuiviValidationParagraphe[Role] = "Valideur"
+        )
+
+    MEASURE '_Mesures'[Nb validations émises] =
+        CALCULATE (
+            COUNTROWS ( SuiviValidationParagraphe ),
+            SuiviValidationParagraphe[Role] = "Valideur",
+            SuiviValidationParagraphe[Statut] = "Validé"
+        )
+
+    MEASURE '_Mesures'[Nb refus émis] =
+        CALCULATE (
+            COUNTROWS ( SuiviValidationParagraphe ),
+            SuiviValidationParagraphe[Role] = "Valideur",
+            FILTER (
+                VALUES ( SuiviValidationParagraphe[Statut] ),
+                CONTAINSSTRING ( SuiviValidationParagraphe[Statut], "Refus" )
+            )
+        )
+
+    MEASURE '_Mesures'[Nb décisions valideur] =
+        COALESCE ( [Nb validations émises], 0 ) + COALESCE ( [Nb refus émis], 0 )
+
+    MEASURE '_Mesures'[% décidé valideur] =
+        DIVIDE ( [Nb décisions valideur], [Nb lignes valideur] )
+
+    MEASURE '_Mesures'[Taux de refus valideur] =
+        DIVIDE ( [Nb refus émis], [Nb décisions valideur] )
+
+    // ---------- 4.3 Flux entrant vs capacité (axe X = Dates[Date]) ----------
+    MEASURE '_Mesures'[Flux entrant (jour)] =
+        VAR d = MAX ( Dates[Date] )
+        RETURN
+            COALESCE (
+                CALCULATE (
+                    COUNTROWS ( SuiviValidationParagraphe ),
+                    SuiviValidationParagraphe[Role] = "Contributeur",
+                    SuiviValidationParagraphe[Statut] = "Terminée",
+                    SuiviValidationParagraphe[DateContributionValidation] >= d,
+                    SuiviValidationParagraphe[DateContributionValidation] < d + 1
+                ),
+                0
+            )
+
+    MEASURE '_Mesures'[Décisions (jour)] =
+        VAR d = MAX ( Dates[Date] )
+        RETURN
+            COALESCE (
+                CALCULATE (
+                    COUNTROWS ( SuiviValidationParagraphe ),
+                    SuiviValidationParagraphe[Role] = "Valideur",
+                    FILTER (
+                        VALUES ( SuiviValidationParagraphe[Statut] ),
+                        SuiviValidationParagraphe[Statut] = "Validé"
+                            || CONTAINSSTRING ( SuiviValidationParagraphe[Statut], "Refus" )
+                    ),
+                    SuiviValidationParagraphe[DateContributionValidation] >= d,
+                    SuiviValidationParagraphe[DateContributionValidation] < d + 1
+                ),
+                0
+            )
+
+    // ---------- 4.4 Couleurs ----------
+    MEASURE '_Mesures'[Couleur file valideur] =
+        SWITCH (
+            TRUE (),
+            [Nb attente > 5 j] > 0, "#C2410C",
+            [Nb attente 3-5 j] > 0, "#F28C4B",
+            "#1F5FD1"
+        )
 
 EVALUATE
     ROW (
