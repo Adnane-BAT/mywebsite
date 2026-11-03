@@ -1,4 +1,99 @@
 
+
+let
+    // 1. Connexion SharePoint
+    Source = SharePoint.Contents(
+        "https://entreprise.sharepoint.com/sites/ProjetFinance",
+        [ApiVersion = 15]
+    ),
+
+    // 2. Navigation vers le dossier
+    Documents = Source{[Name="Documents partagés"]}[Content],
+    Projet = Documents{[Name="Projet"]}[Content],
+    Dossier = Projet{[Name="Controles"]}[Content],
+
+    // 3. Filtrer les fichiers Excel uniquement
+    Fichiers = Table.SelectRows(
+        Dossier,
+        each Text.EndsWith(
+            Text.Lower([Name]), ".xlsx"
+        )
+        and not Text.StartsWith([Name], "~$")
+    ),
+
+    // 4. Conserver les colonnes utiles
+    Colonnes = Table.SelectColumns(
+        Fichiers,
+        {"Name", "Content"}
+    ),
+
+    // 5. Importer les onglets DATA / Data / data
+    Import = Table.AddColumn(
+        Colonnes,
+        "Data",
+        (r as record) =>
+            let
+                Excel = Excel.Workbook(
+                    r[Content],
+                    null,
+                    true
+                ),
+
+                // Recherche insensible à la casse
+                Onglets = Table.SelectRows(
+                    Excel,
+                    each [Kind] = "Sheet"
+                        and Text.Upper(
+                            Text.Trim([Item])
+                        ) = "DATA"
+                ),
+
+                // Récupération de l'onglet
+                Donnees =
+                    if Table.IsEmpty(Onglets)
+                    then null
+                    else Onglets{0}[Data],
+
+                // Première ligne comme en-têtes
+                Entetes =
+                    if Donnees = null
+                    then null
+                    else Table.PromoteHeaders(
+                        Donnees,
+                        [PromoteAllScalars = true]
+                    ),
+
+                // Ajouter le fichier source
+                AvecSource =
+                    if Entetes = null
+                    then null
+                    else Table.AddColumn(
+                        Entetes,
+                        "FichierSource",
+                        each r[Name],
+                        type text
+                    )
+            in
+                AvecSource
+    ),
+
+    // 6. Exclure les fichiers sans onglet DATA
+    Valides = Table.SelectRows(
+        Import,
+        each [Data] <> null
+    ),
+
+    // 7. Fusionner toutes les données
+    Resultat =
+        if Table.IsEmpty(Valides)
+        then #table({}, {})
+        else Table.Combine(Valides[Data])
+
+in
+    Resultat
+
+
+
 let
     // Connexion SharePoint
     Source = SharePoint.Contents(
