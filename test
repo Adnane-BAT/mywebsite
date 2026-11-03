@@ -1,3 +1,58 @@
+
+let
+    // Connexion SharePoint
+    Source = SharePoint.Contents(
+        "https://entreprise.sharepoint.com/sites/ProjetFinance",
+        [ApiVersion = 15]
+    ),
+
+    // Navigation directe vers le dossier
+    Documents = Source{[Name="Documents partagés"]}[Content],
+    Projet = Documents{[Name="Projet"]}[Content],
+    Dossier = Projet{[Name="Controles"]}[Content],
+
+    // Filtrer avant d'ouvrir les fichiers
+    Fichiers = Table.SelectRows(
+        Dossier,
+        each Text.Lower([Extension]) = ".xlsx"
+            and not Text.StartsWith([Name], "~$")
+    ),
+
+    // Conserver uniquement les colonnes utiles
+    Colonnes = Table.SelectColumns(
+        Fichiers,
+        {"Name", "Content"}
+    ),
+
+    // Importer uniquement l'onglet DATA
+    Import = Table.AddColumn(
+        Colonnes,
+        "Data",
+        (r) =>
+            let
+                Excel = Excel.Workbook(r[Content], null, true),
+                Donnees = Excel{[Item="DATA",Kind="Sheet"]}[Data],
+                Entetes = Table.PromoteHeaders(
+                    Donnees,
+                    [PromoteAllScalars=true]
+                ),
+                AvecSource = Table.AddColumn(
+                    Entetes,
+                    "FichierSource",
+                    each r[Name],
+                    type text
+                )
+            in
+                AvecSource
+    ),
+
+    // Concaténation finale
+    Resultat = Table.Combine(Import[Data])
+in
+    Resultat
+
+
+
     Objectif : annoncer un TJM de 700 € et viser au minimum 680 €.
 * Commencer par le besoin : faire préciser la mission, sa durée, le rythme et le niveau d’autonomie attendu.
 * Mettre en avant l’adéquation : expérience en environnement financier chez KPMG, analyse et fiabilisation des données, automatisation des contrôles et reporting avec Power BI, Alteryx et Power Platform.
