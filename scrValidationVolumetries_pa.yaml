@@ -1,0 +1,513 @@
+Screens:
+  scrValidationVolumetries:
+    Properties:
+      Fill: =RGBA(245, 245, 248, 1)
+      OnVisible: |-
+        =// ---- Paramètres (modifiables ou passés en URL : ?entite=CEPAC&campagne=Annuelle%202026)
+        Set(varEntite, Coalesce(Param("entite"), "CEPAC"));
+        Set(varCampagne, Coalesce(Param("campagne"), "Annuelle 2026"));
+        Set(varDestinataires, "destinataire1@exemple.fr; destinataire2@exemple.fr");
+        Set(varViolet, RGBA(74, 29, 110, 1));
+        Set(varVioletFonce, RGBA(58, 20, 90, 1));
+        // ---- Chargement des segments
+        ClearCollect(
+            colSegments,
+            Filter(Volumetries, Entite = varEntite, Campagne = varCampagne)
+        );
+        // ---- Construction de l'affichage : une ligne d'en-tête par niveau + ses segments
+        Clear(colAffichage);
+        ForAll(
+            Sort(Distinct(colSegments, Niveau), Value) As n,
+            Collect(colAffichage, {EstEntete: true, Niveau: n.Value, Title: "NIVEAU " & n.Value});
+            Collect(
+                colAffichage,
+                ForAll(
+                    Sort(Filter(colSegments, Niveau = n.Value), Ordre) As s,
+                    {
+                        EstEntete: false,
+                        Niveau: s.Niveau,
+                        ID: s.ID,
+                        Title: s.Title,
+                        VolumeAnnuel: s.VolumeAnnuel,
+                        Encours: s.Encours,
+                        TauxDefaut: s.TauxDefaut,
+                        VolumeEchantillonPropose: s.VolumeEchantillonPropose,
+                        VolumeDemande: s.VolumeDemande,
+                        Commentaire: s.Commentaire,
+                        Statut: s.Statut
+                    }
+                )
+            )
+        )
+    Children:
+      - ctnRoot:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Fill: =RGBA(245, 245, 248, 1)
+            DropShadow: =DropShadow.None
+          Children:
+            # ================= BANDEAU =================
+            - ctnHeader:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.Width
+                  Height: =56
+                  Fill: =RGBA(74, 29, 110, 1)
+                  DropShadow: =DropShadow.Light
+                Children:
+                  - icoMenu:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Icon: =Icon.HamburgerMenu
+                        X: =16
+                        Y: =14
+                        Width: =28
+                        Height: =28
+                        Color: =Color.White
+                  - lblAppTitre:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Validation des volumétries"
+                        X: =60
+                        Y: =0
+                        Width: =500
+                        Height: =56
+                        Color: =Color.White
+                        Size: =16
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                  - lblUtilisateur:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =User().FullName
+                        X: =Parent.Width - 400
+                        Y: =0
+                        Width: =340
+                        Height: =56
+                        Align: =Align.Right
+                        Color: =Color.White
+                        Size: =12
+                        Font: =Font.'Segoe UI'
+                  - cirAvatar:
+                      Control: Circle@2.3.0
+                      Properties:
+                        X: =Parent.Width - 48
+                        Y: =10
+                        Width: =36
+                        Height: =36
+                        Fill: =Color.White
+                  - lblInitiales:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Upper(
+                              Left(First(Split(User().FullName, " ")).Value, 1) &
+                              Left(Last(Split(User().FullName, " ")).Value, 1)
+                          )
+                        X: =Parent.Width - 48
+                        Y: =10
+                        Width: =36
+                        Height: =36
+                        Align: =Align.Center
+                        Color: =RGBA(74, 29, 110, 1)
+                        Size: =11
+                        FontWeight: =FontWeight.Bold
+                        Font: =Font.'Segoe UI'
+            # ================= TITRE =================
+            - lblTitre:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =varEntite & " – " & varCampagne
+                  X: =40
+                  Y: =74
+                  Width: =700
+                  Height: =36
+                  Size: =20
+                  Color: =RGBA(40, 40, 50, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+            - lblSousTitre:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="Confirmez le volume d'échantillon demandé pour chaque segment — chaque validation envoie une notification par mail"
+                  X: =40
+                  Y: =110
+                  Width: =860
+                  Height: =24
+                  Size: =11
+                  Color: =RGBA(110, 110, 120, 1)
+                  Font: =Font.'Segoe UI'
+            - rctNoteBarre:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =Parent.Width - 446
+                  Y: =82
+                  Width: =4
+                  Height: =36
+                  Fill: =RGBA(40, 40, 50, 1)
+            - lblNote:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="* Le volume demandé ne peut être inférieur au volume proposé"
+                  X: =Parent.Width - 442
+                  Y: =82
+                  Width: =402
+                  Height: =36
+                  Fill: =RGBA(235, 235, 240, 1)
+                  Size: =10
+                  Italic: =true
+                  Color: =RGBA(80, 80, 90, 1)
+                  PaddingLeft: =10
+                  Font: =Font.'Segoe UI'
+            # ================= EN-TÊTES DE COLONNES =================
+            - ctnColonnes:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =40
+                  Y: =150
+                  Width: =1286
+                  Height: =62
+                  Fill: =Color.White
+                  DropShadow: =DropShadow.None
+                Children:
+                  - hdrSegment:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Niveau – Segment"
+                        X: =20
+                        Y: =0
+                        Width: =300
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - hdrVolAnnuel:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Volume annuel constaté"
+                        X: =370
+                        Y: =0
+                        Width: =100
+                        Height: =60
+                        Align: =Align.Right
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - hdrEncours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Encours"
+                        X: =480
+                        Y: =0
+                        Width: =110
+                        Height: =60
+                        Align: =Align.Right
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - hdrTaux:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Taux de défaut"
+                        X: =600
+                        Y: =0
+                        Width: =80
+                        Height: =60
+                        Align: =Align.Right
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - hdrPropose:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Volume échantillon proposé"
+                        X: =690
+                        Y: =0
+                        Width: =100
+                        Height: =60
+                        Align: =Align.Right
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - hdrDemande:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Confirmer le volume demandé* ✎"
+                        X: =820
+                        Y: =0
+                        Width: =150
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(74, 29, 110, 1)
+                  - hdrCommentaire:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Commentaire ✎"
+                        X: =980
+                        Y: =0
+                        Width: =200
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(74, 29, 110, 1)
+                  - hdrAction:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Action"
+                        X: =1196
+                        Y: =0
+                        Width: =84
+                        Height: =60
+                        Align: =Align.Center
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(60, 60, 70, 1)
+                  - rctSepEntete:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        X: =0
+                        Y: =60
+                        Width: =Parent.Width
+                        Height: =2
+                        Fill: =RGBA(200, 195, 210, 1)
+            # ================= GALERIE =================
+            - galSegments:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: =colAffichage
+                  X: =40
+                  Y: =212
+                  Width: =1286
+                  Height: =Parent.Height - 232
+                  TemplateSize: =64
+                  TemplatePadding: =0
+                  TemplateFill: =Color.White
+                  Fill: =Color.White
+                  BorderThickness: =0
+                  ShowScrollbar: =true
+                Children:
+                  # ---- Ligne d'en-tête de niveau
+                  - rctNiveau:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.EstEntete
+                        X: =0
+                        Y: =14
+                        Width: =Parent.TemplateWidth
+                        Height: =40
+                        Fill: =RGBA(237, 232, 243, 1)
+                  - lblNiveau:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.EstEntete
+                        Text: ="NIVEAU " & ThisItem.Niveau
+                        X: =20
+                        Y: =14
+                        Width: =400
+                        Height: =40
+                        FontWeight: =FontWeight.Bold
+                        Size: =11
+                        Color: =RGBA(90, 80, 105, 1)
+                  # ---- Ligne segment
+                  - btnBadge:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        DisplayMode: =DisplayMode.View
+                        Text: ="N" & ThisItem.Niveau
+                        X: =20
+                        Y: =21
+                        Width: =36
+                        Height: =22
+                        Size: =8
+                        FontWeight: =FontWeight.Bold
+                        Fill: =RGBA(40, 30, 55, 1)
+                        Color: =Color.White
+                        BorderThickness: =0
+                        RadiusTopLeft: =11
+                        RadiusTopRight: =11
+                        RadiusBottomLeft: =11
+                        RadiusBottomRight: =11
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                  - lblSegment:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: =ThisItem.Title
+                        X: =64
+                        Y: =0
+                        Width: =296
+                        Height: =64
+                        Size: =11
+                        Color: =RGBA(40, 40, 50, 1)
+                  - lblVolAnnuel:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: |-
+                          =Text(ThisItem.VolumeAnnuel, "#,##0", "fr-FR")
+                        X: =370
+                        Y: =0
+                        Width: =100
+                        Height: =64
+                        Align: =Align.Right
+                        Size: =11
+                  - lblEncours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: |-
+                          =Text(ThisItem.Encours, "#,##0.0", "fr-FR") & " M€"
+                        X: =480
+                        Y: =0
+                        Width: =110
+                        Height: =64
+                        Align: =Align.Right
+                        Size: =11
+                  - lblTaux:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: |-
+                          =Text(ThisItem.TauxDefaut, "0.0", "fr-FR") & " %"
+                        X: =600
+                        Y: =0
+                        Width: =80
+                        Height: =64
+                        Align: =Align.Right
+                        Size: =11
+                  - lblPropose:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: =Text(ThisItem.VolumeEchantillonPropose)
+                        X: =690
+                        Y: =0
+                        Width: =100
+                        Height: =64
+                        Align: =Align.Right
+                        Size: =11
+                  - txtVolume:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Default: =If(IsBlank(ThisItem.VolumeDemande), "", Text(ThisItem.VolumeDemande))
+                        HintText: ="Min. " & ThisItem.VolumeEchantillonPropose
+                        Format: =TextFormat.Number
+                        X: =820
+                        Y: =14
+                        Width: =140
+                        Height: =36
+                        Size: =11
+                        BorderColor: |-
+                          =If(
+                              !IsBlank(Self.Text) && Value(Self.Text) < ThisItem.VolumeEchantillonPropose,
+                              RGBA(196, 43, 28, 1),
+                              RGBA(160, 160, 170, 1)
+                          )
+                  - txtCommentaire:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Default: =Coalesce(ThisItem.Commentaire, "")
+                        HintText: ="Saisir un commentaire"
+                        X: =980
+                        Y: =14
+                        Width: =200
+                        Height: =36
+                        Size: =11
+                        BorderColor: =RGBA(160, 160, 170, 1)
+                  - btnValider:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        Text: =If(ThisItem.Statut = "Validé", "Validé ✓", "Valider")
+                        X: =1196
+                        Y: =14
+                        Width: =84
+                        Height: =36
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =If(ThisItem.Statut = "Validé", RGBA(46, 125, 50, 1), RGBA(58, 20, 90, 1))
+                        HoverFill: =ColorFade(Self.Fill, -15%)
+                        PressedFill: =ColorFade(Self.Fill, -30%)
+                        Color: =Color.White
+                        BorderThickness: =0
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        OnSelect: |-
+                          =If(
+                              IsBlank(txtVolume.Text) || Value(txtVolume.Text) < ThisItem.VolumeEchantillonPropose,
+                              Notify(
+                                  "Le volume demandé ne peut être inférieur au volume proposé (" & ThisItem.VolumeEchantillonPropose & ").",
+                                  NotificationType.Error
+                              ),
+                              // 1. Enregistrement SharePoint
+                              Patch(
+                                  Volumetries,
+                                  LookUp(Volumetries, ID = ThisItem.ID),
+                                  {
+                                      VolumeDemande: Value(txtVolume.Text),
+                                      Commentaire: txtCommentaire.Text,
+                                      Statut: "Validé",
+                                      ValidePar: User().FullName,
+                                      DateValidation: Now()
+                                  }
+                              );
+                              // 2. Notification mail
+                              Office365Outlook.SendEmailV2(
+                                  varDestinataires,
+                                  "[" & varEntite & " – " & varCampagne & "] Volume validé : " & ThisItem.Title,
+                                  "<p>Bonjour,</p>" &
+                                  "<p><b>" & User().FullName & "</b> a validé le volume d'échantillon du segment <b>" &
+                                  ThisItem.Title & "</b> (Niveau " & ThisItem.Niveau & ").</p>" &
+                                  "<ul>" &
+                                  "<li>Volume annuel constaté : " & Text(ThisItem.VolumeAnnuel, "#,##0", "fr-FR") & "</li>" &
+                                  "<li>Volume échantillon proposé : " & ThisItem.VolumeEchantillonPropose & "</li>" &
+                                  "<li><b>Volume demandé : " & txtVolume.Text & "</b></li>" &
+                                  "<li>Commentaire : " & Coalesce(txtCommentaire.Text, "—") & "</li>" &
+                                  "</ul>"
+                              );
+                              // 3. Mise à jour de l'affichage
+                              Patch(
+                                  colAffichage,
+                                  ThisItem,
+                                  {
+                                      VolumeDemande: Value(txtVolume.Text),
+                                      Commentaire: txtCommentaire.Text,
+                                      Statut: "Validé"
+                                  }
+                              );
+                              Notify("Segment « " & ThisItem.Title & " » validé — notification envoyée.", NotificationType.Success)
+                          )
+                  - rctSepLigne:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =!ThisItem.EstEntete
+                        X: =0
+                        Y: =63
+                        Width: =Parent.TemplateWidth
+                        Height: =1
+                        Fill: =RGBA(230, 230, 236, 1)
