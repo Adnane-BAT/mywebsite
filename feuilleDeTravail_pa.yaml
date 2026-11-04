@@ -1,0 +1,679 @@
+Screens:
+  feuilleDeTravail:
+    Properties:
+      Fill: =RGBA(245, 245, 248, 1)
+      OnVisible: |-
+        =// ---- Paramètres
+        If(IsBlank(varEntite), Set(varEntite, Coalesce(Param("entite"), "CEPAC")));
+        If(IsBlank(varCampagne), Set(varCampagne, "Annuelle 2026"));
+        If(IsBlank(varDestinataires), Set(varDestinataires, "destinataire1@exemple.fr"));
+        Set(varPeriodeFT, Coalesce(Param("periode"), "T1 2026"));
+        Set(varCampagneFT, "Trimestriel " & varPeriodeFT);
+        // ---- Chargement
+        ClearCollect(colFT, Filter(FeuillesTravail, Entite = varEntite, Campagne = varCampagneFT));
+        Clear(colSegmentsReplies);
+        Clear(colAffichageFT);
+        ForAll(
+            Sort(
+                ForAll(
+                    Distinct(colFT, Segment) As d,
+                    {
+                        Segment: d.Value,
+                        OrdreSeg: LookUp(colFT, Segment = d.Value).OrdreSegment,
+                        Version: LookUp(colFT, Segment = d.Value).VersionEchantillon
+                    }
+                ),
+                OrdreSeg
+            ) As g,
+            Collect(colAffichageFT, {Type: "segment", Segment: g.Segment, VersionEchantillon: g.Version});
+            Collect(colAffichageFT, {Type: "colonnes", Segment: g.Segment});
+            Collect(
+                colAffichageFT,
+                ForAll(
+                    Sort(Filter(colFT, Segment = g.Segment), Ordre) As s,
+                    {
+                        Type: "ligne",
+                        Segment: s.Segment,
+                        ID: s.ID,
+                        Title: s.Title,
+                        Tiers: s.Tiers,
+                        Ville: s.Ville,
+                        Secteur: s.Secteur,
+                        Encours: s.Encours,
+                        NoteInterne: s.NoteInterne,
+                        StageIFRS9: s.StageIFRS9,
+                        DateOctroi: s.DateOctroi,
+                        Gestionnaire: s.Gestionnaire,
+                        Commentaire: s.Commentaire,
+                        Decision: s.Decision
+                    }
+                )
+            )
+        )
+    Children:
+      - ctnRootFT:
+          Control: GroupContainer@1.3.0
+          Variant: ManualLayout
+          Properties:
+            X: =0
+            Y: =0
+            Width: =Parent.Width
+            Height: =Parent.Height
+            Fill: =RGBA(245, 245, 248, 1)
+            DropShadow: =DropShadow.None
+          Children:
+            # ================= BANDEAU =================
+            - ctnHeaderFT:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.Width
+                  Height: =56
+                  Fill: =RGBA(74, 29, 110, 1)
+                  DropShadow: =DropShadow.Light
+                Children:
+                  - icoMenuFT:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Icon: =Icon.HamburgerMenu
+                        X: =16
+                        Y: =14
+                        Width: =28
+                        Height: =28
+                        Color: =Color.White
+                  - lblAppTitreFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Validation des feuilles de travail"
+                        X: =60
+                        Y: =0
+                        Width: =500
+                        Height: =56
+                        Color: =Color.White
+                        Size: =16
+                        FontWeight: =FontWeight.Semibold
+                  - lblUtilisateurFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: =User().FullName
+                        X: =Parent.Width - 400
+                        Y: =0
+                        Width: =340
+                        Height: =56
+                        Align: =Align.Right
+                        Color: =Color.White
+                        Size: =12
+                  - cirAvatarFT:
+                      Control: Circle@2.3.0
+                      Properties:
+                        X: =Parent.Width - 48
+                        Y: =10
+                        Width: =36
+                        Height: =36
+                        Fill: =Color.White
+                  - lblInitialesFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: |-
+                          =Upper(Left(First(Split(User().FullName, " ")).Value, 1) & Left(Last(Split(User().FullName, " ")).Value, 1))
+                        X: =Parent.Width - 48
+                        Y: =10
+                        Width: =36
+                        Height: =36
+                        Align: =Align.Center
+                        Color: =RGBA(74, 29, 110, 1)
+                        Size: =11
+                        FontWeight: =FontWeight.Bold
+            # ================= ONGLETS =================
+            - ctnOnglets:
+                Control: GroupContainer@1.3.0
+                Variant: ManualLayout
+                Properties:
+                  X: =0
+                  Y: =56
+                  Width: =Parent.Width
+                  Height: =44
+                  Fill: =RGBA(235, 235, 240, 1)
+                  DropShadow: =DropShadow.None
+                Children:
+                  - lblOngletVol:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Volumétries – " & varCampagne
+                        X: =40
+                        Y: =0
+                        Width: =230
+                        Height: =42
+                        Align: =Align.Center
+                        Size: =11
+                        Color: =If(App.ActiveScreen = scrValidationVolumetries, RGBA(40, 40, 50, 1), RGBA(100, 100, 110, 1))
+                        FontWeight: =If(App.ActiveScreen = scrValidationVolumetries, FontWeight.Semibold, FontWeight.Normal)
+                        OnSelect: =Navigate(scrValidationVolumetries, ScreenTransition.None)
+                  - rctOngletVol:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =App.ActiveScreen = scrValidationVolumetries
+                        X: =40
+                        Y: =40
+                        Width: =230
+                        Height: =3
+                        Fill: =RGBA(74, 29, 110, 1)
+                  - lblOngletFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Text: ="Feuilles de travail – " & varPeriodeFT
+                        X: =280
+                        Y: =0
+                        Width: =230
+                        Height: =42
+                        Align: =Align.Center
+                        Size: =11
+                        Color: =If(App.ActiveScreen = feuilleDeTravail, RGBA(40, 40, 50, 1), RGBA(100, 100, 110, 1))
+                        FontWeight: =If(App.ActiveScreen = feuilleDeTravail, FontWeight.Semibold, FontWeight.Normal)
+                        OnSelect: =Navigate(feuilleDeTravail, ScreenTransition.None)
+                  - rctOngletFT:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =App.ActiveScreen = feuilleDeTravail
+                        X: =280
+                        Y: =40
+                        Width: =230
+                        Height: =3
+                        Fill: =RGBA(74, 29, 110, 1)
+            # ================= TITRE =================
+            - lblTitreFT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =varEntite & " – " & varCampagneFT
+                  X: =40
+                  Y: =112
+                  Width: =700
+                  Height: =36
+                  Size: =20
+                  Color: =RGBA(40, 40, 50, 1)
+                  FontWeight: =FontWeight.Semibold
+            - lblSousTitreFT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="Validez ou refusez chaque échantillon — chaque décision envoie une notification par mail"
+                  X: =40
+                  Y: =148
+                  Width: =860
+                  Height: =24
+                  Size: =11
+                  Color: =RGBA(110, 110, 120, 1)
+            - rctNoteBarreFT:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =Parent.Width - 446
+                  Y: =120
+                  Width: =4
+                  Height: =36
+                  Fill: =RGBA(40, 40, 50, 1)
+            - lblNoteFT:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="* Refuser implique un commentaire explicatif (règle)"
+                  X: =Parent.Width - 442
+                  Y: =120
+                  Width: =402
+                  Height: =36
+                  Fill: =RGBA(235, 235, 240, 1)
+                  Size: =10
+                  Italic: =true
+                  PaddingLeft: =10
+                  Color: =RGBA(80, 80, 90, 1)
+            # ================= GALERIE =================
+            - galFT:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Items: |-
+                    =Filter(
+                        colAffichageFT,
+                        Type = "segment" || !(Segment in colSegmentsReplies.Segment)
+                    )
+                  X: =40
+                  Y: =186
+                  Width: =1286
+                  Height: =Parent.Height - 200
+                  TemplateSize: =62
+                  TemplatePadding: =0
+                  TemplateFill: =If(ThisItem.Type = "colonnes", RGBA(248, 248, 250, 1), Color.White)
+                  Fill: =Color.White
+                  BorderThickness: =0
+                Children:
+                  # ---------- Ligne SEGMENT ----------
+                  - rctSegment:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        X: =0
+                        Y: =10
+                        Width: =Parent.TemplateWidth
+                        Height: =50
+                        Fill: =RGBA(240, 240, 244, 1)
+                  - icoChevron:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        Icon: =If(ThisItem.Segment in colSegmentsReplies.Segment, Icon.ChevronRight, Icon.ChevronDown)
+                        X: =12
+                        Y: =25
+                        Width: =20
+                        Height: =20
+                        Color: =RGBA(60, 60, 70, 1)
+                        OnSelect: |-
+                          =If(
+                              ThisItem.Segment in colSegmentsReplies.Segment,
+                              RemoveIf(colSegmentsReplies, Segment = ThisItem.Segment),
+                              Collect(colSegmentsReplies, {Segment: ThisItem.Segment})
+                          )
+                  - lblSegmentFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        Text: ="SEGMENT " & Upper(ThisItem.Segment) & " — ÉCHANTILLON " & Upper(ThisItem.VersionEchantillon)
+                        X: =40
+                        Y: =10
+                        Width: =600
+                        Height: =50
+                        Size: =11
+                        Italic: =true
+                        FontWeight: =FontWeight.Bold
+                        Color: =RGBA(40, 40, 50, 1)
+                        OnSelect: =Select(icoChevron)
+                  - lblTraites:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        Text: |-
+                          =CountRows(Filter(colAffichageFT, Type = "ligne", Segment = ThisItem.Segment, Decision = "Validé" || Decision = "Refusé")) &
+                          " / " &
+                          CountRows(Filter(colAffichageFT, Type = "ligne", Segment = ThisItem.Segment)) & " traités"
+                        X: =1040
+                        Y: =10
+                        Width: =120
+                        Height: =50
+                        Align: =Align.Right
+                        Size: =9
+                        Color: =RGBA(110, 110, 120, 1)
+                  - rctProgFond:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        X: =1170
+                        Y: =33
+                        Width: =100
+                        Height: =4
+                        Fill: =RGBA(220, 220, 228, 1)
+                  - rctProgValeur:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.Type = "segment"
+                        X: =1170
+                        Y: =33
+                        Height: =4
+                        Fill: =RGBA(74, 29, 110, 1)
+                        Width: |-
+                          =100 * CountRows(Filter(colAffichageFT, Type = "ligne", Segment = ThisItem.Segment, Decision = "Validé" || Decision = "Refusé")) /
+                          Max(1, CountRows(Filter(colAffichageFT, Type = "ligne", Segment = ThisItem.Segment)))
+                  # ---------- Ligne EN-TÊTES DE COLONNES ----------
+                  - hN:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="N° échantillon"
+                        X: =20
+                        Y: =0
+                        Width: =90
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hTiers:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Tiers"
+                        X: =115
+                        Y: =0
+                        Width: =200
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hSecteur:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Secteur"
+                        X: =320
+                        Y: =0
+                        Width: =130
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hEncours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Encours"
+                        X: =455
+                        Y: =0
+                        Width: =90
+                        Height: =60
+                        Align: =Align.Right
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hNote:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Note interne"
+                        X: =560
+                        Y: =0
+                        Width: =65
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hStage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Stage IFRS 9"
+                        X: =630
+                        Y: =0
+                        Width: =80
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hDate:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Date d'octroi"
+                        X: =720
+                        Y: =0
+                        Width: =95
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hGest:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Gestionnaire"
+                        X: =820
+                        Y: =0
+                        Width: =100
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - hComm:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Commentaire ✎"
+                        X: =925
+                        Y: =0
+                        Width: =150
+                        Height: =60
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                        Color: =RGBA(74, 29, 110, 1)
+                  - hAction:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        Text: ="Action"
+                        X: =1085
+                        Y: =0
+                        Width: =185
+                        Height: =60
+                        Align: =Align.Center
+                        VerticalAlign: =VerticalAlign.Bottom
+                        FontWeight: =FontWeight.Semibold
+                        Size: =10
+                  - rctSepColonnes:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.Type = "colonnes"
+                        X: =0
+                        Y: =60
+                        Width: =Parent.TemplateWidth
+                        Height: =2
+                        Fill: =RGBA(200, 195, 210, 1)
+                  # ---------- Ligne ÉCHANTILLON ----------
+                  - lblNumero:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.Title
+                        X: =20
+                        Y: =0
+                        Width: =90
+                        Height: =62
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                  - lblTiers:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.Tiers
+                        X: =115
+                        Y: =8
+                        Width: =200
+                        Height: =26
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                  - lblVille:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.Ville
+                        X: =115
+                        Y: =32
+                        Width: =200
+                        Height: =20
+                        Size: =9
+                        Color: =RGBA(110, 110, 120, 1)
+                  - lblSecteur:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.Secteur
+                        X: =320
+                        Y: =0
+                        Width: =130
+                        Height: =62
+                        Size: =11
+                  - lblEncoursFT:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: |-
+                          =Text(ThisItem.Encours, "#,##0.00", "fr-FR") & " M€"
+                        X: =455
+                        Y: =0
+                        Width: =90
+                        Height: =62
+                        Align: =Align.Right
+                        Size: =11
+                  - lblNote:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.NoteInterne
+                        X: =560
+                        Y: =0
+                        Width: =65
+                        Height: =62
+                        Size: =11
+                  - btnStage:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        DisplayMode: =DisplayMode.View
+                        Text: ="Stage " & ThisItem.StageIFRS9
+                        X: =630
+                        Y: =19
+                        Width: =70
+                        Height: =24
+                        Size: =9
+                        FontWeight: =FontWeight.Semibold
+                        BorderThickness: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        Fill: |-
+                          =Switch(ThisItem.StageIFRS9, 1, RGBA(223, 240, 216, 1), 2, RGBA(252, 239, 200, 1), RGBA(250, 221, 219, 1))
+                        Color: |-
+                          =Switch(ThisItem.StageIFRS9, 1, RGBA(46, 110, 40, 1), 2, RGBA(150, 100, 0, 1), RGBA(170, 30, 30, 1))
+                  - lblDateOctroi:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: |-
+                          =Text(ThisItem.DateOctroi, "dd/mm/yyyy")
+                        X: =720
+                        Y: =0
+                        Width: =95
+                        Height: =62
+                        Size: =11
+                  - lblGestionnaire:
+                      Control: Label@2.5.1
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =ThisItem.Gestionnaire
+                        X: =820
+                        Y: =0
+                        Width: =100
+                        Height: =62
+                        Size: =11
+                  - txtCommentaireFT:
+                      Control: Classic/TextInput@2.3.2
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Default: =Coalesce(ThisItem.Commentaire, "")
+                        HintText: ="Saisir un commentaire"
+                        X: =925
+                        Y: =13
+                        Width: =150
+                        Height: =36
+                        Size: =10
+                        BorderColor: =RGBA(160, 160, 170, 1)
+                        DisplayMode: =If(ThisItem.Decision = "Validé" || ThisItem.Decision = "Refusé", DisplayMode.Disabled, DisplayMode.Edit)
+                        DisabledFill: =RGBA(240, 240, 244, 1)
+                        DisabledColor: =RGBA(90, 90, 100, 1)
+                        DisabledBorderColor: =RGBA(210, 210, 216, 1)
+                  - btnValiderFT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =If(ThisItem.Decision = "Validé", "Validé ✓", "Valider")
+                        X: =1085
+                        Y: =13
+                        Width: =85
+                        Height: =36
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =RGBA(58, 20, 90, 1)
+                        HoverFill: =RGBA(40, 12, 65, 1)
+                        Color: =Color.White
+                        BorderThickness: =0
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        DisplayMode: =If(ThisItem.Decision = "Validé" || ThisItem.Decision = "Refusé", DisplayMode.Disabled, DisplayMode.Edit)
+                        DisabledFill: =If(ThisItem.Decision = "Validé", RGBA(46, 125, 50, 1), RGBA(225, 225, 230, 1))
+                        DisabledColor: =If(ThisItem.Decision = "Validé", Color.White, RGBA(150, 150, 160, 1))
+                        OnSelect: |-
+                          =Patch(
+                              FeuillesTravail,
+                              LookUp(FeuillesTravail, ID = ThisItem.ID),
+                              {Decision: "Validé", Commentaire: txtCommentaireFT.Text, DecidePar: User().FullName, DateDecision: Now()}
+                          );
+                          Office365Outlook.SendEmailV2(
+                              varDestinataires,
+                              "[" & varEntite & " – " & varCampagneFT & "] Échantillon validé : " & ThisItem.Title & " – " & ThisItem.Tiers,
+                              "<p>Bonjour,</p><p><b>" & User().FullName & "</b> a <b style='color:#2E7D32'>validé</b> l'échantillon <b>" &
+                              ThisItem.Title & "</b> (segment " & ThisItem.Segment & ").</p><ul>" &
+                              "<li>Tiers : " & ThisItem.Tiers & " (" & ThisItem.Ville & ")</li>" &
+                              "<li>Encours : " & Text(ThisItem.Encours, "#,##0.00", "fr-FR") & " M€</li>" &
+                              "<li>Note interne : " & ThisItem.NoteInterne & " – Stage " & ThisItem.StageIFRS9 & "</li>" &
+                              "<li>Gestionnaire : " & ThisItem.Gestionnaire & "</li>" &
+                              "<li>Commentaire : " & Coalesce(txtCommentaireFT.Text, "—") & "</li></ul>"
+                          );
+                          Patch(colAffichageFT, ThisItem, {Decision: "Validé", Commentaire: txtCommentaireFT.Text});
+                          Notify(ThisItem.Title & " validé — notification envoyée.", NotificationType.Success)
+                  - btnRefuserFT:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        Text: =If(ThisItem.Decision = "Refusé", "Refusé ✗", "Refuser*")
+                        X: =1180
+                        Y: =13
+                        Width: =90
+                        Height: =36
+                        Size: =11
+                        FontWeight: =FontWeight.Semibold
+                        Fill: =Color.White
+                        HoverFill: =RGBA(245, 240, 250, 1)
+                        Color: =RGBA(74, 29, 110, 1)
+                        HoverColor: =RGBA(74, 29, 110, 1)
+                        BorderColor: =RGBA(74, 29, 110, 1)
+                        BorderThickness: =1
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        DisplayMode: =If(ThisItem.Decision = "Validé" || ThisItem.Decision = "Refusé", DisplayMode.Disabled, DisplayMode.Edit)
+                        DisabledFill: =If(ThisItem.Decision = "Refusé", RGBA(196, 43, 28, 1), RGBA(240, 240, 244, 1))
+                        DisabledColor: =If(ThisItem.Decision = "Refusé", Color.White, RGBA(150, 150, 160, 1))
+                        DisabledBorderColor: =If(ThisItem.Decision = "Refusé", RGBA(196, 43, 28, 1), RGBA(210, 210, 216, 1))
+                        OnSelect: |-
+                          =If(
+                              IsBlank(Trim(txtCommentaireFT.Text)),
+                              Notify("Un commentaire explicatif est obligatoire pour refuser un échantillon.", NotificationType.Error),
+                              Patch(
+                                  FeuillesTravail,
+                                  LookUp(FeuillesTravail, ID = ThisItem.ID),
+                                  {Decision: "Refusé", Commentaire: txtCommentaireFT.Text, DecidePar: User().FullName, DateDecision: Now()}
+                              );
+                              Office365Outlook.SendEmailV2(
+                                  varDestinataires,
+                                  "[" & varEntite & " – " & varCampagneFT & "] Échantillon REFUSÉ : " & ThisItem.Title & " – " & ThisItem.Tiers,
+                                  "<p>Bonjour,</p><p><b>" & User().FullName & "</b> a <b style='color:#C42B1C'>refusé</b> l'échantillon <b>" &
+                                  ThisItem.Title & "</b> (segment " & ThisItem.Segment & ").</p><ul>" &
+                                  "<li>Tiers : " & ThisItem.Tiers & " (" & ThisItem.Ville & ")</li>" &
+                                  "<li>Encours : " & Text(ThisItem.Encours, "#,##0.00", "fr-FR") & " M€</li>" &
+                                  "<li>Note interne : " & ThisItem.NoteInterne & " – Stage " & ThisItem.StageIFRS9 & "</li>" &
+                                  "<li>Gestionnaire : " & ThisItem.Gestionnaire & "</li>" &
+                                  "<li><b>Motif du refus : " & txtCommentaireFT.Text & "</b></li></ul>"
+                              );
+                              Patch(colAffichageFT, ThisItem, {Decision: "Refusé", Commentaire: txtCommentaireFT.Text});
+                              Notify(ThisItem.Title & " refusé — notification envoyée.", NotificationType.Warning)
+                          )
+                  - rctSepLigneFT:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Visible: =ThisItem.Type = "ligne"
+                        X: =0
+                        Y: =61
+                        Width: =Parent.TemplateWidth
+                        Height: =1
+                        Fill: =RGBA(230, 230, 236, 1)
