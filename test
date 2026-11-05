@@ -1,3 +1,61 @@
+{
+  "nodeId": "Scope_Exemple",
+  "serializedOperation": {
+    "type": "Scope",
+    "actions": {
+      "Donnees_exemple": {
+        "type": "Compose",
+        "inputs": [
+          { "Nom": "Dossier A", "Montant": 150 },
+          { "Nom": "Dossier B", "Montant": 80 },
+          { "Nom": "Dossier C", "Montant": 320 }
+        ],
+        "runAfter": {}
+      },
+      "Filtrer_montants_sup_100": {
+        "type": "Query",
+        "inputs": {
+          "from": "@outputs('Donnees_exemple')",
+          "where": "@greater(item()?['Montant'], 100)"
+        },
+        "runAfter": { "Donnees_exemple": ["Succeeded"] }
+      },
+      "Condition_resultats": {
+        "type": "If",
+        "expression": {
+          "and": [
+            { "greater": ["@length(body('Filtrer_montants_sup_100'))", 0] }
+          ]
+        },
+        "actions": {
+          "Message_OK": {
+            "type": "Compose",
+            "inputs": "@concat(string(length(body('Filtrer_montants_sup_100'))), ' dossier(s) au-dessus de 100')",
+            "runAfter": {}
+          }
+        },
+        "else": {
+          "actions": {
+            "Message_vide": {
+              "type": "Compose",
+              "inputs": "Aucun dossier au-dessus de 100",
+              "runAfter": {}
+            }
+          }
+        },
+        "runAfter": { "Filtrer_montants_sup_100": ["Succeeded"] }
+      }
+    },
+    "runAfter": {}
+  },
+  "allConnectionData": {},
+  "staticResults": {},
+  "isScopeNode": true,
+  "mslaNode": true
+}
+
+
+
 - btnExporter:
     Control: Classic/Button@2.2.0
     Properties:
