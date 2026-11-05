@@ -1,3 +1,27 @@
+- btnExporter:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="⤓ Exporter Excel"
+      X: =Parent.Width - 600
+      Y: =120
+      Width: =140
+      Height: =36
+      Size: =11
+      Fill: =Color.White
+      Color: =RGBA(74, 29, 110, 1)
+      BorderColor: =RGBA(74, 29, 110, 1)
+      BorderThickness: =1
+      HoverFill: =RGBA(245, 240, 250, 1)
+      RadiusTopLeft: =4
+      RadiusTopRight: =4
+      RadiusBottomLeft: =4
+      RadiusBottomRight: =4
+      OnSelect: |-
+        =Launch(
+            "https://<tenant>.sharepoint.com/sites/<site>/_vti_bin/owssvr.dll?CS=109&Using=_layouts/query.iqy&List=%7B" &
+            If(App.ActiveScreen = feuilleDeTravail, "<GUID-LISTE-FT>", "<GUID-LISTE-VOL>") &
+            "%7D&CacheControl=1"
+        )
 
 
 let
