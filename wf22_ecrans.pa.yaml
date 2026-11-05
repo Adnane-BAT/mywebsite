@@ -1,0 +1,377 @@
+# =====================================================================
+# WF22 – Contrôles permanents · écrans Power Apps (YAML)
+# Collage : Power Apps Studio > arborescence > clic droit > Coller le code
+#           (ou Ctrl+V sur l'arborescence), un écran à la fois.
+#
+# À coller AVANT dans App.OnStart :
+#
+#   Set(gblMail, Lower(User().Email));
+#   Set(gblIsDirection, !IsBlank(LookUp(Direction, Lower(Mail) = gblMail && Actif)));
+#   Set(gblTrimestre, Text(Year(Today())) & "-T" & Text(RoundUp(Month(Today()) / 3, 0)));
+#   ClearCollect(colMesEtabs,
+#       Filter(
+#           ForAll(Etablissements As e,
+#               { Nom: e.Title,
+#                 Membre: CountRows(Filter(Office365Groups.ListGroupMembers(e.GroupId, {'$top': 999}).value,
+#                                          Lower(mail) = gblMail)) > 0 }),
+#           Membre));
+#
+# Hypothèses (à ajuster) :
+#  - Champs du visuel Power BI : NumTiers, RaisonSociale, Etablissement, Onglet
+#  - Listes : Dossiers, Echanges, Questions, Etablissements (Title, GroupId), Direction (Mail, Actif)
+#  - Dossiers : Title (clé), NumTiers, RaisonSociale, Etablissement, Onglet (choix), Trimestre,
+#               Statut (choix), Conclusion (choix), DateCloture
+#  - Echanges : Title, Dossier (recherche), Role, TypeMessage, Avis (choix), Message, AuteurMail, DateEnvoi
+# =====================================================================
+
+Screens:
+  scrDossiers:
+    Properties:
+      Fill: =RGBA(238, 241, 246, 1)
+    Children:
+      - lblTitreDossiers:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Contrôle 2.2 – " & gblTrimestre & If(gblIsDirection, "  ·  Direction", "  ·  Établissement")
+            X: =20
+            Y: =10
+            Width: =Parent.Width - 40
+            Height: =40
+            Size: =18
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(46, 58, 89, 1)
+      - lblAideDossiers:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(gblIsDirection,
+                  "Sélectionnez une entreprise pour ouvrir ou consulter son dossier.",
+                  "Vos dossiers en cours pour ce trimestre.")
+            X: =20
+            Y: =50
+            Width: =Parent.Width - 40
+            Height: =26
+            Size: =11
+            Color: =RGBA(91, 107, 140, 1)
+      - galDossiers:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =Filter(
+                  PowerBIIntegration.Data,
+                  gblIsDirection || Etablissement in colMesEtabs.Nom
+              )
+            X: =20
+            Y: =82
+            Width: =Parent.Width - 40
+            Height: =Parent.Height - 92
+            TemplateSize: =64
+            TemplatePadding: =4
+            OnSelect: |-
+              =With(
+                  { k: ThisItem.Etablissement & "|" & ThisItem.NumTiers & "|" & ThisItem.Onglet & "|" & gblTrimestre },
+                  If(
+                      IsBlank(LookUp(Dossiers, Title = k)) && gblIsDirection,
+                      Patch(Dossiers, Defaults(Dossiers), {
+                          Title: k,
+                          NumTiers: ThisItem.NumTiers,
+                          RaisonSociale: ThisItem.RaisonSociale,
+                          Etablissement: ThisItem.Etablissement,
+                          Onglet: { Value: ThisItem.Onglet },
+                          Trimestre: gblTrimestre,
+                          Statut: { Value: "Ouvert" }
+                      })
+                  );
+                  Set(gblDossier, LookUp(Dossiers, Title = k));
+                  If(!IsBlank(gblDossier), Navigate(scrDossier, ScreenTransition.Cover))
+              )
+          Children:
+            - recFondLigne:
+                Control: Rectangle@2.3.0
+                Properties:
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth
+                  Height: =Parent.TemplateHeight - 4
+                  Fill: =RGBA(255, 255, 255, 1)
+                  OnSelect: =Select(Parent)
+            - lblRaisonSociale:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.RaisonSociale & "  (" & ThisItem.NumTiers & ")"
+                  X: =12
+                  Y: =6
+                  Width: =Parent.TemplateWidth * 0.55
+                  Height: =26
+                  Size: =13
+                  FontWeight: =FontWeight.Semibold
+                  Color: =RGBA(31, 36, 51, 1)
+            - lblOngletEtab:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Onglet & "  ·  " & ThisItem.Etablissement
+                  X: =12
+                  Y: =32
+                  Width: =Parent.TemplateWidth * 0.55
+                  Height: =22
+                  Size: =10
+                  Color: =RGBA(91, 107, 140, 1)
+            - lblBadgeAilleurs:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="Présente dans plusieurs onglets"
+                  Visible: |-
+                    =CountRows(
+                        Filter(PowerBIIntegration.Data,
+                               NumTiers = ThisItem.NumTiers && Etablissement = ThisItem.Etablissement)
+                    ) > 1
+                  X: =Parent.TemplateWidth * 0.58
+                  Y: =18
+                  Width: =210
+                  Height: =24
+                  Size: =9
+                  Align: =Align.Center
+                  Color: =RGBA(217, 130, 43, 1)
+                  Fill: =RGBA(243, 227, 210, 1)
+            - lblStatut:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Coalesce(
+                        LookUp(Dossiers,
+                            Title = ThisItem.Etablissement & "|" & ThisItem.NumTiers & "|" & ThisItem.Onglet & "|" & gblTrimestre
+                        ).Statut.Value,
+                        "Non ouvert"
+                    )
+                  X: =Parent.TemplateWidth - 230
+                  Y: =18
+                  Width: =180
+                  Height: =24
+                  Size: =10
+                  Align: =Align.Right
+                  FontWeight: =FontWeight.Semibold
+                  Color: =RGBA(46, 58, 89, 1)
+            - icoOuvrir:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  Icon: =Icon.ChevronRight
+                  X: =Parent.TemplateWidth - 40
+                  Y: =16
+                  Width: =28
+                  Height: =28
+                  Color: =RGBA(46, 58, 89, 1)
+                  OnSelect: =Select(Parent)
+
+  scrDossier:
+    Properties:
+      Fill: =RGBA(238, 241, 246, 1)
+    Children:
+      - icoRetour:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            Icon: =Icon.ArrowLeft
+            X: =12
+            Y: =12
+            Width: =32
+            Height: =32
+            Color: =RGBA(46, 58, 89, 1)
+            OnSelect: =Back()
+      - lblTitreDossier:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblDossier.RaisonSociale & "  (" & gblDossier.NumTiers & ")"
+            X: =52
+            Y: =8
+            Width: =Parent.Width - 300
+            Height: =40
+            Size: =17
+            FontWeight: =FontWeight.Bold
+            Color: =RGBA(46, 58, 89, 1)
+      - lblStatutDossier:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblDossier.Statut.Value & If(!IsBlank(gblDossier.Conclusion.Value), "  ·  " & gblDossier.Conclusion.Value, "")
+            X: =Parent.Width - 240
+            Y: =14
+            Width: =220
+            Height: =28
+            Size: =11
+            Align: =Align.Center
+            FontWeight: =FontWeight.Semibold
+            Color: =RGBA(255, 255, 255, 1)
+            Fill: =If(gblDossier.Statut.Value = "Clôturé", RGBA(46, 58, 89, 1), RGBA(217, 130, 43, 1))
+      - lblSousTitreDossier:
+          Control: Label@2.5.1
+          Properties:
+            Text: =gblDossier.Onglet.Value & "  ·  " & gblDossier.Etablissement & "  ·  " & gblDossier.Trimestre
+            X: =52
+            Y: =46
+            Width: =Parent.Width - 72
+            Height: =22
+            Size: =10
+            Color: =RGBA(91, 107, 140, 1)
+
+      # ---------- Colonne gauche : points de contrôle ----------
+      - lblQuestionsTitre:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Points de contrôle"
+            X: =20
+            Y: =76
+            Width: =Parent.Width * 0.4 - 30
+            Height: =26
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =RGBA(46, 58, 89, 1)
+      - galQuestions:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: |-
+              =SortByColumns(
+                  Filter(Questions,
+                      Actif && ("Tous" in Onglets.Value || gblDossier.Onglet.Value in Onglets.Value)
+                  ),
+                  "Ordre", SortOrder.Ascending
+              )
+            X: =20
+            Y: =104
+            Width: =Parent.Width * 0.4 - 30
+            Height: =Parent.Height - 114
+            TemplateSize: =56
+            TemplatePadding: =4
+          Children:
+            - lblQuestion:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Ordre & ". " & ThisItem.Title
+                  X: =8
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 16
+                  Height: =Parent.TemplateHeight - 4
+                  Size: =11
+                  VerticalAlign: =VerticalAlign.Middle
+                  Color: =RGBA(31, 36, 51, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+
+      # ---------- Colonne droite : fil des échanges ----------
+      - lblEchangesTitre:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Échanges"
+            X: =Parent.Width * 0.4
+            Y: =76
+            Width: =Parent.Width * 0.6 - 20
+            Height: =26
+            Size: =12
+            FontWeight: =FontWeight.Semibold
+            Color: =RGBA(46, 58, 89, 1)
+      - galEchanges:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Items: =Sort(Filter(Echanges, Dossier.Id = gblDossier.ID), DateEnvoi, SortOrder.Ascending)
+            X: =Parent.Width * 0.4
+            Y: =104
+            Width: =Parent.Width * 0.6 - 20
+            Height: =Parent.Height - 280
+            TemplateSize: =84
+            TemplatePadding: =4
+          Children:
+            - lblEnteteMessage:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =ThisItem.TypeMessage.Value & "  ·  " & ThisItem.Role.Value & "  ·  " &
+                     Text(ThisItem.DateEnvoi, "dd/mm/yyyy hh:mm") &
+                     If(!IsBlank(ThisItem.Avis.Value), "  ·  " & ThisItem.Avis.Value, "")
+                  X: =If(ThisItem.Role.Value = "Direction", 0, 40)
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 40
+                  Height: =22
+                  Size: =9
+                  FontWeight: =FontWeight.Semibold
+                  Color: =RGBA(91, 107, 140, 1)
+            - lblCorpsMessage:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =ThisItem.Message
+                  X: =If(ThisItem.Role.Value = "Direction", 0, 40)
+                  Y: =22
+                  Width: =Parent.TemplateWidth - 40
+                  Height: =Parent.TemplateHeight - 26
+                  Size: =11
+                  VerticalAlign: =VerticalAlign.Top
+                  PaddingLeft: =8
+                  Color: =RGBA(31, 36, 51, 1)
+                  Fill: =If(ThisItem.Role.Value = "Direction", RGBA(255, 255, 255, 1), RGBA(243, 227, 210, 1))
+
+      # ---------- Zone de saisie ----------
+      - drpType:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            Items: =If(gblIsDirection, ["Question", "Relance", "Validation"], ["Réponse"])
+            X: =Parent.Width * 0.4
+            Y: =Parent.Height - 168
+            Width: =180
+            Height: =36
+            DisplayMode: =If(gblDossier.Statut.Value = "Clôturé", DisplayMode.Disabled, DisplayMode.Edit)
+      - drpAvis:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            Items: =["Conforme", "Non conforme"]
+            Visible: =drpType.Selected.Value in ["Réponse", "Validation"]
+            X: =Parent.Width * 0.4 + 190
+            Y: =Parent.Height - 168
+            Width: =180
+            Height: =36
+      - txtMessage:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Mode: =TextMode.MultiLine
+            HintText: ="Votre message…"
+            X: =Parent.Width * 0.4
+            Y: =Parent.Height - 124
+            Width: =Parent.Width * 0.6 - 150
+            Height: =104
+            Size: =11
+            DisplayMode: =If(gblDossier.Statut.Value = "Clôturé", DisplayMode.Disabled, DisplayMode.Edit)
+      - btnEnvoyer:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Envoyer"
+            X: =Parent.Width - 140
+            Y: =Parent.Height - 124
+            Width: =120
+            Height: =40
+            Fill: =RGBA(46, 58, 89, 1)
+            Color: =RGBA(255, 255, 255, 1)
+            DisplayMode: |-
+              =If(
+                  IsBlank(Trim(txtMessage.Text)) || gblDossier.Statut.Value = "Clôturé",
+                  DisplayMode.Disabled,
+                  DisplayMode.Edit
+              )
+            OnSelect: |-
+              =Patch(Echanges, Defaults(Echanges), {
+                  Title: Left(txtMessage.Text, 100),
+                  Dossier: { Id: gblDossier.ID, Value: gblDossier.Title },
+                  Role: { Value: If(gblIsDirection, "Direction", "Établissement") },
+                  TypeMessage: { Value: drpType.Selected.Value },
+                  Avis: If(drpAvis.Visible, { Value: drpAvis.Selected.Value }, Blank()),
+                  Message: txtMessage.Text,
+                  AuteurMail: gblMail,
+                  DateEnvoi: Now()
+              });
+              Patch(Dossiers, gblDossier, {
+                  Statut: { Value: Switch(drpType.Selected.Value,
+                      "Question", "En attente établissement",
+                      "Relance", "En attente établissement",
+                      "Réponse", "À valider",
+                      "Validation", "Clôturé") },
+                  Conclusion: If(drpType.Selected.Value = "Validation", { Value: drpAvis.Selected.Value }, gblDossier.Conclusion),
+                  DateCloture: If(drpType.Selected.Value = "Validation", Today(), gblDossier.DateCloture)
+              });
+              Set(gblDossier, LookUp(Dossiers, ID = gblDossier.ID));
+              Reset(txtMessage)
