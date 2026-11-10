@@ -12,6 +12,20 @@ in
 
 
 
+let
+    Source = Web.Contents(
+        "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/",
+        [RelativePath = "Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/ETABLISSEMENTS/Etablissements.xlsx"]
+    ),
+    Fichier = #"Transformer le fichier Risque"(Source),
+    #"Uppercased Text" = Table.TransformColumns(Fichier, {{"ETABLISSEMENT", Text.Upper, type text}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Uppercased Text", {{"RESEAU", type text}})
+in
+    #"Changed Type"
+
+
+
+
 {
   "nodeId": "Select_copie",
   "serializedOperation": {
