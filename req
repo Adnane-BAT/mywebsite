@@ -1,4 +1,205 @@
 let
+    // ===== Paramètres : codes contrôle =====
+    ListRef = List.Buffer(
+        List.Distinct(List.RemoveNulls(List.Transform(pRefControle, Text.From)))
+    ),
+    ConditionsDAX = Text.Combine(
+        List.Transform(
+            List.Distinct(List.Transform(ListRef, each Text.Start(_, 15))),
+            each "SEARCH(""" & _ & """, 'Actions'[Nom de l'action], 1, 0) >= 1"
+        ),
+        " || "
+    ),
+    PrefixesRef = List.Distinct(
+        List.Transform(ListRef, each Text.BeforeDelimiter(_, ".") & ".")
+    ),
+
+    // ===== Paramètres : dates =====
+    DateMin = List.Min(List.RemoveNulls(
+        List.Transform(Table.Column(#"_data", "Date de début"), Date.From)
+    )),
+    DateMax = List.Max(List.RemoveNulls(
+        List.Transform(Table.Column(#"_data", "Date de fin"), Date.From)
+    )),
+    ToDAX = (d as date) as text =>
+        "DATE(" & Text.From(Date.Year(d)) & ", "
+                & Text.From(Date.Month(d)) & ", "
+                & Text.From(Date.Day(d)) & ")",
+    DateMinDAX = ToDAX(DateMin),
+    DateMaxDAX = ToDAX(DateMax),
+
+    // ===== Requête DAX =====
+    RequeteDAX = "DEFINE
+	VAR __DS0FilterTable = 
+		FILTER(
+			KEEPFILTERS(VALUES('Plans d actions'[Nom du plan])),
+			SEARCH(""sultat"", 'Plans d actions'[Nom du plan], 1, 0) >= 1
+		)
+
+	VAR __DS0FilterTable2 = 
+		FILTER(
+			KEEPFILTERS(VALUES('Actions'[Nom de l'action])),
+			" & ConditionsDAX & "
+		)
+
+	VAR __DS0FilterTable3 = 
+		FILTER(
+			KEEPFILTERS(VALUES('Actions'[Date de début])),
+			'Actions'[Date de début] >= " & DateMinDAX & "
+		)
+
+	VAR __DS0FilterTable4 = 
+		FILTER(
+			KEEPFILTERS(VALUES('Actions'[Date de fin])),
+			'Actions'[Date de fin] < (" & DateMaxDAX & " + TIME(0, 0, 1))
+		)
+
+	VAR __DS0Core = 
+		SELECTCOLUMNS(
+			KEEPFILTERS(
+				FILTER(
+					KEEPFILTERS(
+						SUMMARIZECOLUMNS(
+							'Plans d actions'[Nom du plan],
+							'Plans d actions'[Entité],
+							'Actions'[Nom de l'action],
+							'Plans d actions'[Entité niveau 4 (code)],
+							'Plans d actions'[Référence du plan],
+							'Actions'[Description],
+							'Actions'[Date de début],
+							'Actions'[Date de fin],
+							'Actions'[Date de fin révisée],
+							'Actions'[Date d'achèvement],
+							'Actions'[Statut de l'action],
+							__DS0FilterTable,
+							__DS0FilterTable2,
+							__DS0FilterTable3,
+							__DS0FilterTable4,
+							""CountRowsActions"", COUNTROWS('Actions')
+						)
+					),
+					OR(
+						OR(
+							OR(
+								OR(
+									OR(
+										OR(
+											OR(
+												OR(
+													OR(
+														OR(
+															NOT(ISBLANK('Plans d actions'[Nom du plan])),
+															NOT(ISBLANK('Plans d actions'[Entité]))
+														),
+														NOT(ISBLANK('Actions'[Nom de l'action]))
+													),
+													NOT(ISBLANK('Plans d actions'[Entité niveau 4 (code)]))
+												),
+												NOT(ISBLANK('Plans d actions'[Référence du plan]))
+											),
+											NOT(ISBLANK('Actions'[Description]))
+										),
+										NOT(ISBLANK('Actions'[Date de début]))
+									),
+									NOT(ISBLANK('Actions'[Date de fin]))
+								),
+								NOT(ISBLANK('Actions'[Date de fin révisée]))
+							),
+							NOT(ISBLANK('Actions'[Date d'achèvement]))
+						),
+						NOT(ISBLANK('Actions'[Statut de l'action]))
+					)
+				)
+			),
+			""'Plans d actions'[Nom du plan]"", 'Plans d actions'[Nom du plan],
+			""'Plans d actions'[Entité]"", 'Plans d actions'[Entité],
+			""'Actions'[Nom de l'action]"", 'Actions'[Nom de l'action],
+			""'Plans d actions'[Entité niveau 4 (code)]"", 'Plans d actions'[Entité niveau 4 (code)],
+			""'Plans d actions'[Référence du plan]"", 'Plans d actions'[Référence du plan],
+			""'Actions'[Description]"", 'Actions'[Description],
+			""'Actions'[Date de début]"", 'Actions'[Date de début],
+			""'Actions'[Date de fin]"", 'Actions'[Date de fin],
+			""'Actions'[Date de fin révisée]"", 'Actions'[Date de fin révisée],
+			""'Actions'[Date d'achèvement]"", 'Actions'[Date d'achèvement],
+			""'Actions'[Statut de l'action]"", 'Actions'[Statut de l'action]
+		)
+
+EVALUATE
+	__DS0Core
+",
+
+    Source = AnalysisServices.Database(pSSAS_Server, pSSAS_Database, [Query = RequeteDAX]),
+
+    // ===== Extraction des codes depuis le nom de l'action =====
+    ParseRefControle = Table.AddColumn(Source, "ListeCodes", each let
+        Prefixes = PrefixesRef,
+        Tokens =
+            Text.SplitAny([#"Actions[Nom de l'action]"], " ,;|-)"),
+        Candidats =
+            List.Select(
+                Tokens,
+                (x) =>
+                    List.AnyTrue(
+                        List.Transform(
+                            Prefixes,
+                            (p) => Text.StartsWith(x, p)
+                        )
+                    )
+            ),
+        CodesPropres =
+            List.Transform(
+                Candidats,
+                each Text.BeforeDelimiter(_, " ", 1)
+            )
+    in
+        CodesPropres),
+    AddZeroToMissing = Table.TransformColumns(
+        ParseRefControle,
+        {
+            "ListeCodes",
+            each
+                List.Transform(
+                    _,
+                    (x) =>
+                        if Text.Length(x) = 15
+                        then x & "0"
+                        else x
+                ),
+            type list
+        }
+    ),
+    DeleteDotByTheEnd = Table.TransformColumns(
+        AddZeroToMissing,
+        {
+            "ListeCodes",
+            each
+                List.Transform(
+                    _,
+                    (x) =>
+                        if Text.EndsWith(x, ".")
+                        then Text.RemoveRange(x, Text.Length(x) - 1, 1)
+                        else x
+                ),
+            type list
+        }
+    ),
+    #"Expanded ListeCodes" = Table.ExpandListColumn(DeleteDotByTheEnd, "ListeCodes"),
+
+    // ===== Ne garder que les codes exacts de pRefControle =====
+    FiltreRef = Table.SelectRows(#"Expanded ListeCodes", each List.Contains(ListRef, [ListeCodes])),
+    Custom1 = FiltreRef,
+
+    #"Merged Queries" = Table.NestedJoin(Custom1, {"ListeCodes"}, CodeControlesPerimètre, {"Référence"}, "CodeControlesPerimètre", JoinKind.LeftOuter),
+    #"Expanded CodeControlesPerimètre" = Table.ExpandTableColumn(#"Merged Queries", "CodeControlesPerimètre", {"Contrôle"}, {"CodeControlesPerimètre.Contrôle"}),
+    #"Filtered Rows" = Table.SelectRows(#"Expanded CodeControlesPerimètre", each ([CodeControlesPerimètre.Contrôle] <> null)),
+    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "Key_PdA", each [#"Plans d actions[Entité niveau 4 (code)]"] & "-" & [ListeCodes])
+in
+    #"Added Custom"
+
+
+
+
+let
     // Codes contrôle depuis pRefControle
     ListRef = List.Buffer(
         List.Distinct(List.RemoveNulls(List.Transform(pRefControle, Text.From)))
