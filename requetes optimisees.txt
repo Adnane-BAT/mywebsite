@@ -1,4 +1,75 @@
 let
+    // Liste nettoyée : texte, sans null, sans doublons
+    ListRef = List.Buffer(
+        List.Distinct(
+            List.RemoveNulls(
+                List.Transform(pRefControle, Text.From)
+            )
+        )
+    ),
+
+    // Transforme la liste en : "CRED.65.03.03.00", "CRED.65.03.05.00", ...
+    ListeDAX = Text.Combine(
+        List.Transform(ListRef, each """" & _ & """"),
+        ", "
+    ),
+
+    RequeteDAX = "
+DEFINE
+    VAR __DS0FilterTable =
+        TREATAS({" & ListeDAX & "}, 'Contrôles'[Code du contrôle])
+
+    VAR __DS0FilterTable2 =
+        FILTER(
+            KEEPFILTERS(VALUES('Entités'[Entité niveau 4 (code)])),
+            SEARCH("".0001"", 'Entités'[Entité niveau 4 (code)], 1, 0) >= 1
+        )
+
+    VAR __DS0FilterTable3 =
+        TREATAS(
+            {DATE(2025, 3, 31), DATE(2025, 6, 30), DATE(2025, 9, 30)},
+            'Evaluations des contrôles'[Date de fin de la période d'évaluation]
+        )
+
+    VAR __DS0Core =
+        SUMMARIZECOLUMNS(
+            ROLLUPADDISSUBTOTAL(
+                ROLLUPGROUP(
+                    'Contrôles'[Code du contrôle],
+                    'Entités'[Entité niveau 4 (code)],
+                    'Evaluations des contrôles'[Date de fin de la période d'évaluation],
+                    'Contrôles'[Thème du contrôle],
+                    'Entités'[Entité de niveau 4]
+                ), ""IsGrandTotalRowTotal""
+            ),
+            __DS0FilterTable,
+            __DS0FilterTable2,
+            __DS0FilterTable3,
+            ""AverageIQC_du_contrôle"", CALCULATE(AVERAGE('Evaluations des contrôles'[IQC du contrôle]))
+        )
+
+EVALUATE
+    __DS0Core
+",
+
+    Source = AnalysisServices.Database(
+        "asazure://northeurope.asazure.windows.net/kpiprddfias01",
+        "Controles_az",
+        [Query = RequeteDAX]
+    ),
+
+    #"Filtered Rows" = Table.SelectRows(Source, each [#"Contrôles[Code du contrôle]"] <> null),
+    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows", {"[IsGrandTotalRowTotal]"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {
+        {"Entités[Entité niveau 4 (code)]", "Entité niveau 4 (code)"},
+        {"Contrôles[Code du contrôle]", "Code du contrôle"},
+        {"Evaluations des contrôles[Date de fin de la période d'évaluation]", "Date de fin de la période d'évaluation"},
+        {"[AverageIQC_du_contrôle]", "IQC N2.1"}
+    })
+in
+    #"Renamed Columns"
+
+let
     ListRef = List.Buffer(pRefControle),
     Source = AnalysisServices.Database("asazure://northeurope.asazure.windows.net/kpiprddfias01", "Controles_az", [Query="// DAX Query#(lf)DEFINE#(lf)#(tab)VAR __DS0FilterTable = #(lf)#(tab)#(tab)TREATAS(#(lf)#(tab)#(tab)#(tab)#(lf)#(lf)#(tab){""CRED.65.03.03.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.05.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.09.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.12.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.13.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.31.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.32.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.33.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.34.00"",#(lf)#(tab)#(lf)#(tab)#(tab)#(tab)#(tab)""CRED.65.03.40.00""#(lf)#(tab)}#(lf)#(lf),#(lf)#(tab)#(tab)#(tab)'Contrôles'[Code du contrôle]#(lf)#(tab)#(tab))#(lf)#(lf)#(tab)VAR __DS0FilterTable2 = #(lf)#(tab)#(tab)FILTER(#(lf)#(tab)#(tab)#(tab)KEEPFILTERS(VALUES('Entités'[Entité niveau 4 (code)])),#(lf)#(tab)#(tab)#(tab)SEARCH("".0001"", 'Entités'[Entité niveau 4 (code)], 1, 0) >= 1#(lf)#(tab)#(tab))#(lf)#(lf)#(tab)VAR __DS0FilterTable3 = #(lf)#(tab)#(tab)TREATAS(#(lf)#(tab)#(tab)#(tab){DATE(2025, 6, 30),#(lf)#(tab)#(tab)#(tab)#(tab)DATE(2025, 9, 30),#(lf)#(tab)#(tab)#(tab)#(tab)DATE(2025, 3, 31)},#(lf)#(tab)#(tab)#(tab)'Evaluations des contrôles'[Date de fin de la période d'évaluation]#(lf)#(tab)#(tab))#(lf)#(lf)#(tab)VAR __DS0Core = #(lf)#(tab)#(tab)SUMMARIZECOLUMNS(#(lf)#(tab)#(tab)#(tab)ROLLUPADDISSUBTOTAL(#(lf)#(tab)#(tab)#(tab)#(tab)ROLLUPGROUP(#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'Contrôles'[Code du contrôle],#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'Entités'[Entité niveau 4 (code)],#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'Evaluations des contrôles'[Date de fin de la période d'évaluation],#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'Contrôles'[Thème du contrôle],#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'Entités'[Entité de niveau 4]#(lf)#(tab)#(tab)#(tab)#(tab)), ""IsGrandTotalRowTotal""#(lf)#(tab)#(tab)#(tab)),#(lf)#(tab)#(tab)#(tab)__DS0FilterTable,#(lf)#(tab)#(tab)#(tab)__DS0FilterTable2,#(lf)#(tab)#(tab)#(tab)__DS0FilterTable3,#(lf)#(tab)#(tab)#(tab)""AverageIQC_du_contrôle"", CALCULATE(AVERAGE('Evaluations des contrôles'[IQC du contrôle]))#(lf)#(tab)#(tab))#(lf)#(lf)#(tab)VAR __DS0PrimaryWindowed = #(lf)#(tab)#(tab)TOPN(#(lf)#(tab)#(tab)#(tab)502,#(lf)#(tab)#(tab)#(tab)__DS0Core,#(lf)#(tab)#(tab)#(tab)[IsGrandTotalRowTotal],#(lf)#(tab)#(tab)#(tab)0,#(lf)#(tab)#(tab)#(tab)[AverageIQC_du_contrôle],#(lf)#(tab)#(tab)#(tab)0,#(lf)#(tab)#(tab)#(tab)'Contrôles'[Code du contrôle],#(lf)#(tab)#(tab)#(tab)1,#(lf)#(tab)#(tab)#(tab)'Entités'[Entité niveau 4 (code)],#(lf)#(tab)#(tab)#(tab)1,#(lf)#(tab)#(tab)#(tab)'Evaluations des contrôles'[Date de fin de la période d'évaluation],#(lf)#(tab)#(tab)#(tab)1,#(lf)#(tab)#(tab)#(tab)'Contrôles'[Thème du contrôle],#(lf)#(tab)#(tab)#(tab)1,#(lf)#(tab)#(tab)#(tab)'Entités'[Entité de niveau 4],#(lf)#(tab)#(tab)#(tab)1#(lf)#(tab)#(tab))#(lf)#(lf)EVALUATE#(lf)#(tab)__DS0PrimaryWindowed#(lf)#(lf)ORDER BY#(lf)#(tab)[IsGrandTotalRowTotal] DESC,#(lf)#(tab)[AverageIQC_du_contrôle] DESC,#(lf)#(tab)'Contrôles'[Code du contrôle],#(lf)#(tab)'Entités'[Entité niveau 4 (code)],#(lf)#(tab)'Evaluations des contrôles'[Date de fin de la période d'évaluation],#(lf)#(tab)'Contrôles'[Thème du contrôle],#(lf)#(tab)'Entités'[Entité de niveau 4]#(lf)"]),
     #"Filtered Rows" = Table.SelectRows(Source, each ([#"Contrôles[Code du contrôle]"] <> null)),
