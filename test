@@ -1,3 +1,15 @@
+
+let
+    Source = SharePoint.Contents("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    Dossier = Source{[Name="Shared Documents"]}[Content]{[Name="General"]}[Content]
+        {[Name="4. TABLEAUX DE BORD"]}[Content]{[Name="QUESTIONNAIRE SEMESTRIEL"]}[Content]
+        {[Name="PARAMETRAGE"]}[Content]{[Name="ETABLISSEMENTS"]}[Content],
+    Fichier = #"Transformer le fichier Risque"(Dossier{[Name="Etablissements.xlsx"]}[Content]),
+    #"Uppercased Text" = Table.TransformColumns(Fichier, {{"ETABLISSEMENT", Text.Upper, type text}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Uppercased Text", {{"RESEAU", type text}})
+in
+    #"Changed Type"
+
 let
     Source = Web.Contents(
         "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/",
