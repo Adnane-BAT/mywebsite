@@ -1,0 +1,212 @@
+// =====================================================================
+// 1) NOUVELLE FONCTION : fnDossierSP   (Nouvelle requête > Requête vide)
+//    Navigue directement vers un dossier au lieu de lister tout le site.
+//    Si erreur sur "Shared Documents", remplacer par "Documents partagés".
+// =====================================================================
+fnDossierSP:
+(cheminRelatif as text) as table =>
+let
+    Site     = SharePoint.Contents("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    Dossier  = List.Accumulate(Text.Split(cheminRelatif, "/"), Site, (t, nom) => t{[Name = nom]}[Content]),
+    Fichiers = Table.SelectRows(Dossier, each Value.Is([Content], type binary))   // ignore les sous-dossiers
+in
+    Fichiers
+
+
+// =====================================================================
+// 2) NOUVELLE REQUÊTE DE STAGING : stgParamQuestion
+//    -> clic droit > décocher "Activer le chargement"
+//    Remplace le traitement fait 3 fois dans DimParam / DimParamFusion / DimQuestion
+// =====================================================================
+stgParamQuestion:
+let
+    Fichiers     = fnDossierSP("Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/PARAMETRE QUESTION"),
+    // Semestre calculé une fois par fichier, pas par ligne
+    AvecSemestre = Table.AddColumn(Fichiers, "Semestre", each Text.Select(Text.AfterDelimiter([Name], "S", 1), {"0".."9"}), type text),
+    AvecContenu  = Table.AddColumn(AvecSemestre, "Data", each #"Transformer le fichier Paramètrage"([Content])),
+    // Liste de colonnes explicite : évite de recharger le fichier exemple
+    Developpe    = Table.ExpandTableColumn(Table.SelectColumns(AvecContenu, {"Semestre", "Data"}), "Data",
+                     {"DATE", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE_OBLIGATOIRE",
+                      "REPONSE_POSSIBLE", "FORMAT_REPONSE", "QUESTION_LIEE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE",
+                      "SR_IGR_SOUS_CATEGORIE_SCORE", "SR_IGR_POINT"}),
+    FiltreScore  = Table.SelectRows(Developpe, each [SR_IGR_FAMILLE_SCORE] = "IGR" or [SR_IGR_FAMILLE_SCORE] = "SR"),
+    Types        = Table.TransformColumnTypes(FiltreScore, {
+                     {"DATE", type text}, {"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text},
+                     {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE_OBLIGATOIRE", type text},
+                     {"REPONSE_POSSIBLE", type text}, {"FORMAT_REPONSE", type text}, {"QUESTION_LIEE", type text},
+                     {"SR_IGR_FAMILLE_SCORE", type text}, {"SR_IGR_CATEGORIE_SCORE", type text},
+                     {"SR_IGR_SOUS_CATEGORIE_SCORE", type text}, {"SR_IGR_POINT", Int64.Type}}),
+    Majuscules   = Table.TransformColumns(Types, {{"REPONSE_POSSIBLE", Text.Upper, type text}}),
+    AvecAnnee    = Table.AddColumn(Majuscules, "Annee", each Number.FromText(Text.Start([DATE], 4)), Int64.Type),
+    AvecDate     = Table.AddColumn(AvecAnnee, "Date", each
+                     if [Semestre] = "1" then #date([Annee], 6, 1)
+                     else if [Semestre] = "2" then #date([Annee], 12, 1)
+                     else null, type date)
+in
+    AvecDate
+
+
+// =====================================================================
+// DimParam
+// =====================================================================
+DimParam:
+let
+    Filtre   = Table.SelectRows(stgParamQuestion, each Date.IsInPreviousNYears([Date], 3)),   // filtre placé tôt
+    AvecId   = Table.AddColumn(Filtre, "IdParamQuest", each
+                 [REF_QUESTION] & ":" & [REPONSE_POSSIBLE] & ":" & Text.Start([DATE], 4) & ":" & [Semestre], type text),
+    Distinct = Table.Distinct(AvecId, {"IdParamQuest"}),
+    Colonnes = Table.SelectColumns(Distinct, {"IdParamQuest", "Date", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION",
+                 "THEMATIQUE", "REPONSE_OBLIGATOIRE", "REPONSE_POSSIBLE", "FORMAT_REPONSE", "QUESTION_LIEE",
+                 "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE", "Semestre",
+                 "SR_IGR_POINT", "Annee"}),
+    Types    = Table.TransformColumnTypes(Colonnes, {{"Semestre", Int64.Type}})
+in
+    Types
+
+
+// =====================================================================
+// DimParamFusion
+//   Plus utilisée par DimQuestion (calcul intégré). Si elle ne sert à rien
+//   d'autre dans le modèle, tu peux la supprimer. Sinon, version allégée :
+// =====================================================================
+DimParamFusion:
+let
+    AvecId = Table.AddColumn(stgParamQuestion, "IdQuest", each [REF_QUESTION] & ":" & Text.Start([DATE], 4) & ":" & [Semestre], type text),
+    Groupe = Table.Group(AvecId, {"IdQuest"}, {{"Points_Possibles", each List.Max([SR_IGR_POINT]), type nullable number}})
+in
+    Groupe
+
+
+// =====================================================================
+// DimQuestion  (n'appelle plus DimParamFusion -> une lecture SharePoint en moins)
+// =====================================================================
+DimQuestion:
+let
+    Source   = Table.Buffer(Table.SelectRows(stgParamQuestion, each Date.IsInPreviousNYears([Date], 3))),
+    AvecId   = Table.AddColumn(Source, "IdQuest", each [REF_QUESTION] & ":" & Text.Start([DATE], 4) & ":" & [Semestre], type text),
+    Points   = Table.Group(AvecId, {"IdQuest"}, {{"Points_Possibles", each List.Max([SR_IGR_POINT]), type nullable number}}),
+    Distinct = Table.Distinct(AvecId, {"IdQuest"}),
+    AvecRisq = Table.AddColumn(Distinct, "IdRisque", each
+                 [SR_IGR_FAMILLE_SCORE] & ":" & [SR_IGR_CATEGORIE_SCORE] & ":" & Text.Start([DATE], 4) & ":" & [Semestre], type text),
+    Jointure = Table.NestedJoin(AvecRisq, {"IdQuest"}, Points, {"IdQuest"}, "P", JoinKind.LeftOuter),
+    Developpe= Table.ExpandTableColumn(Jointure, "P", {"Points_Possibles"}),
+    Renomme  = Table.RenameColumns(Developpe, {{"DATE", "ARRETE"}}),
+    Colonnes = Table.SelectColumns(Renomme, {"IdQuest", "Date", "ARRETE", "REF_QUESTION", "LIBELLE_QUESTION", "THEMATIQUE",
+                 "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "Semestre", "SR_IGR_SOUS_CATEGORIE_SCORE",
+                 "IdRisque", "Points_Possibles", "Annee"}),
+    Types    = Table.TransformColumnTypes(Colonnes, {{"Semestre", Int64.Type}})
+in
+    Types
+
+
+// =====================================================================
+// DimRisque
+// =====================================================================
+DimRisque:
+let
+    Fichiers   = fnDossierSP("Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE"),
+    // Année / semestre extraits du nom une fois par fichier
+    Periode    = Table.AddColumn(Fichiers, "Periode", each Text.Select(Text.AfterDelimiter([Name], " "), {"0".."9"}), type text),
+    AvecAnnee  = Table.AddColumn(Periode, "Annee", each Text.Start([Periode], 4), type text),
+    AvecSem    = Table.AddColumn(AvecAnnee, "Semestre", each Text.Middle([Periode], 4), type text),
+    AvecContenu= Table.AddColumn(AvecSem, "Data", each #"Transformer le fichier Risque"([Content])),
+    Developpe  = Table.ExpandTableColumn(Table.SelectColumns(AvecContenu, {"Annee", "Semestre", "Data"}), "Data", {"Type", "Risque", "Poids"}),
+    AvecFamille= Table.AddColumn(Developpe, "Famille", each
+                   if List.Contains({"RC", "GR", "RF", "CF", "RO", "RCLIM"}, [Risque]) then "Risque" else "Conformité", type text),
+    AvecId     = Table.AddColumn(AvecFamille, "IdRisque", each [Type] & ":" & [Risque] & ":" & [Annee] & ":" & [Semestre], type text),
+    Types      = Table.TransformColumnTypes(AvecId, {{"Annee", Int64.Type}, {"Semestre", Int64.Type}, {"Poids", Int64.Type},
+                   {"Type", type text}, {"Risque", type text}}),
+    AvecDate   = Table.AddColumn(Types, "Date", each
+                   if [Semestre] = 1 then #date([Annee], 6, 30)
+                   else if [Semestre] = 2 then #date([Annee], 12, 31)
+                   else null, type date),
+    Colonnes   = Table.SelectColumns(AvecDate, {"IdRisque", "Date", "Type", "Risque", "Annee", "Semestre", "Poids", "Famille"})
+in
+    Colonnes
+
+
+// =====================================================================
+// DimFamilleScore  (un seul fichier téléchargé au lieu de tout le dossier)
+// =====================================================================
+DimFamilleScore:
+let
+    Fichiers = fnDossierSP("Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE"),
+    Contenu  = #"Transformer le fichier Risque"(Fichiers{[Name = "Para_Score 2025S2.xlsx"]}[Content]),
+    Types    = Table.TransformColumnTypes(Table.SelectColumns(Contenu, {"Type"}), {{"Type", type text}}),
+    Distinct = Table.Distinct(Types)
+in
+    Distinct
+
+
+// =====================================================================
+// REPONSES
+// =====================================================================
+REPONSES:
+let
+    Fichiers    = fnDossierSP("Shared Documents/General/2. PUITS DE DONNEES/Questionnaire - Semestriel"),
+    AvecContenu = Table.AddColumn(Fichiers, "Data", each #"Transformer le fichier Reponses"([Content])),
+    // Uniquement les colonnes utiles, liste explicite (pas de fichier exemple)
+    Developpe   = Table.ExpandTableColumn(Table.SelectColumns(AvecContenu, {"Data"}), "Data",
+                    {"ARRETE", "CODE ETABLISSEMENT", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION",
+                     "THEMATIQUE", "REPONSE", "COMMENTAIRE"}),
+    NonVides    = Table.SelectRows(Developpe, each [ARRETE] <> null),
+    Types       = Table.TransformColumnTypes(NonVides, {
+                    {"ARRETE", type text}, {"CODE ETABLISSEMENT", type text}, {"REF_QUESTION", type text},
+                    {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text},
+                    {"THEMATIQUE", type text}, {"REPONSE", type text}, {"COMMENTAIRE", type text}}),
+    // Clean + Trim + Upper en une seule passe
+    Reponse     = Table.TransformColumns(Types, {{"REPONSE", each Text.Upper(Text.Trim(Text.Clean(_))), type text}}),
+    AvecSem     = Table.AddColumn(Reponse, "Semestre", each if Number.FromText(Text.End([ARRETE], 2)) = 6 then 1 else 2, Int64.Type),
+    AvecAnnee   = Table.AddColumn(AvecSem, "Annee", each Number.FromText(Text.Start([ARRETE], 4)), Int64.Type),
+    AvecDate    = Table.AddColumn(AvecAnnee, "Date", each #date([Annee], if [Semestre] = 1 then 6 else 12, 1), type date),
+    Filtre      = Table.SelectRows(AvecDate, each Date.IsInPreviousNYears([Date], 3)),
+    Ordre       = Table.ReorderColumns(Filtre, {"ARRETE", "Date", "CODE ETABLISSEMENT", "REF_QUESTION", "LIBELLE_QUESTION",
+                    "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE", "COMMENTAIRE", "Semestre", "Annee"})
+in
+    Ordre
+
+
+// =====================================================================
+// FactReponses
+// =====================================================================
+FactReponses:
+let
+    Reponses  = Table.SelectRows(REPONSES, each [CODE ETABLISSEMENT] <> null),   // filtre avant les jointures
+    // Tables de correspondance réduites aux colonnes utiles et mises en mémoire
+    Param     = Table.Buffer(Table.SelectColumns(DimParam, {"REF_QUESTION", "REPONSE_POSSIBLE", "Annee", "Semestre", "SR_IGR_POINT"})),
+    Jointure  = Table.NestedJoin(Reponses, {"REF_QUESTION", "REPONSE", "Annee", "Semestre"},
+                  Param, {"REF_QUESTION", "REPONSE_POSSIBLE", "Annee", "Semestre"}, "P", JoinKind.LeftOuter),
+    Points    = Table.ExpandTableColumn(Jointure, "P", {"SR_IGR_POINT"}),
+    Zero      = Table.ReplaceValue(Points, null, 0, Replacer.ReplaceValue, {"SR_IGR_POINT"}),
+    EnTexte   = Table.TransformColumnTypes(Zero, {{"Semestre", type text}, {"Annee", type text}}),
+    CodeMaj   = Table.TransformColumns(EnTexte, {{"CODE ETABLISSEMENT", Text.Upper, type text}}),
+    IdParam   = Table.AddColumn(CodeMaj, "IdParamQuest", each [REF_QUESTION] & ":" & [REPONSE] & ":" & Text.Start([ARRETE], 4) & ":" & [Semestre], type text),
+    IdQuest   = Table.AddColumn(IdParam, "IdQuest", each [REF_QUESTION] & ":" & Text.Start([ARRETE], 4) & ":" & [Semestre], type text),
+    Perso     = Table.AddColumn(IdQuest, "Reponse_perso", each [REPONSE] & " -> [" & Text.From([SR_IGR_POINT]) & "pt(s)] ", type text),
+    AvecID    = Table.AddColumn(Perso, "ID", each [CODE ETABLISSEMENT] & ":" & [IdQuest], type text),
+    Controles = Table.Buffer(Table.SelectColumns(CONTROLES, {"REPONSE 2.2", "NOUVELLE REPONSE 2.2", "COMMENTAIRE CPR", "CONTROLEUR",
+                  "REPONSE 2.1", "NOUVELLE REPONSE 2.1", "COMMENTAIRE", "DATE", "ID"})),
+    Jointure2 = Table.NestedJoin(AvecID, {"ID"}, Controles, {"ID"}, "CONTROLES", JoinKind.LeftOuter),
+    Developpe = Table.ExpandTableColumn(Jointure2, "CONTROLES",
+                  {"REPONSE 2.2", "NOUVELLE REPONSE 2.2", "COMMENTAIRE CPR", "CONTROLEUR", "REPONSE 2.1", "NOUVELLE REPONSE 2.1", "COMMENTAIRE", "DATE", "ID"},
+                  {"CONTROLES.REPONSE 2.2", "CONTROLES.NOUVELLE REPONSE 2.2", "CONTROLES.COMMENTAIRE CPR", "CONTROLES.CONTROLEUR",
+                   "CONTROLES.REPONSE 2.1", "CONTROLES.NOUVELLE REPONSE 2.1", "CONTROLES.COMMENTAIRE", "CONTROLES.DATE", "CONTROLES.ID"})
+in
+    Developpe
+
+
+// =====================================================================
+// CONTROLES  (déjà efficace : simple nettoyage, logique identique)
+// =====================================================================
+CONTROLES:
+let
+    Source   = SharePoint.Tables(pSiteSharepoint, [Implementation = "2.0", ViewMode = "Default"]),
+    Liste    = Source{[Title = pListName]}[Items],
+    Renomme  = Table.RenameColumns(Table.RemoveColumns(Liste, {"ID"}), {{"Title", "ARRETE"}}),
+    Types    = Table.TransformColumnTypes(Renomme, {{"ARRETE", type text}}),
+    AvecSem  = Table.AddColumn(Types, "Semestre", each if Number.FromText(Text.End([ARRETE], 2)) = 6 then "1" else "2", type text),
+    AvecIdQ  = Table.AddColumn(AvecSem, "IdQuest", each [REF_QUESTION] & ":" & Text.Start([ARRETE], 4) & ":" & [Semestre], type text),
+    CodeMaj  = Table.TransformColumns(AvecIdQ, {{"CODE ETABLISSEMENT", Text.Upper, type text}}),
+    AvecID   = Table.AddColumn(CodeMaj, "ID", each [CODE ETABLISSEMENT] & ":" & [IdQuest], type text)
+in
+    AvecID
