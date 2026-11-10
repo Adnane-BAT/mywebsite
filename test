@@ -1,3 +1,4 @@
+DimRisque:
 let
     Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
     #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE/")),
@@ -20,3 +21,164 @@ else null),
     #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"Poids", Int64.Type}})
 in
     #"Changed Type"
+
+DimFamilleScore:
+let
+    Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE/")),
+    #"Invoked Custom Function" = Table.AddColumn(#"Filtered Rows", "Transformer le fichier", each #"Transformer le fichier Risque"([Content])),
+    #"Para_Score 2025S2 xlsx_https://groupebpce sharepoint com/sites/IndustrialisationCP-RO/Shared Documents/General/4  TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE/" = #"Invoked Custom Function"{[Name="Para_Score 2025S2.xlsx",#"Folder Path"="https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE/"]}[Transformer le fichier],
+    #"Changed Type" = Table.TransformColumnTypes(#"Para_Score 2025S2 xlsx_https://groupebpce sharepoint com/sites/IndustrialisationCP-RO/Shared Documents/General/4  TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/CATEGORIE RISQUE/",{{"Type", type text}, {"Risque", type text}, {"Poids", Int64.Type}}),
+    #"Removed Other Columns" = Table.SelectColumns(#"Changed Type",{"Type"}),
+    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns")
+in
+    #"Removed Duplicates"
+
+DimParam:
+let
+    Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/PARAMETRE QUESTION/")),
+    #"Invoked Custom Function" = Table.AddColumn(#"Filtered Rows", "Transformer le fichier", each #"Transformer le fichier Paramètrage"([Content])),
+    #"Removed Other Columns" = Table.SelectColumns(#"Invoked Custom Function",{"Name", "Transformer le fichier"}),
+    #"Transformer le fichier développé" = Table.ExpandTableColumn(#"Removed Other Columns", "Transformer le fichier", Table.ColumnNames(#"Transformer le fichier Paramètrage"(#"Exemple de fichier Paramètrage"))),
+    #"Personnalisée ajoutée3" = Table.AddColumn(#"Transformer le fichier développé", "Semestre", each Text.Select(Text.AfterDelimiter([Name], "S", 1), {"0".."9"})),
+    #"Type modifié" = Table.TransformColumnTypes(#"Personnalisée ajoutée3",{{"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE_OBLIGATOIRE", type text}, {"REPONSE_POSSIBLE", type any}, {"FORMAT_REPONSE", type text}, {"QUESTION_LIEE", type text}, {"SR_IGR_FAMILLE_SCORE", type text}, {"SR_IGR_CATEGORIE_SCORE", type text}, {"SR_IGR_SOUS_CATEGORIE_SCORE", type text}, {"SR_IGR_POINT", Int64.Type}}),
+    #"Lignes filtrées1" = Table.SelectRows(#"Type modifié", each ([SR_IGR_FAMILLE_SCORE] = "IGR" or [SR_IGR_FAMILLE_SCORE] = "SR")),
+    #"Texte en majuscules" = Table.TransformColumns(#"Lignes filtrées1",{{"REPONSE_POSSIBLE", Text.Upper, type text}}),
+    #"Type modifié3" = Table.TransformColumnTypes(#"Texte en majuscules",{{"DATE", type text}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Type modifié3", "IdParamQuest", each [REF_QUESTION] & ":" & [REPONSE_POSSIBLE] & ":"  & Text.Start([DATE],4) & ":" & [Semestre]),
+    #"Colonnes permutées" = Table.ReorderColumns(#"Personnalisée ajoutée",{"Name", "IdParamQuest", "DATE", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE_OBLIGATOIRE", "REPONSE_POSSIBLE", "FORMAT_REPONSE", "QUESTION_LIEE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE", "SR_IGR_POINT"}),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"Colonnes permutées", "Annee", each Number.FromText(Text.Start([DATE],4))),
+    #"Doublons supprimés" = Table.Distinct(#"Personnalisée ajoutée1", {"IdParamQuest"}),
+    #"Colonnes supprimées" = Table.RemoveColumns(#"Doublons supprimés",{"Name", "DATE"}),
+    #"Type modifié1" = Table.TransformColumnTypes(#"Colonnes supprimées",{{"Semestre", Int64.Type}, {"Annee", Int64.Type}}),
+    #"Personnalisée ajoutée2" = Table.AddColumn(#"Type modifié1", "Date", each if [Semestre] = 1 then #date([Annee], 6, 1) 
+else if [Semestre] = 2 then #date([Annee], 12, 1) 
+else null),
+    #"Colonnes permutées1" = Table.ReorderColumns(#"Personnalisée ajoutée2",{"IdParamQuest", "Date", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE_OBLIGATOIRE", "REPONSE_POSSIBLE", "FORMAT_REPONSE", "QUESTION_LIEE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE", "Semestre", "SR_IGR_POINT", "Annee"}),
+    #"Type modifié2" = Table.TransformColumnTypes(#"Colonnes permutées1",{{"Date", type date}}),
+    #"Sorted Rows" = Table.Sort(#"Type modifié2",{{"Annee", Order.Descending}}),
+    #"Filtered Rows1" = Table.SelectRows(#"Sorted Rows", each Date.IsInPreviousNYears([Date], 3))
+in
+    #"Filtered Rows1"
+
+DimParamFusion:
+let
+    Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/PARAMETRE QUESTION/")),
+    #"Invoked Custom Function" = Table.AddColumn(#"Filtered Rows", "Transformer le fichier", each #"Transformer le fichier Paramètrage"([Content])),
+    #"Removed Other Columns" = Table.SelectColumns(#"Invoked Custom Function",{"Name", "Transformer le fichier"}),
+    #"Transformer le fichier développé" = Table.ExpandTableColumn(#"Removed Other Columns", "Transformer le fichier", Table.ColumnNames(#"Transformer le fichier Paramètrage"(#"Exemple de fichier Paramètrage"))),
+    #"Personnalisée ajoutée4" = Table.AddColumn(#"Transformer le fichier développé", "Semestre", each Text.Select(Text.AfterDelimiter([Name], "S", 1), {"0".."9"})),
+    #"Type modifié" = Table.TransformColumnTypes(#"Personnalisée ajoutée4",{{"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE_OBLIGATOIRE", type text}, {"REPONSE_POSSIBLE", type any}, {"FORMAT_REPONSE", type text}, {"QUESTION_LIEE", type text}, {"SR_IGR_FAMILLE_SCORE", type text}, {"SR_IGR_CATEGORIE_SCORE", type text}, {"SR_IGR_SOUS_CATEGORIE_SCORE", type text}, {"SR_IGR_POINT", Int64.Type}}),
+    #"Lignes filtrées1" = Table.SelectRows(#"Type modifié", each ([SR_IGR_FAMILLE_SCORE] = "IGR" or [SR_IGR_FAMILLE_SCORE] = "SR")),
+    #"Texte en majuscules" = Table.TransformColumns(#"Lignes filtrées1",{{"REPONSE_POSSIBLE", Text.Upper, type text}}),
+    #"Type modifié1" = Table.TransformColumnTypes(#"Texte en majuscules",{{"DATE", type text}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Type modifié1", "IdParamQuest", each [REF_QUESTION] & ":" & [REPONSE_POSSIBLE] & ":"  & Text.Start([DATE],4) & ":" & [Semestre]),
+    #"Colonnes permutées" = Table.ReorderColumns(#"Personnalisée ajoutée",{"Name", "IdParamQuest", "DATE", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE_OBLIGATOIRE", "REPONSE_POSSIBLE", "FORMAT_REPONSE", "QUESTION_LIEE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE", "SR_IGR_POINT"}),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"Colonnes permutées", "Annee", each Number.FromText(Text.Start([DATE],4))),
+    #"Personnalisée ajoutée3" = Table.AddColumn(#"Personnalisée ajoutée1", "IdQuest", each [REF_QUESTION] & ":" & Text.Start([DATE],4) & ":" & [Semestre]),
+    #"Sorted Rows" = Table.Sort(#"Personnalisée ajoutée3",{{"Annee", Order.Descending}}),
+    #"Lignes groupées" = Table.Group(#"Sorted Rows", {"IdQuest"}, {{"Points_Possibles", each List.Max([SR_IGR_POINT]), type nullable number}}),
+    #"Sorted Rows1" = Table.Sort(#"Lignes groupées",{{"IdQuest", Order.Descending}})
+in
+    #"Sorted Rows1"
+
+REPONSES:
+let
+    Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/2. PUITS DE DONNEES/Questionnaire - Semestriel/")),
+    #"Invoked Custom Function" = Table.AddColumn(#"Filtered Rows", "Transformer le fichier", each #"Transformer le fichier Reponses"([Content])),
+    #"Removed Other Columns" = Table.SelectColumns(#"Invoked Custom Function",{"Name", "Transformer le fichier"}),
+    #"Expanded Table Column" = Table.ExpandTableColumn(#"Removed Other Columns", "Transformer le fichier", Table.ColumnNames(#"Transformer le fichier Reponses"(#"Exemple de fichier Reponses"))),
+    
+    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Table Column",{{"Name", type text}, {"ARRETE", type text}, {"CODE ETABLISSEMENT", type text}, {"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE", type text}, {"COMMENTAIRE", type text}, {"REMARQUES", type any}, {"MODIFICATION A FAIRE", type any}, {"DATE", type text}, {"SOURCE", type text}}),
+    #"Removed Other Columns1" = Table.SelectColumns(#"Changed Type",{"ARRETE", "CODE ETABLISSEMENT", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE", "COMMENTAIRE"}),
+    
+    
+    
+    #"Colonnes renommées" = Table.RenameColumns(#"Removed Other Columns1",{{"ARRETE", "DATE"}}),
+    #"Type modifié" = Table.TransformColumnTypes(#"Colonnes renommées",{{"CODE ETABLISSEMENT", type text}, {"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE", type text}, {"COMMENTAIRE", type text}}),
+    #"Texte nettoyé" = Table.TransformColumns(#"Type modifié",{{"REPONSE", Text.Clean, type text}}),
+    #"Espaces supprimés" = Table.TransformColumns(#"Texte nettoyé",{{"REPONSE", Text.Trim, type text}}),
+    #"Texte en majuscules" = Table.TransformColumns(#"Espaces supprimés",{{"REPONSE", Text.Upper, type text}}),
+    #"Lignes filtrées1" = Table.SelectRows(#"Texte en majuscules", each ([DATE] <> null)),
+    #"Lignes triées" = Table.Sort(#"Lignes filtrées1",{{"REF_QUESTION", Order.Ascending}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Lignes triées", "Semestre", each if Number.FromText(Text.End([DATE],2)) = 6 then 1 else 2),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"Personnalisée ajoutée", "Annee", each Number.FromText(Text.Start([DATE],4))),
+    #"Colonnes renommées1" = Table.RenameColumns(#"Personnalisée ajoutée1",{{"DATE", "ARRETE"}}),
+    #"Type modifié1" = Table.TransformColumnTypes(#"Colonnes renommées1",{{"Semestre", Int64.Type}, {"Annee", Int64.Type}}),
+    #"Personnalisée ajoutée2" = Table.AddColumn(#"Type modifié1", "Date", each if [Semestre] = 1 then #date([Annee], 6, 1)
+else if [Semestre] = 2 then #date([Annee], 12, 1)
+else null),
+    #"Type modifié2" = Table.TransformColumnTypes(#"Personnalisée ajoutée2",{{"Date", type date}}),
+    #"Colonnes permutées" = Table.ReorderColumns(#"Type modifié2",{"ARRETE", "Date", "CODE ETABLISSEMENT", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE", "COMMENTAIRE", "Semestre", "Annee"}),
+    #"Filtered Rows1" = Table.SelectRows(#"Colonnes permutées", each Date.IsInPreviousNYears([Date], 3))
+in
+    #"Filtered Rows1"
+
+
+FactReponses:
+let
+    Source = Table.NestedJoin(REPONSES, {"REF_QUESTION", "REPONSE", "Annee", "Semestre"}, DimParam, {"REF_QUESTION", "REPONSE_POSSIBLE", "Annee", "Semestre"}, "T_QS_PARAMETRAGE_QUESTION", JoinKind.LeftOuter),
+    #"Expanded T_QS_PARAMETRAGE_QUESTION" = Table.ExpandTableColumn(Source, "T_QS_PARAMETRAGE_QUESTION", {"SR_IGR_POINT"}, {"SR_IGR_POINT"}),
+    #"Valeur remplacée" = Table.ReplaceValue(#"Expanded T_QS_PARAMETRAGE_QUESTION",null,0,Replacer.ReplaceValue,{"SR_IGR_POINT"}),
+    #"Type modifié" = Table.TransformColumnTypes(#"Valeur remplacée",{{"Semestre", type text}, {"Annee", type text}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Type modifié", "IdParamQuest", each [REF_QUESTION] & ":" & [REPONSE] & ":" & Text.Start([ARRETE],4) & ":" & [Semestre]),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"Personnalisée ajoutée", "IdQuest", each [REF_QUESTION] & ":" & Text.Start([ARRETE],4) & ":" & [Semestre]),
+    #"Colonnes permutées" = Table.ReorderColumns(#"Personnalisée ajoutée1",{"ARRETE", "IdParamQuest", "IdQuest", "CODE ETABLISSEMENT", "REF_QUESTION", "LIBELLE_QUESTION", "FAMILLE", "DIRECTION", "THEMATIQUE", "REPONSE", "COMMENTAIRE", "SR_IGR_POINT"}),
+    #"Lignes filtrées1" = Table.SelectRows(#"Colonnes permutées", each ([CODE ETABLISSEMENT] <> null)),
+    #"Personnalisée ajoutée2" = Table.AddColumn(#"Lignes filtrées1", "Reponse_perso", each [REPONSE] & " -> [" & Text.From([SR_IGR_POINT]) &"pt(s)] "),
+    #"Uppercased Text" = Table.TransformColumns(#"Personnalisée ajoutée2",{{"CODE ETABLISSEMENT", Text.Upper, type text}}),
+    #"Added Custom" = Table.AddColumn(#"Uppercased Text", "ID", each [CODE ETABLISSEMENT] & ":" & [IdQuest]),
+    #"Merged Queries" = Table.NestedJoin(#"Added Custom", {"ID"}, CONTROLES, {"ID"}, "CONTROLES", JoinKind.LeftOuter),
+    #"Expanded CONTROLES" = Table.ExpandTableColumn(#"Merged Queries", "CONTROLES", {"REPONSE 2.2", "NOUVELLE REPONSE 2.2", "COMMENTAIRE CPR", "CONTROLEUR", "REPONSE 2.1", "NOUVELLE REPONSE 2.1", "COMMENTAIRE", "DATE", "ID"}, {"CONTROLES.REPONSE 2.2", "CONTROLES.NOUVELLE REPONSE 2.2", "CONTROLES.COMMENTAIRE CPR", "CONTROLES.CONTROLEUR", "CONTROLES.REPONSE 2.1", "CONTROLES.NOUVELLE REPONSE 2.1", "CONTROLES.COMMENTAIRE", "CONTROLES.DATE", "CONTROLES.ID"})
+in
+    #"Expanded CONTROLES"
+
+DimQuestion:
+let
+    Source = SharePoint.Files("https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/", [ApiVersion = 15]),
+    #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://groupebpce.sharepoint.com/sites/IndustrialisationCP-RO/Shared Documents/General/4. TABLEAUX DE BORD/QUESTIONNAIRE SEMESTRIEL/PARAMETRAGE/PARAMETRE QUESTION/")),
+    #"Invoked Custom Function" = Table.AddColumn(#"Filtered Rows", "Transformer le fichier", each #"Transformer le fichier Paramètrage"([Content])),
+    #"Removed Other Columns" = Table.SelectColumns(#"Invoked Custom Function",{"Name", "Transformer le fichier"}),
+    #"Transformer le fichier développé" = Table.ExpandTableColumn(#"Removed Other Columns", "Transformer le fichier", Table.ColumnNames(#"Transformer le fichier Paramètrage"(#"Exemple de fichier Paramètrage"))),
+    #"Personnalisée ajoutée4" = Table.AddColumn(#"Transformer le fichier développé", "Semestre", each Text.Select(Text.AfterDelimiter([Name], "S", 1), {"0".."9"})),
+    #"Type modifié" = Table.TransformColumnTypes(#"Personnalisée ajoutée4",{{"REF_QUESTION", type text}, {"LIBELLE_QUESTION", type text}, {"FAMILLE", type text}, {"DIRECTION", type text}, {"THEMATIQUE", type text}, {"REPONSE_OBLIGATOIRE", type text}, {"REPONSE_POSSIBLE", type any}, {"FORMAT_REPONSE", type text}, {"QUESTION_LIEE", type text}, {"SR_IGR_FAMILLE_SCORE", type text}, {"SR_IGR_CATEGORIE_SCORE", type text}, {"SR_IGR_SOUS_CATEGORIE_SCORE", type text}, {"SR_IGR_POINT", Int64.Type}}),
+    #"Lignes filtrées1" = Table.SelectRows(#"Type modifié", each ([SR_IGR_FAMILLE_SCORE] = "IGR" or [SR_IGR_FAMILLE_SCORE] = "SR")),
+    #"Autres colonnes supprimées1" = Table.SelectColumns(#"Lignes filtrées1",{"DATE", "REF_QUESTION", "LIBELLE_QUESTION", "THEMATIQUE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE", "Semestre"}),
+    #"Type modifié3" = Table.TransformColumnTypes(#"Autres colonnes supprimées1",{{"DATE", type text}}),
+    #"Personnalisée ajoutée" = Table.AddColumn(#"Type modifié3", "IdQuest", each [REF_QUESTION] & ":" & Text.Start([DATE],4) & ":" & [Semestre]),
+    #"Doublons supprimés" = Table.Distinct(#"Personnalisée ajoutée", {"IdQuest"}),
+    #"Colonnes permutées" = Table.ReorderColumns(#"Doublons supprimés",{"IdQuest", "DATE", "REF_QUESTION", "LIBELLE_QUESTION", "THEMATIQUE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "SR_IGR_SOUS_CATEGORIE_SCORE"}),
+    #"Personnalisée ajoutée1" = Table.AddColumn(#"Colonnes permutées", "IdRisque", each [SR_IGR_FAMILLE_SCORE] & ":" & [SR_IGR_CATEGORIE_SCORE] & ":" & Text.Start([DATE],4) & ":" & [Semestre]),
+    #"Colonnes renommées" = Table.RenameColumns(#"Personnalisée ajoutée1",{{"DATE", "ARRETE"}}),
+    #"Requêtes fusionnées" = Table.NestedJoin(#"Colonnes renommées", {"IdQuest"}, DimParamFusion, {"IdQuest"}, "DimParam", JoinKind.LeftOuter),
+    #"DimParam (3) développé" = Table.ExpandTableColumn(#"Requêtes fusionnées", "DimParam", {"Points_Possibles"}, {"Points_Possibles"}),
+    #"Personnalisée ajoutée2" = Table.AddColumn(#"DimParam (3) développé", "Annee", each Number.FromText(Text.Start([ARRETE],4))),
+    #"Type modifié1" = Table.TransformColumnTypes(#"Personnalisée ajoutée2",{{"Semestre", Int64.Type}, {"Annee", Int64.Type}}),
+    #"Personnalisée ajoutée3" = Table.AddColumn(#"Type modifié1", "Date", each if [Semestre] = 1 then #date([Annee], 6, 1) 
+else if [Semestre] = 2 then #date([Annee], 12, 1) 
+else null),
+    #"Colonnes permutées1" = Table.ReorderColumns(#"Personnalisée ajoutée3",{"IdQuest", "Date", "ARRETE", "REF_QUESTION", "LIBELLE_QUESTION", "THEMATIQUE", "SR_IGR_FAMILLE_SCORE", "SR_IGR_CATEGORIE_SCORE", "Semestre", "SR_IGR_SOUS_CATEGORIE_SCORE", "IdRisque", "Points_Possibles", "Annee"}),
+    #"Type modifié2" = Table.TransformColumnTypes(#"Colonnes permutées1",{{"Date", type date}}),
+    #"Filtered Rows1" = Table.SelectRows(#"Type modifié2", each Date.IsInPreviousNYears([Date], 3))
+in
+    #"Filtered Rows1"
+
+CONTROLES:
+let
+    Source = SharePoint.Tables(pSiteSharepoint, [Implementation="2.0", ViewMode="Default"]),
+    #"09c18de9-8a40-4c9b-8d84-6e2e03d628dd" = Source{[Title=pListName]}[Items],
+    #"Removed Columns" = Table.RemoveColumns(#"09c18de9-8a40-4c9b-8d84-6e2e03d628dd",{"ID"}),
+    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Title", "ARRETE"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"ARRETE", type text}}),
+    #"Added Custom1" = Table.AddColumn(#"Changed Type", "Semestre", each if Number.FromText(Text.End([ARRETE],2)) = 6 then 1 else 2),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom1",{{"Semestre", type text}}),
+    #"Added Custom" = Table.AddColumn(#"Changed Type1", "IdQuest", each [REF_QUESTION] & ":" & Text.Start([ARRETE],4) & ":" & [Semestre]),
+    #"Uppercased Text" = Table.TransformColumns(#"Added Custom",{{"CODE ETABLISSEMENT", Text.Upper, type text}}),
+    #"Added Custom2" = Table.AddColumn(#"Uppercased Text", "ID", each [CODE ETABLISSEMENT] & ":" & [IdQuest])
+in
+    #"Added Custom2"
+
+
