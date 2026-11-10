@@ -1,0 +1,76 @@
+let
+    // Codes contrôle depuis pRefControle
+    ListRef = List.Buffer(
+        List.Distinct(List.RemoveNulls(List.Transform(pRefControle, Text.From)))
+    ),
+    ListeDAX = Text.Combine(List.Transform(ListRef, each """" & _ & """"), ", "),
+
+    // Dates depuis _data[Date de fin]
+    ListeDates = List.Sort(
+        List.Distinct(List.RemoveNulls(
+            List.Transform(Table.Column(#"_data", "Date de fin"), Date.From)
+        ))
+    ),
+    DatesDAX = Text.Combine(
+        List.Transform(ListeDates, each
+            "DATE(" & Text.From(Date.Year(_)) & ", "
+                    & Text.From(Date.Month(_)) & ", "
+                    & Text.From(Date.Day(_)) & ")"),
+        ", "
+    ),
+
+    RequeteDAX = "
+DEFINE
+    VAR __DS0FilterTable =
+        TREATAS({" & ListeDAX & "}, 'Contrôles'[Code du contrôle])
+
+    VAR __DS0FilterTable3 =
+        FILTER(
+            KEEPFILTERS(VALUES('Entités'[Entité niveau 4 (code)])),
+            SEARCH("".0001"", 'Entités'[Entité niveau 4 (code)], 1, 0) >= 1
+        )
+
+    VAR __DS0FilterTable4 =
+        TREATAS(
+            {" & DatesDAX & "},
+            'Evaluations des contrôles'[Date de fin de la période d'évaluation]
+        )
+
+    VAR __DS0Core =
+        SUMMARIZECOLUMNS(
+            ROLLUPADDISSUBTOTAL(
+                ROLLUPGROUP(
+                    'Feuilles de travail'[Référence],
+                    'Evaluations des contrôles'[Date de fin de la période d'évaluation],
+                    'Points de contrôles'[Code du point de contrôle]
+                ), ""IsGrandTotalRowTotal""
+            ),
+            __DS0FilterTable,
+            __DS0FilterTable3,
+            __DS0FilterTable4,
+            ""AverageIQC_du_contrôle"", CALCULATE(AVERAGE('Evaluations des contrôles'[IQC du contrôle]))
+        )
+
+EVALUATE
+    __DS0Core
+",
+
+    Source = AnalysisServices.Database(pSSAS_Server, pSSAS_Database, [Query = RequeteDAX]),
+
+    #"Renamed Columns" = Table.RenameColumns(Source, {
+        {"Feuilles de travail[Référence]", "Référence"},
+        {"Evaluations des contrôles[Date de fin de la période d'évaluation]", "Date de fin de la période d'évaluation"},
+        {"Points de contrôles[Code du point de contrôle]", "Code du point de contrôle"},
+        {"[AverageIQC_du_contrôle]", "IQC_du_contrôle"}
+    }),
+    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"[IsGrandTotalRowTotal]"}),
+    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [#"Date de fin de la période d'évaluation"] <> null),
+    #"Added Arrete" = Table.AddColumn(#"Filtered Rows", "Evaluation (trimestre)", each
+        "T" & Number.ToText(Date.QuarterOfYear([#"Date de fin de la période d'évaluation"]))
+        & " " & Number.ToText(Date.Year([#"Date de fin de la période d'évaluation"]))
+    ),
+    #"Added KEY" = Table.AddColumn(#"Added Arrete", "KEY", each
+        [Code du point de contrôle] & "-" & [#"Evaluation (trimestre)"] & "-" & [Référence]
+    )
+in
+    #"Added KEY"
