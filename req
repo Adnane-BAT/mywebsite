@@ -1,3 +1,11 @@
+
+replace(replace(replace(body('Tableau_relance'),
+'<table>','<table style="border-collapse:collapse;width:100%;font-size:13px;">'),
+'<th>','<th style="background:#5A2D82;color:#fff;padding:8px;text-align:left;">'),
+'<td>','<td style="border-bottom:1px solid #e5e5e5;padding:8px;">')
+
+
+
 reformule ca :
 Bonjour @{variables('varPrenomContributeur')},
 
