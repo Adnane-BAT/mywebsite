@@ -1,3 +1,19 @@
+reformule ca :
+Bonjour @{variables('varPrenomContributeur')},
+
+Il semblerait que vous n’ayez pas débuté ou fini votre contribution. @{outputs('Message_-_CorpsPrincipalEmail')}
+
+Dans le cadre de la revue @{outputs('Message_-_CorpsSecondaireEmail')}, le document ci-dessous (Lien du document ici), est mettre à jour par vos soins.
+@{outputs('Message_-_CSS')}
+Il vous est demandé de procéder à la mise à jour de ce document. Pour ce faire, nous vous invitons à vous connecter à l’application lien ici
+
+Nous restons à votre disposition.
+Bien cordialement.
+
+Equipe Gouvernance en charge des rapports réglementaires.
+Direction des Risques Groupe
+
+
 let
     // ===== Paramètres : codes contrôle =====
     ListRef = List.Buffer(
