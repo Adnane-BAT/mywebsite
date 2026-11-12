@@ -1,3 +1,9 @@
+[
+  {"k":"Prenom","v":"@{first(body('Lignes_personne'))?['Prenom']}"},
+  {"k":"Echeance","v":"@{formatDateTime(items('Pour_chaque_campagne')?['DateFermeture'],'dd/MM/yyyy')}"},
+  {"k":"LienDocument","v":"@{items('Pour_chaque_campagne')?['LienDocument']}"},
+  {"k":"LienApp","v":"https://apps.powerapps.com/play/..."}
+]
 
 replace(replace(replace(body('Tableau_relance'),
 '<table>','<table style="border-collapse:collapse;width:100%;font-size:13px;">'),
