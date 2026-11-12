@@ -1,3 +1,60 @@
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;font-family:Segoe UI,Arial,sans-serif;">
+<tr><td align="center">
+<table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;overflow:hidden;">
+
+  <!-- En-tête -->
+  <tr><td style="background:#5A2D82;padding:20px 32px;">
+    <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">Relance – Mise à jour de votre contribution</p>
+    <p style="margin:4px 0 0;color:#e0d4ee;font-size:13px;">Revue des rapports réglementaires</p>
+  </td></tr>
+
+  <!-- Corps -->
+  <tr><td style="padding:28px 32px;color:#333333;font-size:14px;line-height:1.6;">
+    <p style="margin:0 0 16px;">Bonjour @{variables('varPrenomContributeur')},</p>
+
+    <p style="margin:0 0 16px;">Sauf erreur de notre part, votre contribution n’a pas encore été débutée ou finalisée. @{outputs('Message_-_CorpsPrincipalEmail')}</p>
+
+    <p style="margin:0 0 16px;">Dans le cadre de la revue @{outputs('Message_-_CorpsSecondaireEmail')}, le document ci-dessous est à mettre à jour par vos soins :</p>
+
+    @{outputs('Message_-_CSS')}
+
+    <!-- Bouton document -->
+    <p style="margin:20px 0;">
+      <a href="LIEN_DOCUMENT" style="color:#5A2D82;font-weight:600;text-decoration:underline;">📄 Consulter le document</a>
+    </p>
+
+    <p style="margin:0 0 20px;">Nous vous invitons à procéder à cette mise à jour directement depuis l’application :</p>
+
+    <!-- Bouton application -->
+    <table cellpadding="0" cellspacing="0"><tr>
+      <td style="background:#5A2D82;border-radius:4px;">
+        <a href="LIEN_APPLICATION" style="display:inline-block;padding:12px 28px;color:#ffffff;font-weight:600;text-decoration:none;font-size:14px;">Accéder à l’application</a>
+      </td>
+    </tr></table>
+
+    <!-- Encadré pièce jointe -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+      <tr><td style="background:#f3eef8;border-left:4px solid #5A2D82;padding:14px 18px;font-size:13px;">
+        📎 <strong>Guide pratique en pièce jointe</strong><br>
+        Vous trouverez en pièce jointe un mode opératoire détaillant, étape par étape, comment accéder à l’application et effectuer votre mise à jour.
+      </td></tr>
+    </table>
+
+    <p style="margin:0 0 16px;">Nous restons à votre disposition pour toute question.</p>
+    <p style="margin:0;">Bien cordialement,</p>
+  </td></tr>
+
+  <!-- Signature -->
+  <tr><td style="padding:18px 32px;border-top:1px solid #e5e5e5;font-size:13px;color:#555555;">
+    <strong style="color:#5A2D82;">Équipe Gouvernance des rapports réglementaires</strong><br>
+    Direction des Risques Groupe
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+
+
 [
   {"k":"Prenom","v":"@{first(body('Lignes_personne'))?['Prenom']}"},
   {"k":"Echeance","v":"@{formatDateTime(items('Pour_chaque_campagne')?['DateFermeture'],'dd/MM/yyyy')}"},
