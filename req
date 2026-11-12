@@ -1,598 +1,137 @@
-
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;background:#EEEAF2}</style></head><body><!-- Gabarit email de relance – DRG_04_Notification
-     Placeholders remplacés via Tokens : Marie 20/11/2026 # #
-     Champs du déclencheur : text_2 = CorpsHTML (tableau), text_3 = CorpsSecondaire (nom de la revue) -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEEAF2;">
-<tr><td align="center" style="padding:32px 12px;">
-
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#FFFFFF;border-collapse:separate;">
-
-  <!-- Bandeau -->
-  <tr><td style="background:#3E1A5B;padding:28px 40px 26px;">
-    <p style="margin:0 0 14px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#C9B6DC;letter-spacing:0.3px;">Direction des Risques Groupe</p>
-    <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:32px;color:#FFFFFF;">Votre contribution est attendue</p>
-  </td></tr>
-  <tr><td style="background:#7A3FA8;height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
-
-  <!-- Introduction -->
-  <tr><td style="padding:36px 40px 8px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Bonjour Marie,</p>
-    <p style="margin:0 0 16px;">Sauf erreur de notre part, votre contribution à la revue <strong style="color:#3E1A5B;">RACI 2025</strong> n’a pas encore été débutée ou finalisée.</p>
-  </td></tr>
-
-  <!-- Échéance -->
-  <tr><td style="padding:8px 40px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="6" style="background:#C2410C;font-size:0;">&nbsp;</td>
-        <td style="background:#FFF4EC;padding:18px 22px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 4px;font-size:13px;color:#9A3412;">Date limite de mise à jour</p>
-          <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:30px;color:#7C2D12;">20/11/2026</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Tableau des contributions -->
-  <tr><td style="padding:0 40px 8px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#2A2230;">Éléments en attente de votre part</p>
-    <table style="border-collapse:collapse;width:100%;font-size:13px;font-family:'Segoe UI',Arial,sans-serif;"><tr><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Rapport</th><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Chapitre</th><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Statut</th></tr><tr><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">RACI 2025</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">3.2 Risque de crédit</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">Non débuté</td></tr><tr><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">RACI 2025</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">4.1 Liquidité</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">En cours</td></tr></table>
-  </td></tr>
-
-  <!-- Étapes -->
-  <tr><td style="padding:28px 40px 4px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 14px;font-size:15px;font-weight:600;color:#2A2230;">Comment faire</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">1</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Ouvrez l’application avec le bouton ci-dessous.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">2</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Sélectionnez la revue concernée et complétez chaque élément en attente.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">3</div></td>
-        <td valign="top" style="padding:3px 0 0;font-size:14px;line-height:21px;color:#4A4250;">Validez votre contribution pour la transmettre à l’équipe Gouvernance.</td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Boutons -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td style="background:#3E1A5B;border-radius:4px;">
-          <a href="#" style="display:inline-block;padding:14px 30px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Mettre à jour ma contribution</a>
-        </td>
-      </tr>
-    </table>
-    <p style="margin:16px 0 0;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;">
-      <a href="#" style="color:#6B2E96;text-decoration:underline;">Consulter le document de référence</a>
-    </p>
-  </td></tr>
-
-  <!-- Pièce jointe -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4DCEB;">
-      <tr>
-        <td width="56" align="center" valign="middle" style="background:#F7F3FA;padding:16px 0;font-size:22px;">📎</td>
-        <td style="padding:14px 18px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#2A2230;">Mode opératoire en pièce jointe</p>
-          <p style="margin:0;font-size:13px;line-height:19px;color:#6B6570;">Le guide joint détaille chaque écran de l’application, de la connexion à la validation.</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Clôture -->
-  <tr><td style="padding:28px 40px 32px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Nous restons à votre disposition pour toute question.</p>
-    <p style="margin:0;">Bien cordialement,</p>
-  </td></tr>
-
-  <!-- Signature -->
-  <tr><td style="padding:0 40px 32px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="3" style="background:#7A3FA8;font-size:0;">&nbsp;</td>
-        <td style="padding:2px 0 2px 14px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0;font-size:14px;font-weight:600;color:#3E1A5B;">Équipe Gouvernance des rapports réglementaires</p>
-          <p style="margin:2px 0 0;font-size:13px;color:#6B6570;">Direction des Risques Groupe</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Pied -->
-  <tr><td style="background:#F7F5F9;padding:16px 40px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;color:#8A8390;">
-    Message envoyé automatiquement. Vous le recevez car une contribution vous est attribuée dans le cadre de cette revue.
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body></html>
-
-______\\\
-
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;background:#EEEAF2}</style></head><body><!-- Gabarit email de relance – DRG_04_Notification
-     Placeholders remplacés via Tokens : Marie 20/11/2026 # #
-     Champs du déclencheur : text_2 = CorpsHTML (tableau), text_3 = CorpsSecondaire (nom de la revue) -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEEAF2;">
-<tr><td align="center" style="padding:32px 12px;">
-
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#FFFFFF;border-collapse:separate;">
-
-  <!-- Bandeau -->
-  <tr><td style="background:#3E1A5B;padding:28px 40px 26px;">
-    <p style="margin:0 0 14px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#C9B6DC;letter-spacing:0.3px;">Direction des Risques Groupe</p>
-    <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:32px;color:#FFFFFF;">Votre contribution est attendue</p>
-  </td></tr>
-  <tr><td style="background:#7A3FA8;height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
-
-  <!-- Introduction -->
-  <tr><td style="padding:36px 40px 8px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Bonjour Marie,</p>
-    <p style="margin:0 0 16px;">Sauf erreur de notre part, votre contribution à la revue <strong style="color:#3E1A5B;">RACI 2025</strong> n’a pas encore été débutée ou finalisée.</p>
-  </td></tr>
-
-  <!-- Échéance -->
-  <tr><td style="padding:8px 40px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="6" style="background:#C2410C;font-size:0;">&nbsp;</td>
-        <td style="background:#FFF4EC;padding:18px 22px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 4px;font-size:13px;color:#9A3412;">Date limite de mise à jour</p>
-          <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:30px;color:#7C2D12;">20/11/2026</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Tableau des contributions -->
-  <tr><td style="padding:0 40px 8px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#2A2230;">Éléments en attente de votre part</p>
-    <table style="border-collapse:collapse;width:100%;font-size:13px;font-family:'Segoe UI',Arial,sans-serif;"><tr><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Rapport</th><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Chapitre</th><th style="background:#3E1A5B;color:#fff;padding:9px 10px;text-align:left;">Statut</th></tr><tr><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">RACI 2025</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">3.2 Risque de crédit</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">Non débuté</td></tr><tr><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">RACI 2025</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">4.1 Liquidité</td><td style="border-bottom:1px solid #E4DCEB;padding:9px 10px;">En cours</td></tr></table>
-  </td></tr>
-
-  <!-- Étapes -->
-  <tr><td style="padding:28px 40px 4px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 14px;font-size:15px;font-weight:600;color:#2A2230;">Comment faire</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">1</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Ouvrez l’application avec le bouton ci-dessous.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">2</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Sélectionnez la revue concernée et complétez chaque élément en attente.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">3</div></td>
-        <td valign="top" style="padding:3px 0 0;font-size:14px;line-height:21px;color:#4A4250;">Validez votre contribution pour la transmettre à l’équipe Gouvernance.</td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Boutons -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td style="background:#3E1A5B;border-radius:4px;">
-          <a href="#" style="display:inline-block;padding:14px 30px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Mettre à jour ma contribution</a>
-        </td>
-      </tr>
-    </table>
-    <p style="margin:16px 0 0;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;">
-      <a href="#" style="color:#6B2E96;text-decoration:underline;">Consulter le document de référence</a>
-    </p>
-  </td></tr>
-
-  <!-- Pièce jointe -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4DCEB;">
-      <tr>
-        <td width="56" align="center" valign="middle" style="background:#F7F3FA;padding:16px 0;font-size:22px;">📎</td>
-        <td style="padding:14px 18px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#2A2230;">Mode opératoire en pièce jointe</p>
-          <p style="margin:0;font-size:13px;line-height:19px;color:#6B6570;">Le guide joint détaille chaque écran de l’application, de la connexion à la validation.</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Clôture -->
-  <tr><td style="padding:28px 40px 32px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Nous restons à votre disposition pour toute question.</p>
-    <p style="margin:0;">Bien cordialement,</p>
-  </td></tr>
-
-  <!-- Signature -->
-  <tr><td style="padding:0 40px 32px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="3" style="background:#7A3FA8;font-size:0;">&nbsp;</td>
-        <td style="padding:2px 0 2px 14px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0;font-size:14px;font-weight:600;color:#3E1A5B;">Équipe Gouvernance des rapports réglementaires</p>
-          <p style="margin:2px 0 0;font-size:13px;color:#6B6570;">Direction des Risques Groupe</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Pied -->
-  <tr><td style="background:#F7F5F9;padding:16px 40px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;color:#8A8390;">
-    Message envoyé automatiquement. Vous le recevez car une contribution vous est attribuée dans le cadre de cette revue.
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-</body></html>
-
-
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:24px 0;font-family:Segoe UI,Arial,sans-serif;">
-<tr><td align="center">
-<table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:6px;overflow:hidden;">
-
-  <!-- En-tête -->
-  <tr><td style="background:#5A2D82;padding:20px 32px;">
-    <p style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">Relance – Mise à jour de votre contribution</p>
-    <p style="margin:4px 0 0;color:#e0d4ee;font-size:13px;">Revue des rapports réglementaires</p>
-  </td></tr>
-
-  <!-- Corps -->
-  <tr><td style="padding:28px 32px;color:#333333;font-size:14px;line-height:1.6;">
-    <p style="margin:0 0 16px;">Bonjour @{variables('varPrenomContributeur')},</p>
-
-    <p style="margin:0 0 16px;">Sauf erreur de notre part, votre contribution n’a pas encore été débutée ou finalisée. @{outputs('Message_-_CorpsPrincipalEmail')}</p>
-
-    <p style="margin:0 0 16px;">Dans le cadre de la revue @{outputs('Message_-_CorpsSecondaireEmail')}, le document ci-dessous est à mettre à jour par vos soins :</p>
-
-    @{outputs('Message_-_CSS')}
-
-    <!-- Bouton document -->
-    <p style="margin:20px 0;">
-      <a href="LIEN_DOCUMENT" style="color:#5A2D82;font-weight:600;text-decoration:underline;">📄 Consulter le document</a>
-    </p>
-
-    <p style="margin:0 0 20px;">Nous vous invitons à procéder à cette mise à jour directement depuis l’application :</p>
-
-    <!-- Bouton application -->
-    <table cellpadding="0" cellspacing="0"><tr>
-      <td style="background:#5A2D82;border-radius:4px;">
-        <a href="LIEN_APPLICATION" style="display:inline-block;padding:12px 28px;color:#ffffff;font-weight:600;text-decoration:none;font-size:14px;">Accéder à l’application</a>
-      </td>
-    </tr></table>
-
-    <!-- Encadré pièce jointe -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-      <tr><td style="background:#f3eef8;border-left:4px solid #5A2D82;padding:14px 18px;font-size:13px;">
-        📎 <strong>Guide pratique en pièce jointe</strong><br>
-        Vous trouverez en pièce jointe un mode opératoire détaillant, étape par étape, comment accéder à l’application et effectuer votre mise à jour.
-      </td></tr>
-    </table>
-
-    <p style="margin:0 0 16px;">Nous restons à votre disposition pour toute question.</p>
-    <p style="margin:0;">Bien cordialement,</p>
-  </td></tr>
-
-  <!-- Signature -->
-  <tr><td style="padding:18px 32px;border-top:1px solid #e5e5e5;font-size:13px;color:#555555;">
-    <strong style="color:#5A2D82;">Équipe Gouvernance des rapports réglementaires</strong><br>
-    Direction des Risques Groupe
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-
-
-[
-  {"k":"Prenom","v":"@{first(body('Lignes_personne'))?['Prenom']}"},
-  {"k":"Echeance","v":"@{formatDateTime(items('Pour_chaque_campagne')?['DateFermeture'],'dd/MM/yyyy')}"},
-  {"k":"LienDocument","v":"@{items('Pour_chaque_campagne')?['LienDocument']}"},
-  {"k":"LienApp","v":"https://apps.powerapps.com/play/..."}
-]
-
-replace(replace(replace(body('Tableau_relance'),
-'<table>','<table style="border-collapse:collapse;width:100%;font-size:13px;">'),
-'<th>','<th style="background:#5A2D82;color:#fff;padding:8px;text-align:left;">'),
-'<td>','<td style="border-bottom:1px solid #e5e5e5;padding:8px;">')
-
-
-
-reformule ca :
-Bonjour @{variables('varPrenomContributeur')},
-
-Il semblerait que vous n’ayez pas débuté ou fini votre contribution. @{outputs('Message_-_CorpsPrincipalEmail')}
-
-Dans le cadre de la revue @{outputs('Message_-_CorpsSecondaireEmail')}, le document ci-dessous (Lien du document ici), est mettre à jour par vos soins.
-@{outputs('Message_-_CSS')}
-Il vous est demandé de procéder à la mise à jour de ce document. Pour ce faire, nous vous invitons à vous connecter à l’application lien ici
-
-Nous restons à votre disposition.
-Bien cordialement.
-
-Equipe Gouvernance en charge des rapports réglementaires.
-Direction des Risques Groupe
-
-
-let
-    // ===== Paramètres : codes contrôle =====
-    ListRef = List.Buffer(
-        List.Distinct(List.RemoveNulls(List.Transform(pRefControle, Text.From)))
-    ),
-    ConditionsDAX = Text.Combine(
-        List.Transform(
-            List.Distinct(List.Transform(ListRef, each Text.Start(_, 15))),
-            each "SEARCH(""" & _ & """, 'Actions'[Nom de l'action], 1, 0) >= 1"
-        ),
-        " || "
-    ),
-    PrefixesRef = List.Distinct(
-        List.Transform(ListRef, each Text.BeforeDelimiter(_, ".") & ".")
-    ),
-
-    // ===== Paramètres : dates =====
-    DateMin = List.Min(List.RemoveNulls(
-        List.Transform(Table.Column(#"_data", "Date de début"), Date.From)
-    )),
-    DateMax = List.Max(List.RemoveNulls(
-        List.Transform(Table.Column(#"_data", "Date de fin"), Date.From)
-    )),
-    ToDAX = (d as date) as text =>
-        "DATE(" & Text.From(Date.Year(d)) & ", "
-                & Text.From(Date.Month(d)) & ", "
-                & Text.From(Date.Day(d)) & ")",
-    DateMinDAX = ToDAX(DateMin),
-    DateMaxDAX = ToDAX(DateMax),
-
-    // ===== Requête DAX =====
-    RequeteDAX = "DEFINE
-	VAR __DS0FilterTable = 
-		FILTER(
-			KEEPFILTERS(VALUES('Plans d actions'[Nom du plan])),
-			SEARCH(""sultat"", 'Plans d actions'[Nom du plan], 1, 0) >= 1
-		)
-
-	VAR __DS0FilterTable2 = 
-		FILTER(
-			KEEPFILTERS(VALUES('Actions'[Nom de l'action])),
-			" & ConditionsDAX & "
-		)
-
-	VAR __DS0FilterTable3 = 
-		FILTER(
-			KEEPFILTERS(VALUES('Actions'[Date de début])),
-			'Actions'[Date de début] >= " & DateMinDAX & "
-		)
-
-	VAR __DS0FilterTable4 = 
-		FILTER(
-			KEEPFILTERS(VALUES('Actions'[Date de fin])),
-			'Actions'[Date de fin] < (" & DateMaxDAX & " + TIME(0, 0, 1))
-		)
-
-	VAR __DS0Core = 
-		SELECTCOLUMNS(
-			KEEPFILTERS(
-				FILTER(
-					KEEPFILTERS(
-						SUMMARIZECOLUMNS(
-							'Plans d actions'[Nom du plan],
-							'Plans d actions'[Entité],
-							'Actions'[Nom de l'action],
-							'Plans d actions'[Entité niveau 4 (code)],
-							'Plans d actions'[Référence du plan],
-							'Actions'[Description],
-							'Actions'[Date de début],
-							'Actions'[Date de fin],
-							'Actions'[Date de fin révisée],
-							'Actions'[Date d'achèvement],
-							'Actions'[Statut de l'action],
-							__DS0FilterTable,
-							__DS0FilterTable2,
-							__DS0FilterTable3,
-							__DS0FilterTable4,
-							""CountRowsActions"", COUNTROWS('Actions')
-						)
-					),
-					OR(
-						OR(
-							OR(
-								OR(
-									OR(
-										OR(
-											OR(
-												OR(
-													OR(
-														OR(
-															NOT(ISBLANK('Plans d actions'[Nom du plan])),
-															NOT(ISBLANK('Plans d actions'[Entité]))
-														),
-														NOT(ISBLANK('Actions'[Nom de l'action]))
-													),
-													NOT(ISBLANK('Plans d actions'[Entité niveau 4 (code)]))
-												),
-												NOT(ISBLANK('Plans d actions'[Référence du plan]))
-											),
-											NOT(ISBLANK('Actions'[Description]))
-										),
-										NOT(ISBLANK('Actions'[Date de début]))
-									),
-									NOT(ISBLANK('Actions'[Date de fin]))
-								),
-								NOT(ISBLANK('Actions'[Date de fin révisée]))
-							),
-							NOT(ISBLANK('Actions'[Date d'achèvement]))
-						),
-						NOT(ISBLANK('Actions'[Statut de l'action]))
-					)
-				)
-			),
-			""'Plans d actions'[Nom du plan]"", 'Plans d actions'[Nom du plan],
-			""'Plans d actions'[Entité]"", 'Plans d actions'[Entité],
-			""'Actions'[Nom de l'action]"", 'Actions'[Nom de l'action],
-			""'Plans d actions'[Entité niveau 4 (code)]"", 'Plans d actions'[Entité niveau 4 (code)],
-			""'Plans d actions'[Référence du plan]"", 'Plans d actions'[Référence du plan],
-			""'Actions'[Description]"", 'Actions'[Description],
-			""'Actions'[Date de début]"", 'Actions'[Date de début],
-			""'Actions'[Date de fin]"", 'Actions'[Date de fin],
-			""'Actions'[Date de fin révisée]"", 'Actions'[Date de fin révisée],
-			""'Actions'[Date d'achèvement]"", 'Actions'[Date d'achèvement],
-			""'Actions'[Statut de l'action]"", 'Actions'[Statut de l'action]
-		)
-
-EVALUATE
-	__DS0Core
-",
-
-    Source = AnalysisServices.Database(pSSAS_Server, pSSAS_Database, [Query = RequeteDAX]),
-
-    // ===== Extraction des codes depuis le nom de l'action =====
-    ParseRefControle = Table.AddColumn(Source, "ListeCodes", each let
-        Prefixes = PrefixesRef,
-        Tokens =
-            Text.SplitAny([#"Actions[Nom de l'action]"], " ,;|-)"),
-        Candidats =
-            List.Select(
-                Tokens,
-                (x) =>
-                    List.AnyTrue(
-                        List.Transform(
-                            Prefixes,
-                            (p) => Text.StartsWith(x, p)
-                        )
-                    )
-            ),
-        CodesPropres =
-            List.Transform(
-                Candidats,
-                each Text.BeforeDelimiter(_, " ", 1)
-            )
-    in
-        CodesPropres),
-    AddZeroToMissing = Table.TransformColumns(
-        ParseRefControle,
-        {
-            "ListeCodes",
-            each
-                List.Transform(
-                    _,
-                    (x) =>
-                        if Text.Length(x) = 15
-                        then x & "0"
-                        else x
-                ),
-            type list
+{
+  "type": "Request",
+  "kind": "Button",
+  "inputs": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "john@bpce.fr;marie@bpce.fr",
+          "title": "Destinataires",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "text_1": {
+          "description": "Campagne ouverte — action requise",
+          "title": "ObjetMail",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "text_2": {
+          "description": "\"<table>…</table>\"",
+          "title": "CorpsHTML",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "text_3": {
+          "description": "\"<p>Veuillez consulter…</p>\"",
+          "title": "CorpsSecondaire",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "text_4": {
+          "description": "'[{\"k\":\"NomRapport\",\"v\":\"RACI 2025\"}]'",
+          "title": "Tokens",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "text_5": {
+          "description": "ID du rapport ou ID du chapitre",
+          "title": "IDRapport",
+          "type": "string",
+          "x-ms-content-hint": "TEXT",
+          "x-ms-dynamically-added": true
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "fullAddress": {
+              "title": "Full address",
+              "type": "string",
+              "x-ms-dynamically-added": false
+            },
+            "address": {
+              "type": "object",
+              "properties": {
+                "countryOrRegion": {
+                  "title": "Country/Region",
+                  "type": "string",
+                  "x-ms-dynamically-added": false
+                },
+                "city": {
+                  "title": "City",
+                  "type": "string",
+                  "x-ms-dynamically-added": false
+                },
+                "state": {
+                  "title": "State",
+                  "type": "string",
+                  "x-ms-dynamically-added": false
+                },
+                "street": {
+                  "title": "Street",
+                  "type": "string",
+                  "x-ms-dynamically-added": false
+                },
+                "postalCode": {
+                  "title": "Postal code",
+                  "type": "string",
+                  "x-ms-dynamically-added": false
+                }
+              },
+              "required": [
+                "countryOrRegion",
+                "city",
+                "state",
+                "street",
+                "postalCode"
+              ]
+            },
+            "coordinates": {
+              "type": "object",
+              "properties": {
+                "latitude": {
+                  "title": "Latitude",
+                  "type": "number",
+                  "x-ms-dynamically-added": false
+                },
+                "longitude": {
+                  "title": "Longitude",
+                  "type": "number",
+                  "x-ms-dynamically-added": false
+                }
+              },
+              "required": [
+                "latitude",
+                "longitude"
+              ]
+            }
+          }
+        },
+        "key-button-date": {
+          "title": "Date",
+          "type": "string",
+          "x-ms-dynamically-added": false
         }
-    ),
-    DeleteDotByTheEnd = Table.TransformColumns(
-        AddZeroToMissing,
-        {
-            "ListeCodes",
-            each
-                List.Transform(
-                    _,
-                    (x) =>
-                        if Text.EndsWith(x, ".")
-                        then Text.RemoveRange(x, Text.Length(x) - 1, 1)
-                        else x
-                ),
-            type list
-        }
-    ),
-    #"Expanded ListeCodes" = Table.ExpandListColumn(DeleteDotByTheEnd, "ListeCodes"),
-
-    // ===== Ne garder que les codes exacts de pRefControle =====
-    FiltreRef = Table.SelectRows(#"Expanded ListeCodes", each List.Contains(ListRef, [ListeCodes])),
-    Custom1 = FiltreRef,
-
-    #"Merged Queries" = Table.NestedJoin(Custom1, {"ListeCodes"}, CodeControlesPerimètre, {"Référence"}, "CodeControlesPerimètre", JoinKind.LeftOuter),
-    #"Expanded CodeControlesPerimètre" = Table.ExpandTableColumn(#"Merged Queries", "CodeControlesPerimètre", {"Contrôle"}, {"CodeControlesPerimètre.Contrôle"}),
-    #"Filtered Rows" = Table.SelectRows(#"Expanded CodeControlesPerimètre", each ([CodeControlesPerimètre.Contrôle] <> null)),
-    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "Key_PdA", each [#"Plans d actions[Entité niveau 4 (code)]"] & "-" & [ListeCodes])
-in
-    #"Added Custom"
-
-
-
-
-let
-    // Codes contrôle depuis pRefControle
-    ListRef = List.Buffer(
-        List.Distinct(List.RemoveNulls(List.Transform(pRefControle, Text.From)))
-    ),
-    ListeDAX = Text.Combine(List.Transform(ListRef, each """" & _ & """"), ", "),
-
-    // Dates depuis _data[Date de fin]
-    ListeDates = List.Sort(
-        List.Distinct(List.RemoveNulls(
-            List.Transform(Table.Column(#"_data", "Date de fin"), Date.From)
-        ))
-    ),
-    DatesDAX = Text.Combine(
-        List.Transform(ListeDates, each
-            "DATE(" & Text.From(Date.Year(_)) & ", "
-                    & Text.From(Date.Month(_)) & ", "
-                    & Text.From(Date.Day(_)) & ")"),
-        ", "
-    ),
-
-    RequeteDAX = "
-DEFINE
-    VAR __DS0FilterTable =
-        TREATAS({" & ListeDAX & "}, 'Contrôles'[Code du contrôle])
-
-    VAR __DS0FilterTable3 =
-        FILTER(
-            KEEPFILTERS(VALUES('Entités'[Entité niveau 4 (code)])),
-            SEARCH("".0001"", 'Entités'[Entité niveau 4 (code)], 1, 0) >= 1
-        )
-
-    VAR __DS0FilterTable4 =
-        TREATAS(
-            {" & DatesDAX & "},
-            'Evaluations des contrôles'[Date de fin de la période d'évaluation]
-        )
-
-    VAR __DS0Core =
-        SUMMARIZECOLUMNS(
-            ROLLUPADDISSUBTOTAL(
-                ROLLUPGROUP(
-                    'Feuilles de travail'[Référence],
-                    'Evaluations des contrôles'[Date de fin de la période d'évaluation],
-                    'Points de contrôles'[Code du point de contrôle]
-                ), ""IsGrandTotalRowTotal""
-            ),
-            __DS0FilterTable,
-            __DS0FilterTable3,
-            __DS0FilterTable4,
-            ""AverageIQC_du_contrôle"", CALCULATE(AVERAGE('Evaluations des contrôles'[IQC du contrôle]))
-        )
-
-EVALUATE
-    __DS0Core
-",
-
-    Source = AnalysisServices.Database(pSSAS_Server, pSSAS_Database, [Query = RequeteDAX]),
-
-    #"Renamed Columns" = Table.RenameColumns(Source, {
-        {"Feuilles de travail[Référence]", "Référence"},
-        {"Evaluations des contrôles[Date de fin de la période d'évaluation]", "Date de fin de la période d'évaluation"},
-        {"Points de contrôles[Code du point de contrôle]", "Code du point de contrôle"},
-        {"[AverageIQC_du_contrôle]", "IQC_du_contrôle"}
-    }),
-    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"[IsGrandTotalRowTotal]"}),
-    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [#"Date de fin de la période d'évaluation"] <> null),
-    #"Added Arrete" = Table.AddColumn(#"Filtered Rows", "Evaluation (trimestre)", each
-        "T" & Number.ToText(Date.QuarterOfYear([#"Date de fin de la période d'évaluation"]))
-        & " " & Number.ToText(Date.Year([#"Date de fin de la période d'évaluation"]))
-    ),
-    #"Added KEY" = Table.AddColumn(#"Added Arrete", "KEY", each
-        [Code du point de contrôle] & "-" & [#"Evaluation (trimestre)"] & "-" & [Référence]
-    )
-in
-    #"Added KEY"
+      },
+      "required": [
+        "text",
+        "text_1",
+        "text_2",
+        "text_3",
+        "text_4",
+        "text_5",
+        "location",
+        "key-button-date"
+      ]
+    }
+  },
+  "metadata": {
+    "operationMetadataId": "70966ec8-56c3-45a3-88cb-b79c3ad122ae"
+  }
+}
