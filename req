@@ -1,255 +1,44 @@
-<!-- Gabarit email de relance – DRG_04_Notification
-     Placeholders remplacés via Tokens : {{Prenom}} {{Echeance}} {{LienDocument}} {{LienApp}}
-     Champs du déclencheur : text_2 = CorpsHTML (tableau), text_3 = CorpsSecondaire (nom de la revue) -->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#EEEAF2;">
-<tr><td align="center" style="padding:32px 12px;">
-
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#FFFFFF;border-collapse:separate;">
-
-  <!-- Bandeau -->
-  <tr><td style="background:#3E1A5B;padding:28px 40px 26px;">
-    <p style="margin:0 0 14px;font-family:'Segoe UI',Arial,sans-serif;font-size:12px;color:#C9B6DC;letter-spacing:0.3px;">Direction des Risques Groupe</p>
-    <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:32px;color:#FFFFFF;">Votre contribution est attendue</p>
-  </td></tr>
-  <tr><td style="background:#7A3FA8;height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
-
-  <!-- Introduction -->
-  <tr><td style="padding:36px 40px 8px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Bonjour {{Prenom}},</p>
-    <p style="margin:0 0 16px;">Sauf erreur de notre part, votre contribution à la revue <strong style="color:#3E1A5B;">@{triggerBody()?['text_3']}</strong> n’a pas encore été débutée ou finalisée.</p>
-  </td></tr>
-
-  <!-- Échéance -->
-  <tr><td style="padding:8px 40px 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="6" style="background:#C2410C;font-size:0;">&nbsp;</td>
-        <td style="background:#FFF4EC;padding:18px 22px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 4px;font-size:13px;color:#9A3412;">Date limite de mise à jour</p>
-          <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:30px;color:#7C2D12;">{{Echeance}}</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Tableau des contributions -->
-  <tr><td style="padding:0 40px 8px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 12px;font-size:15px;font-weight:600;color:#2A2230;">Éléments en attente de votre part</p>
-    @{triggerBody()?['text_2']}
-  </td></tr>
-
-  <!-- Étapes -->
-  <tr><td style="padding:28px 40px 4px;font-family:'Segoe UI',Arial,sans-serif;">
-    <p style="margin:0 0 14px;font-size:15px;font-weight:600;color:#2A2230;">Comment faire</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">1</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Ouvrez l’application avec le bouton ci-dessous.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top" style="padding:0 0 14px;"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">2</div></td>
-        <td valign="top" style="padding:3px 0 14px;font-size:14px;line-height:21px;color:#4A4250;">Sélectionnez la revue concernée et complétez chaque élément en attente.</td>
-      </tr>
-      <tr>
-        <td width="34" valign="top"><div style="width:26px;height:26px;line-height:26px;border-radius:13px;background:#EFE6F6;color:#3E1A5B;font-size:13px;font-weight:700;text-align:center;">3</div></td>
-        <td valign="top" style="padding:3px 0 0;font-size:14px;line-height:21px;color:#4A4250;">Validez votre contribution pour la transmettre à l’équipe Gouvernance.</td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Boutons -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td style="background:#3E1A5B;border-radius:4px;">
-          <a href="{{LienApp}}" style="display:inline-block;padding:14px 30px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;font-weight:600;color:#FFFFFF;text-decoration:none;">Mettre à jour ma contribution</a>
-        </td>
-      </tr>
-    </table>
-    <p style="margin:16px 0 0;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;">
-      <a href="{{LienDocument}}" style="color:#6B2E96;text-decoration:underline;">Consulter le document de référence</a>
-    </p>
-  </td></tr>
-
-  <!-- Pièce jointe -->
-  <tr><td style="padding:28px 40px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4DCEB;">
-      <tr>
-        <td width="56" align="center" valign="middle" style="background:#F7F3FA;padding:16px 0;font-size:22px;">📎</td>
-        <td style="padding:14px 18px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0 0 2px;font-size:14px;font-weight:600;color:#2A2230;">Mode opératoire en pièce jointe</p>
-          <p style="margin:0;font-size:13px;line-height:19px;color:#6B6570;">Le guide joint détaille chaque écran de l’application, de la connexion à la validation.</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Clôture -->
-  <tr><td style="padding:28px 40px 32px;font-family:'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#2A2230;">
-    <p style="margin:0 0 16px;">Nous restons à votre disposition pour toute question.</p>
-    <p style="margin:0;">Bien cordialement,</p>
-  </td></tr>
-
-  <!-- Signature -->
-  <tr><td style="padding:0 40px 32px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td width="3" style="background:#7A3FA8;font-size:0;">&nbsp;</td>
-        <td style="padding:2px 0 2px 14px;font-family:'Segoe UI',Arial,sans-serif;">
-          <p style="margin:0;font-size:14px;font-weight:600;color:#3E1A5B;">Équipe Gouvernance des rapports réglementaires</p>
-          <p style="margin:2px 0 0;font-size:13px;color:#6B6570;">Direction des Risques Groupe</p>
-        </td>
-      </tr>
-    </table>
-  </td></tr>
-
-  <!-- Pied -->
-  <tr><td style="background:#F7F5F9;padding:16px 40px;font-family:'Segoe UI',Arial,sans-serif;font-size:11px;line-height:16px;color:#8A8390;">
-    Message envoyé automatiquement. Vous le recevez car une contribution vous est attribuée dans le cadre de cette revue.
-  </td></tr>
-
-</table>
-</td></tr>
-</table>
-
-_____
-
-
-
-{
-  "type": "Request",
-  "kind": "Button",
-  "inputs": {
-    "schema": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "description": "john@bpce.fr;marie@bpce.fr",
-          "title": "Destinataires",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "text_1": {
-          "description": "Campagne ouverte — action requise",
-          "title": "ObjetMail",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "text_2": {
-          "description": "\"<table>…</table>\"",
-          "title": "CorpsHTML",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "text_3": {
-          "description": "\"<p>Veuillez consulter…</p>\"",
-          "title": "CorpsSecondaire",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "text_4": {
-          "description": "'[{\"k\":\"NomRapport\",\"v\":\"RACI 2025\"}]'",
-          "title": "Tokens",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "text_5": {
-          "description": "ID du rapport ou ID du chapitre",
-          "title": "IDRapport",
-          "type": "string",
-          "x-ms-content-hint": "TEXT",
-          "x-ms-dynamically-added": true
-        },
-        "location": {
-          "type": "object",
-          "properties": {
-            "fullAddress": {
-              "title": "Full address",
-              "type": "string",
-              "x-ms-dynamically-added": false
-            },
-            "address": {
-              "type": "object",
-              "properties": {
-                "countryOrRegion": {
-                  "title": "Country/Region",
-                  "type": "string",
-                  "x-ms-dynamically-added": false
-                },
-                "city": {
-                  "title": "City",
-                  "type": "string",
-                  "x-ms-dynamically-added": false
-                },
-                "state": {
-                  "title": "State",
-                  "type": "string",
-                  "x-ms-dynamically-added": false
-                },
-                "street": {
-                  "title": "Street",
-                  "type": "string",
-                  "x-ms-dynamically-added": false
-                },
-                "postalCode": {
-                  "title": "Postal code",
-                  "type": "string",
-                  "x-ms-dynamically-added": false
-                }
-              },
-              "required": [
-                "countryOrRegion",
-                "city",
-                "state",
-                "street",
-                "postalCode"
-              ]
-            },
-            "coordinates": {
-              "type": "object",
-              "properties": {
-                "latitude": {
-                  "title": "Latitude",
-                  "type": "number",
-                  "x-ms-dynamically-added": false
-                },
-                "longitude": {
-                  "title": "Longitude",
-                  "type": "number",
-                  "x-ms-dynamically-added": false
-                }
-              },
-              "required": [
-                "latitude",
-                "longitude"
-              ]
-            }
-          }
-        },
-        "key-button-date": {
-          "title": "Date",
-          "type": "string",
-          "x-ms-dynamically-added": false
-        }
-      },
-      "required": [
-        "text",
-        "text_1",
-        "text_2",
-        "text_3",
-        "text_4",
-        "text_5",
-        "location",
-        "key-button-date"
-      ]
-    }
-  },
-  "metadata": {
-    "operationMetadataId": "70966ec8-56c3-45a3-88cb-b79c3ad122ae"
-  }
-}
+🗄️ Data (SharePoint ou Dataverse)
+Campagne : trimestre, dates d’ouverture et de clôture, statut
+Dossier (Population) : clé Trimestre|Onglet|TiersLocal, établissement, indicateurs agrégés, nb de lignes de détail, « présente aussi dans », statut, dates
+Question : socle commun + question spécifique par onglet, ordre, obligatoire oui/non
+Réponse : dossier, question, valeur, commentaire, auteur, date
+Échange : fil des messages (dossier, émetteur, sens Direction ↔ Établissement, message, date)
+Établissement (référentiel) : code, nom, groupe AD, mails des correspondants
+Direction : liste nominative des utilisateurs (pas de groupe AD de ce côté)
+Paramètres : délai de relance, URL du PBI, etc.
+Bibliothèque PJ : un dossier par dossier de contrôle
+Pour la volumétrie : index sur Établissement, Campagne et Statut
+📊 Power BI
+Requête DAX d’agrégation : passage du grain détail au grain dossier, utilisée par le flow de chargement
+Page de détail avec filtre par URL sur le tiers local (le lien « voir le détail » ouvert depuis l’app)
+Nouvelles sources : les listes Dossier et Réponse
+Pages de suivi : taux de réponse, taux de conformité par établissement et par onglet, dossiers en retard, délai moyen de réponse
+RLS par établissement, si le PBI est diffusé aux établissements
+📱 Power Apps
+Gestion du profil au démarrage : Direction (liste nominative) ou Établissement (groupe AD), et périmètre visible
+Écrans :
+Accueil avec compteurs (à traiter, en attente, clôturés)
+Liste Direction : filtres, sélection multiple, interrogation en masse
+« Mes dossiers » côté Établissement
+Fiche dossier : en-tête agrégé, lien PBI, questionnaire dynamique, fil d’échanges, PJ
+Admin : campagnes, questions, référentiel établissements
+Composants réutilisables : en-tête, badge de statut, fil de messages, panneau de filtres
+Règles de gestion :
+transitions de statut
+commentaire obligatoire si non conforme
+verrouillage du dossier après clôture
+un établissement ne voit que ses propres dossiers
+⚡ Power Automate
+Chargement de campagne (manuel ou trimestriel) : requête DAX, upsert des dossiers, création des dossiers PJ
+Interrogation (une ou plusieurs questions, appelée depuis l’app) : mise à jour du statut et mail à l’établissement
+Notification de réponse : mail à la Direction
+Relance planifiée (quotidienne) : dossiers sans réponse au-delà de X jours
+Clôture de campagne : figer les statuts, archiver, rafraîchir le dataset PBI
+🔧 Transverse
+Une solution unique
+Variables d’environnement (sites, listes, URL PBI)
+Références de connexion
+Environnements DEV et PROD
+Droits SharePoint
+Documentation RUN, déjà prévue dans ton suivi de projets
