@@ -1,3 +1,155 @@
+
+let
+    // URL du site SharePoint
+    SiteURL = "https://entreprise.sharepoint.com/sites/MonSite",
+
+    // Toutes les listes et bibliothèques du site
+    Source = SharePoint.Tables(
+        SiteURL,
+        [ApiVersion = 15]
+    ),
+
+    // Extraction des métadonnées des documents
+    Extraction = Table.AddColumn(
+        Source,
+        "Documents",
+        each
+            let
+                NomBibliotheque = [Title],
+                Donnees = try [Items] otherwise null,
+
+                Resultat =
+                    if Donnees = null then
+                        #table({}, {})
+                    else
+                        let
+                            AvecBibliotheque = Table.AddColumn(
+                                Donnees,
+                                "Bibliothèque",
+                                each NomBibliotheque,
+                                type text
+                            ),
+
+                            Colonnes = Table.SelectColumns(
+                                AvecBibliotheque,
+                                {
+                                    "Bibliothèque",
+                                    "FileLeafRef",
+                                    "FileRef",
+                                    "FileDirRef",
+                                    "FSObjType",
+                                    "Modified",
+                                    "Editor",
+                                    "FieldValuesAsText"
+                                },
+                                MissingField.UseNull
+                            )
+                        in
+                            Colonnes
+            in
+                Resultat
+    ),
+
+    // Consolidation
+    Consolidation = Table.Combine(Extraction[Documents]),
+
+    // Conserver uniquement les fichiers (pas les dossiers)
+    Fichiers = Table.SelectRows(
+        Consolidation,
+        each
+            let
+                TypeObjet = try Number.From([FSObjType]) otherwise null
+            in
+                TypeObjet = 0
+                and [FileLeafRef] <> null
+                and [FileRef] <> null
+    ),
+
+    // Fonction d'extraction du nom du modificateur
+    NomPersonne = (valeur as any, texte as any) as nullable text =>
+        let
+            Nom =
+                if Value.Is(valeur, type record) then
+                    Record.FieldOrDefault(
+                        valeur,
+                        "title",
+                        Record.FieldOrDefault(valeur, "Title", null)
+                    )
+                else if Value.Is(valeur, type table) then
+                    try valeur{0}[title] otherwise null
+                else if Value.Is(valeur, type list) then
+                    try valeur{0}[title] otherwise null
+                else if Value.Is(valeur, type text) then
+                    valeur
+                else
+                    null,
+
+            NomTexte =
+                if Value.Is(texte, type record) then
+                    Record.FieldOrDefault(texte, "Editor", null)
+                else
+                    null,
+
+            Resultat =
+                if Nom <> null then Text.From(Nom)
+                else if NomTexte <> null then Text.From(NomTexte)
+                else null
+        in
+            Resultat,
+
+    // Récupération du dernier modificateur
+    AjoutModificateur = Table.AddColumn(
+        Fichiers,
+        "Modifié par",
+        each NomPersonne([Editor], [FieldValuesAsText]),
+        type text
+    ),
+
+    // Lien direct du document
+    AjoutLien = Table.AddColumn(
+        AjoutModificateur,
+        "Lien document",
+        each
+            Uri.Parts(SiteURL)[Scheme]
+            & "://"
+            & Uri.Parts(SiteURL)[Host]
+            & [FileRef],
+        type text
+    ),
+
+    // Sélection des colonnes finales
+    Selection = Table.SelectColumns(
+        AjoutLien,
+        {
+            "Bibliothèque",
+            "FileLeafRef",
+            "Modified",
+            "Modifié par",
+            "FileDirRef",
+            "Lien document"
+        }
+    ),
+
+    // Renommage
+    Renommage = Table.RenameColumns(
+        Selection,
+        {
+            {"FileLeafRef", "Document"},
+            {"Modified", "Dernière modification"},
+            {"FileDirRef", "Répertoire"}
+        }
+    ),
+
+    // Tri des modifications récentes
+    Tri = Table.Sort(
+        Renommage,
+        {{"Dernière modification", Order.Descending}}
+    )
+in
+    Tri
+
+
+
 🗄️ Data (SharePoint ou Dataverse)
 Campagne : trimestre, dates d’ouverture et de clôture, statut
 Dossier (Population) : clé Trimestre|Onglet|TiersLocal, établissement, indicateurs agrégés, nb de lignes de détail, « présente aussi dans », statut, dates
