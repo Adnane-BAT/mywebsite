@@ -412,8 +412,8 @@
           Y: =334
           Width: =518
           Height: =64
-          Default: =""
-          HintText: ="Précisions, critères de sortie…"
+          Default: =varCommentaire
+          HintText: ="Cliquer pour saisir en plein écran…"
           Size: =11
           Font: =Font.'Segoe UI'
           Color: =RGBA(30, 27, 46, 1)
@@ -428,6 +428,25 @@
           RadiusBottomRight: =8
           PaddingLeft: =10
           Mode: =TextMode.MultiLine
+    - btnOuvrirCommentaire:
+        Control: Classic/Button@2.2.0
+        Properties:
+          Text: =""
+          X: =14
+          Y: =334
+          Width: =518
+          Height: =64
+          OnSelect: =Reset(txtCommentaireGrand); Set(varPopupCommentaire, true)
+          Fill: =RGBA(255, 255, 255, 0)
+          HoverFill: =RGBA(124, 58, 237, 0.05)
+          PressedFill: =RGBA(124, 58, 237, 0.1)
+          BorderThickness: =0
+          HoverBorderColor: =RGBA(167, 139, 250, 1)
+          BorderColor: =RGBA(255, 255, 255, 0)
+          RadiusTopLeft: =8
+          RadiusTopRight: =8
+          RadiusBottomLeft: =8
+          RadiusBottomRight: =8
     - lblElements:
         Control: Label@2.5.1
         Properties:
@@ -851,7 +870,7 @@
                     ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Contrat, Statut: r.Statut.Value}));
                     Notify("Plan d'action soumis : " & CountRows(colSelection) & " contrat(s).", NotificationType.Success);
                     Clear(colSelection);
-                    Reset(txtLibelle); Reset(dpEcheance); Reset(txtAvancement); Reset(txtCommentaire); Reset(chkTous);
+                    Set(varCommentaire, Blank()); Reset(txtLibelle); Reset(dpEcheance); Reset(txtAvancement); Reset(txtCommentaire); Reset(chkTous);
                     PowerBIIntegration.Refresh()
                 )
             )
@@ -869,3 +888,172 @@
           Size: =11
           FontWeight: =FontWeight.Semibold
           Font: =Font.'Segoe UI'
+    - conPopupCommentaire:
+        Control: GroupContainer@1.5.0
+        Variant: ManualLayout
+        Properties:
+          X: =0
+          Y: =0
+          Width: =Parent.Width
+          Height: =Parent.Height
+          Fill: =RGBA(30, 27, 46, 0.55)
+          BorderColor: =RGBA(30, 27, 46, 1)
+          BorderThickness: =0
+          RadiusTopLeft: =0
+          RadiusTopRight: =0
+          RadiusBottomLeft: =0
+          RadiusBottomRight: =0
+          DropShadow: =DropShadow.None
+          Visible: =varPopupCommentaire
+        Children:
+        - conPopupCarte:
+            Control: GroupContainer@1.5.0
+            Variant: ManualLayout
+            Properties:
+              X: =14
+              Y: =24
+              Width: =518
+              Height: =742
+              Fill: =RGBA(255, 255, 255, 1)
+              BorderColor: =RGBA(221, 208, 250, 1)
+              BorderThickness: =1
+              RadiusTopLeft: =16
+              RadiusTopRight: =16
+              RadiusBottomLeft: =16
+              RadiusBottomRight: =16
+              DropShadow: =DropShadow.None
+            Children:
+            - lblPopupTitre:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="Commentaire"
+                  X: =20
+                  Y: =14
+                  Width: =400
+                  Height: =30
+                  Size: =16
+                  Color: =RGBA(46, 16, 101, 1)
+                  FontWeight: =FontWeight.Bold
+                  Align: =Align.Left
+                  Font: =Font.'Segoe UI'
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  VerticalAlign: =VerticalAlign.Middle
+            - lblPopupSousTitre:
+                Control: Label@2.5.1
+                Properties:
+                  Text: ="Plan d'action — " & First(PowerBIIntegration.Data).Volet
+                  X: =20
+                  Y: =44
+                  Width: =400
+                  Height: =20
+                  Size: =11
+                  Color: =RGBA(109, 40, 217, 1)
+                  FontWeight: =FontWeight.Normal
+                  Align: =Align.Left
+                  Font: =Font.'Segoe UI'
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  VerticalAlign: =VerticalAlign.Middle
+            - icoPopupFermer:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  Icon: =Icon.Cancel
+                  X: =472
+                  Y: =18
+                  Width: =28
+                  Height: =28
+                  Color: =RGBA(95, 90, 114, 1)
+                  OnSelect: =Set(varPopupCommentaire, false)
+            - txtCommentaireGrand:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  X: =20
+                  Y: =76
+                  Width: =478
+                  Height: =576
+                  Default: =varCommentaire
+                  HintText: ="Précisions, critères de sortie, prochaines étapes…"
+                  Size: =11
+                  Font: =Font.'Segoe UI'
+                  Color: =RGBA(30, 27, 46, 1)
+                  BorderColor: =RGBA(217, 211, 232, 1)
+                  HoverBorderColor: =RGBA(167, 139, 250, 1)
+                  FocusedBorderColor: =RGBA(124, 58, 237, 1)
+                  BorderThickness: =1
+                  FocusedBorderThickness: =2
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  PaddingLeft: =10
+                  Mode: =TextMode.MultiLine
+                  PaddingTop: =10
+            - lblPopupCompteur:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =Len(txtCommentaireGrand.Text) & " caractères"
+                  X: =20
+                  Y: =658
+                  Width: =200
+                  Height: =20
+                  Size: =10
+                  Color: =RGBA(95, 90, 114, 1)
+                  FontWeight: =FontWeight.Normal
+                  Align: =Align.Left
+                  Font: =Font.'Segoe UI'
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  PaddingBottom: =0
+                  VerticalAlign: =VerticalAlign.Middle
+            - btnPopupAnnuler:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Annuler"
+                  X: =196
+                  Y: =684
+                  Width: =140
+                  Height: =42
+                  OnSelect: =Set(varPopupCommentaire, false)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Color: =RGBA(76, 29, 149, 1)
+                  BorderColor: =RGBA(201, 184, 242, 1)
+                  BorderThickness: =1
+                  HoverFill: =RGBA(243, 238, 253, 1)
+                  HoverColor: =RGBA(76, 29, 149, 1)
+                  PressedFill: =RGBA(233, 223, 252, 1)
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Font: =Font.'Segoe UI'
+            - btnPopupValider:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="✓  Valider"
+                  X: =344
+                  Y: =684
+                  Width: =154
+                  Height: =42
+                  OnSelect: =Set(varCommentaire, txtCommentaireGrand.Text); Reset(txtCommentaire); Set(varPopupCommentaire, false)
+                  Fill: =RGBA(76, 29, 149, 1)
+                  Color: =RGBA(255, 255, 255, 1)
+                  BorderColor: =RGBA(76, 29, 149, 1)
+                  BorderThickness: =1
+                  HoverFill: =RGBA(91, 33, 182, 1)
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  PressedFill: =RGBA(59, 15, 122, 1)
+                  RadiusTopLeft: =10
+                  RadiusTopRight: =10
+                  RadiusBottomLeft: =10
+                  RadiusBottomRight: =10
+                  Size: =11
+                  FontWeight: =FontWeight.Semibold
+                  Font: =Font.'Segoe UI'
