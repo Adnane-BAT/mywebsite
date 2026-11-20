@@ -775,25 +775,26 @@ Screens:
                         Height: =1
                         Width: =Parent.TemplateWidth
                         Y: =Parent.TemplateHeight - 1
-            - btnOuvrirApp:
-                Control: Classic/Button@2.2.0
+            - lblListeVide:
+                Control: Label@2.5.1
                 Properties:
-                  BorderColor: =RGBA(201, 184, 242, 1)
-                  BorderThickness: =1
-                  Color: =RGBA(76, 29, 149, 1)
-                  Fill: =RGBA(255, 255, 255, 1)
+                  Align: =Align.Center
+                  Color: =RGBA(95, 90, 114, 1)
                   Font: =Font.'Segoe UI'
-                  Height: =44
-                  HoverColor: =RGBA(76, 29, 149, 1)
-                  HoverFill: =RGBA(243, 238, 253, 1)
-                  OnSelect: =Launch("https://apps.powerapps.com/play/e/<ENVIRONMENT_ID>/a/<APP_ID>")
-                  PressedFill: =RGBA(233, 223, 252, 1)
+                  FontItalic: =true
+                  Height: =60
                   Size: =11
-                  Text: ="↗  Ouvrir l'app"
-                  Width: =150
+                  Text: |-
+                    =If(
+                        CountRows(PowerBIIntegration.Data) = 0,
+                        "Aucune donnée reçue de Power BI. Vérifie les filtres du rapport.",
+                        "Aucun contrat " & Switch(Coalesce(varOnglet, "À traiter"), "À traiter", "à traiter", "Soumis", "soumis", "Validé", "validé", "") & " pour le moment."
+                    )
+                  Visible: =CountRows(galElements.AllItems) = 0
+                  Width: =522
                   X: =12
-                  Y: =724
-            - btnValidationMasse:
+                  Y: =560
+            - btnOuvrirApp:
                 Control: Classic/Button@2.2.0
                 Properties:
                   BorderColor: =RGBA(201, 184, 242, 1)
@@ -806,38 +807,44 @@ Screens:
                   HoverFill: =RGBA(243, 238, 253, 1)
                   OnSelect: |-
                     =With(
-                        {aValider: Filter(colSelection As s, LookUp(colStatuts As st, st.Contrat = s.Contrat).Statut = "Soumis")},
+                        {url: "https://apps.powerapps.com/play/e/<ENVIRONMENT_ID>/a/<APP_ID>"},
                         If(
-                            CountRows(aValider) = 0,
-                            Notify("Aucun contrat au statut « Soumis » dans la sélection.", NotificationType.Warning),
-                            ForAll(
-                                aValider As s,
-                                With(
-                                    {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
-                                    Patch(
-                                        CP_HistoriqueStatuts,
-                                        Defaults(CP_HistoriqueStatuts),
-                                        {
-                                            Titre: s.Contrat,
-                                            AncienStatut: "Soumis",
-                                            NouveauStatut: "Validé",
-                                            TypeAction: {Value: "Validation de masse"},
-                                            PlanActionID: c.DernierPlanID,
-                                            Commentaire: txtCommentaire.Text
-                                        }
-                                    );
-                                    Patch(CP_SuiviContrats, c, {Statut: {Value: "Validé"}, ValideParEmail: User().Email, DateValidation: Now()})
-                                )
-                            );
-                            Notify(
-                                CountRows(aValider) & " contrat(s) validé(s)" &
-                                If(CountRows(colSelection) > CountRows(aValider), " — " & (CountRows(colSelection) - CountRows(aValider)) & " ignoré(s) (pas au statut Soumis)", ""),
-                                NotificationType.Success
-                            );
-                            ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value}));
-                            Clear(colSelection);
-                            Reset(chkTous);
-                            PowerBIIntegration.Refresh()
+                            Find("<", url) > 0,
+                            Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Lien non configuré", Message: "L'adresse de l'application complète n'a pas encore été renseignée.", Details: "Remplacer <ENVIRONMENT_ID> et <APP_ID> dans la propriété OnSelect du bouton « Ouvrir l'app ».", Action: ""}),
+                            IfError(
+                                Launch(url),
+                                Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Ouverture impossible", Message: "L'application n'a pas pu être ouverte.", Details: FirstError.Message, Action: ""})
+                            )
+                        )
+                    )
+                  PressedFill: =RGBA(233, 223, 252, 1)
+                  Size: =11
+                  Text: ="↗  Ouvrir l'app"
+                  Width: =150
+                  X: =12
+                  Y: =724
+            - btnValidationMasse:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(201, 184, 242, 1)
+                  BorderThickness: =1
+                  DisplayMode: =If(varEnCours, DisplayMode.Disabled, DisplayMode.Edit)
+                  Color: =RGBA(76, 29, 149, 1)
+                  DisabledFill: =RGBA(241, 238, 248, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =44
+                  HoverColor: =RGBA(76, 29, 149, 1)
+                  HoverFill: =RGBA(243, 238, 253, 1)
+                  OnSelect: |-
+                    =If(
+                        CountRows(colSelection) = 0,
+                        Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Aucune sélection", Message: "Sélectionne au moins un contrat au statut « Soumis » à valider.", Details: "", Action: ""}),
+                        ClearCollect(colAValider, Filter(colSelection As s, LookUp(colStatuts As st, st.Contrat = s.Contrat).Statut = "Soumis"));
+                        If(
+                            CountRows(colAValider) = 0,
+                            Set(varMsg, {Visible: true, Type: "Avertissement", Titre: "Rien à valider", Message: "Aucun contrat de la sélection n'est au statut « Soumis ». Seuls les contrats soumis peuvent être validés.", Details: Concat(colSelection As s, "• " & s.Contrat & " : " & Coalesce(LookUp(colStatuts As st, st.Contrat = s.Contrat).Statut, "À traiter"), Char(10)), Action: ""}),
+                            Set(varMsg, {Visible: true, Type: "Confirmation", Titre: "Confirmer la validation", Message: "Valider " & CountRows(colAValider) & " contrat(s) ? Cette action est définitive." & If(CountRows(colSelection) > CountRows(colAValider), " " & (CountRows(colSelection) - CountRows(colAValider)) & " contrat(s) de la sélection seront ignorés (pas au statut « Soumis »).", ""), Details: Concat(colAValider, "• " & Contrat, Char(10)), Action: "VALIDATION_MASSE"})
                         )
                     )
                   PressedFill: =RGBA(233, 223, 252, 1)
@@ -851,7 +858,9 @@ Screens:
                 Properties:
                   BorderColor: =RGBA(76, 29, 149, 1)
                   BorderThickness: =1
+                  DisplayMode: =If(varEnCours, DisplayMode.Disabled, DisplayMode.Edit)
                   Color: =RGBA(255, 255, 255, 1)
+                  DisabledFill: =RGBA(167, 139, 250, 1)
                   Fill: =RGBA(76, 29, 149, 1)
                   Font: =Font.'Segoe UI'
                   Height: =44
@@ -859,55 +868,140 @@ Screens:
                   HoverFill: =RGBA(91, 33, 182, 1)
                   OnSelect: |-
                     =With(
-                        {volet: First(PowerBIIntegration.Data).Volet},
-                        If(
-                            IsBlank(Trim(txtLibelle.Text)) || IsBlank(dpEcheance.SelectedDate) || CountRows(colSelection) = 0,
-                            Notify("Renseigne le libellé, l'échéance et sélectionne au moins un contrat.", NotificationType.Error),
-                            Set(
-                                varPlan,
-                                Patch(
-                                    CP_PlansAction,
-                                    Defaults(CP_PlansAction),
-                                    {
-                                        Titre: txtLibelle.Text,
-                                        Volet: {Value: volet},
-                                        Echeance: dpEcheance.SelectedDate,
-                                        Avancement: Value(txtAvancement.Text),
-                                        Commentaire: txtCommentaire.Text,
-                                        StatutPlan: {Value: "Soumis"},
-                                        NbContrats: CountRows(colSelection),
-                                        ContratsConcernes: Concat(colSelection, Contrat, "; ")
-                                    }
+                        {
+                            volet: First(PowerBIIntegration.Data).Volet,
+                            libelle: Trim(txtLibelle.Text),
+                            avancement: IfError(Value(txtAvancement.Text), -1),
+                            dejaTraites: Filter(colSelection As s, LookUp(colStatuts As st, st.Contrat = s.Contrat).Statut in ["Soumis", "Validé"])
+                        },
+                        With(
+                            {
+                                erreurs: Filter(
+                                    Table(
+                                        {e: If(IsBlank(volet), "Aucune donnée reçue de Power BI : le volet est introuvable.")},
+                                        {e: If(IsBlank(libelle), "Le libellé du plan d'action est obligatoire.")},
+                                        {e: If(Len(libelle) > 255, "Le libellé dépasse 255 caractères (" & Len(libelle) & ").")},
+                                        {e: If(IsBlank(dpEcheance.SelectedDate), "L'échéance est obligatoire.")},
+                                        {e: If(!IsBlank(dpEcheance.SelectedDate) && dpEcheance.SelectedDate < Today(), "L'échéance ne peut pas être antérieure à aujourd'hui.")},
+                                        {e: If(IsBlank(Trim(txtAvancement.Text)) || avancement < 0 || avancement > 100, "L'avancement doit être un nombre entre 0 et 100.")},
+                                        {e: If(CountRows(colSelection) = 0, "Sélectionne au moins un contrat.")},
+                                        {e: If(CountRows(dejaTraites) > 0, CountRows(dejaTraites) & " contrat(s) déjà soumis ou validé(s) : " & Concat(dejaTraites, Contrat, ", "))}
+                                    ),
+                                    !IsBlank(e)
                                 )
-                            );
-                            ForAll(
-                                colSelection As s,
-                                With(
-                                    {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
-                                    Patch(
-                                        CP_HistoriqueStatuts,
-                                        Defaults(CP_HistoriqueStatuts),
-                                        {
-                                            Titre: s.Contrat,
-                                            AncienStatut: Coalesce(c.Statut.Value, "À traiter"),
-                                            NouveauStatut: "Soumis",
-                                            TypeAction: {Value: "Soumission"},
-                                            PlanActionID: varPlan.ID,
-                                            Commentaire: txtCommentaire.Text
-                                        }
-                                    );
-                                    If(
-                                        IsBlank(c),
-                                        Patch(CP_SuiviContrats, Defaults(CP_SuiviContrats), {Titre: s.Contrat, Volet: {Value: volet}, Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID}),
-                                        Patch(CP_SuiviContrats, c, {Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID})
+                            },
+                            If(
+                                CountRows(erreurs) > 0,
+                                Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Soumission impossible", Message: "Corrige les points suivants avant de soumettre :", Details: Concat(erreurs, "• " & e, Char(10)), Action: ""}),
+
+                                Set(varEnCours, true);
+                                Clear(colErreurs);
+                                Clear(colOK);
+
+                                // 1. Création du plan d'action
+                                Set(
+                                    varPlan,
+                                    IfError(
+                                        Patch(
+                                            CP_PlansAction,
+                                            Defaults(CP_PlansAction),
+                                            {
+                                                Titre: libelle,
+                                                Volet: {Value: volet},
+                                                Echeance: dpEcheance.SelectedDate,
+                                                Avancement: avancement,
+                                                Commentaire: txtCommentaire.Text,
+                                                StatutPlan: {Value: "Soumis"},
+                                                NbContrats: CountRows(colSelection),
+                                                ContratsConcernes: Concat(colSelection, Contrat, "; ")
+                                            }
+                                        ),
+                                        Blank()
                                     )
-                                )
-                            );
-                            ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value}));
-                            Notify("Plan d'action soumis : " & CountRows(colSelection) & " contrat(s).", NotificationType.Success);
-                            Clear(colSelection);
-                            Set(varCommentaire, Blank()); Reset(txtLibelle); Reset(dpEcheance); Reset(txtAvancement); Reset(txtCommentaire); Reset(chkTous);
-                            PowerBIIntegration.Refresh()
+                                );
+
+                                If(
+                                    IsBlank(varPlan),
+                                    Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Échec de la création du plan", Message: "Le plan d'action n'a pas été enregistré. Aucun contrat n'a été modifié.", Details: Coalesce(First(Errors(CP_PlansAction)).Message, "Erreur inconnue : vérifie ta connexion et tes droits sur la liste CP_PlansAction."), Action: ""}),
+
+                                    // 2. Mise à jour de chaque contrat (statut relu côté SharePoint)
+                                    ForAll(
+                                        colSelection As s,
+                                        With(
+                                            {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
+                                            If(
+                                                !IsBlank(c) && c.Statut.Value in ["Soumis", "Validé"],
+                                                Collect(colErreurs, {Contrat: s.Contrat, Message: "déjà au statut « " & c.Statut.Value & " » (modifié entre-temps par un autre utilisateur)."}),
+                                                IfError(
+                                                    If(
+                                                        IsBlank(c),
+                                                        Patch(CP_SuiviContrats, Defaults(CP_SuiviContrats), {Titre: s.Contrat, Volet: {Value: volet}, Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID}),
+                                                        Patch(CP_SuiviContrats, c, {Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID})
+                                                    ),
+                                                    Collect(colErreurs, {Contrat: s.Contrat, Message: "statut non mis à jour : " & FirstError.Message}),
+                                                    Patch(
+                                                        CP_HistoriqueStatuts,
+                                                        Defaults(CP_HistoriqueStatuts),
+                                                        {
+                                                            Titre: s.Contrat,
+                                                            AncienStatut: Coalesce(c.Statut.Value, "À traiter"),
+                                                            NouveauStatut: "Soumis",
+                                                            TypeAction: {Value: "Soumission"},
+                                                            PlanActionID: varPlan.ID,
+                                                            Commentaire: txtCommentaire.Text
+                                                        }
+                                                    ),
+                                                    Collect(colErreurs, {Contrat: s.Contrat, Message: "soumis, mais l'historique n'a pas été enregistré : " & FirstError.Message});
+                                                    Collect(colOK, {Contrat: s.Contrat}),
+                                                    Collect(colOK, {Contrat: s.Contrat})
+                                                )
+                                            )
+                                        )
+                                    );
+
+                                    // 3. Cohérence du plan : supprimé si aucun contrat, ajusté si partiel
+                                    If(
+                                        CountRows(colOK) = 0,
+                                        IfError(
+                                            Remove(CP_PlansAction, varPlan),
+                                            Collect(colErreurs, {Contrat: "Plan n°" & varPlan.ID, Message: "plan vide non supprimé, à supprimer manuellement : " & FirstError.Message})
+                                        ),
+                                        CountRows(colOK) < CountRows(colSelection),
+                                        IfError(
+                                            Patch(CP_PlansAction, varPlan, {NbContrats: CountRows(colOK), ContratsConcernes: Concat(colOK, Contrat, "; ")}),
+                                            Collect(colErreurs, {Contrat: "Plan n°" & varPlan.ID, Message: "liste des contrats du plan non mise à jour : " & FirstError.Message})
+                                        )
+                                    );
+
+                                    // 4. Rechargement des statuts + Power BI
+                                    IfError(
+                                        ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value})),
+                                        Collect(colErreurs, {Contrat: "Statuts", Message: "rechargement impossible, l'affichage peut être décalé : " & FirstError.Message})
+                                    );
+                                    Set(varRefreshOK, true);
+                                    If(CountRows(colOK) > 0, IfError(PowerBIIntegration.Refresh(), Set(varRefreshOK, false)));
+
+                                    // 5. Message de résultat
+                                    Set(
+                                        varMsg,
+                                        If(
+                                            CountRows(colErreurs) = 0,
+                                            {Visible: true, Type: "Succès", Titre: "Plan d'action soumis", Message: CountRows(colOK) & " contrat(s) soumis pour validation." & If(!varRefreshOK, " Le rapport Power BI sera mis à jour au prochain rafraîchissement.", ""), Details: "Plan : " & libelle & Char(10) & "Échéance : " & Text(dpEcheance.SelectedDate, "dd/mm/yyyy") & Char(10) & "Contrats : " & Concat(colOK, Contrat, ", "), Action: ""},
+                                            CountRows(colOK) = 0,
+                                            {Visible: true, Type: "Erreur", Titre: "Échec de la soumission", Message: "Aucun contrat n'a pu être soumis. Ta saisie est conservée, tu peux réessayer.", Details: Concat(colErreurs, "• " & Contrat & " : " & Message, Char(10)), Action: ""},
+                                            {Visible: true, Type: "Avertissement", Titre: "Soumission partielle", Message: CountRows(colOK) & " contrat(s) soumis, " & CountRows(colErreurs) & " point(s) à vérifier. Les contrats non soumis restent sélectionnés.", Details: Concat(colErreurs, "• " & Contrat & " : " & Message, Char(10)), Action: ""}
+                                        )
+                                    );
+
+                                    // 6. Nettoyage : seuls les contrats traités sortent de la sélection
+                                    RemoveIf(colSelection, Contrat in colOK.Contrat);
+                                    If(
+                                        CountRows(colErreurs) = 0,
+                                        Set(varCommentaire, Blank()); Reset(txtLibelle); Reset(dpEcheance); Reset(txtAvancement); Reset(txtCommentaire)
+                                    )
+                                );
+                                Set(varEnCours, false)
+                            )
                         )
                     )
                   PressedFill: =RGBA(59, 15, 122, 1)
@@ -1057,10 +1151,260 @@ Screens:
                               Height: =42
                               HoverColor: =RGBA(255, 255, 255, 1)
                               HoverFill: =RGBA(91, 33, 182, 1)
-                              OnSelect: =Set(varCommentaire, txtCommentaireGrand.Text); Reset(txtCommentaire); Set(varPopupCommentaire, false)
+                              OnSelect: |-
+                                =If(
+                                    Len(txtCommentaireGrand.Text) > 10000,
+                                    Set(varMsg, {Visible: true, Type: "Erreur", Titre: "Commentaire trop long", Message: "Le commentaire fait " & Len(txtCommentaireGrand.Text) & " caractères (maximum 10 000). Raccourcis-le avant de valider.", Details: "", Action: ""}),
+                                    Set(varCommentaire, txtCommentaireGrand.Text); Reset(txtCommentaire); Set(varPopupCommentaire, false)
+                                )
                               PressedFill: =RGBA(59, 15, 122, 1)
                               Size: =11
                               Text: ="✓  Valider"
                               Width: =154
                               X: =344
                               Y: =684
+            - conPopupMessage:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(30, 27, 46, 0)
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(30, 27, 46, 0.55)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varMsg.Visible
+                  Width: =Parent.Width
+                Children:
+                  - conMsgCarte:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderColor: =Switch(varMsg.Type, "Erreur", RGBA(185, 28, 28, 1), "Avertissement", RGBA(161, 98, 7, 1), "Succès", RGBA(21, 128, 61, 1), RGBA(76, 29, 149, 1))
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =400
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =478
+                        X: =34
+                        Y: =195
+                      Children:
+                        - recMsgBandeau:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =Switch(varMsg.Type, "Erreur", RGBA(254, 226, 226, 1), "Avertissement", RGBA(254, 243, 199, 1), "Succès", RGBA(220, 252, 231, 1), RGBA(243, 238, 253, 1))
+                              Height: =72
+                              Width: =478
+                        - icoMsgType:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              Color: =Switch(varMsg.Type, "Erreur", RGBA(185, 28, 28, 1), "Avertissement", RGBA(161, 98, 7, 1), "Succès", RGBA(21, 128, 61, 1), RGBA(76, 29, 149, 1))
+                              Height: =36
+                              Icon: =Switch(varMsg.Type, "Erreur", Icon.CancelBadge, "Avertissement", Icon.Warning, "Succès", Icon.CheckBadge, Icon.Information)
+                              Width: =36
+                              X: =20
+                              Y: =18
+                        - lblMsgTitre:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =Switch(varMsg.Type, "Erreur", RGBA(185, 28, 28, 1), "Avertissement", RGBA(161, 98, 7, 1), "Succès", RGBA(21, 128, 61, 1), RGBA(76, 29, 149, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =36
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =15
+                              Text: =varMsg.Titre
+                              Width: =390
+                              X: =68
+                              Y: =18
+                        - lblMsgTexte:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(30, 27, 46, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =64
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =11
+                              Text: =varMsg.Message
+                              VerticalAlign: =VerticalAlign.Top
+                              Width: =438
+                              X: =20
+                              Y: =84
+                        - lblMsgDetails:
+                            Control: Label@2.5.1
+                            Properties:
+                              BorderColor: =RGBA(236, 234, 243, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(76, 70, 98, 1)
+                              Fill: =RGBA(248, 247, 252, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =170
+                              Overflow: =Overflow.Scroll
+                              PaddingBottom: =8
+                              PaddingLeft: =10
+                              PaddingRight: =10
+                              PaddingTop: =8
+                              Size: =10
+                              Text: =varMsg.Details
+                              VerticalAlign: =VerticalAlign.Top
+                              Visible: =!IsBlank(varMsg.Details)
+                              Width: =438
+                              X: =20
+                              Y: =152
+                        - btnMsgOK:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderThickness: =0
+                              Color: =RGBA(255, 255, 255, 1)
+                              Fill: =Switch(varMsg.Type, "Erreur", RGBA(185, 28, 28, 1), "Avertissement", RGBA(161, 98, 7, 1), "Succès", RGBA(21, 128, 61, 1), RGBA(76, 29, 149, 1))
+                              Font: =Font.'Segoe UI'
+                              Height: =42
+                              HoverColor: =RGBA(255, 255, 255, 1)
+                              HoverFill: =ColorFade(Self.Fill, -15%)
+                              OnSelect: |-
+                                =Set(varMsg, {Visible: false, Type: "", Titre: "", Message: "", Details: "", Action: ""})
+                              PressedFill: =ColorFade(Self.Fill, -25%)
+                              Size: =11
+                              Text: ="OK"
+                              Visible: =varMsg.Type <> "Confirmation"
+                              Width: =140
+                              X: =318
+                              Y: =340
+                        - btnMsgAnnuler:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(201, 184, 242, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(76, 29, 149, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =42
+                              HoverColor: =RGBA(76, 29, 149, 1)
+                              HoverFill: =RGBA(243, 238, 253, 1)
+                              OnSelect: |-
+                                =Set(varMsg, {Visible: false, Type: "", Titre: "", Message: "", Details: "", Action: ""}); Clear(colAValider)
+                              PressedFill: =RGBA(233, 223, 252, 1)
+                              Size: =11
+                              Text: ="Annuler"
+                              Visible: =varMsg.Type = "Confirmation"
+                              Width: =140
+                              X: =160
+                              Y: =340
+                        - btnMsgConfirmer:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderThickness: =0
+                              Color: =RGBA(255, 255, 255, 1)
+                              DisplayMode: =If(varEnCours, DisplayMode.Disabled, DisplayMode.Edit)
+                              Fill: =RGBA(76, 29, 149, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =42
+                              HoverColor: =RGBA(255, 255, 255, 1)
+                              HoverFill: =RGBA(91, 33, 182, 1)
+                              OnSelect: |-
+                                =With(
+                                    {action: varMsg.Action},
+                                    Set(varMsg, {Visible: false, Type: "", Titre: "", Message: "", Details: "", Action: ""});
+                                    Switch(
+                                        action,
+                                        "VALIDATION_MASSE",
+                                            Set(varEnCours, true);
+                                            Clear(colErreurs);
+                                            Clear(colOK);
+                                            ForAll(
+                                                colAValider As s,
+                                                With(
+                                                    {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
+                                                    If(
+                                                        IsBlank(c),
+                                                        Collect(colErreurs, {Contrat: s.Contrat, Message: "introuvable dans la liste CP_SuiviContrats."}),
+                                                        c.Statut.Value <> "Soumis",
+                                                        Collect(colErreurs, {Contrat: s.Contrat, Message: "statut actuel « " & c.Statut.Value & " » (modifié entre-temps par un autre utilisateur)."}),
+                                                        IfError(
+                                                            Patch(CP_SuiviContrats, c, {Statut: {Value: "Validé"}, ValideParEmail: User().Email, DateValidation: Now()}),
+                                                            Collect(colErreurs, {Contrat: s.Contrat, Message: "statut non mis à jour : " & FirstError.Message}),
+                                                            Patch(
+                                                                CP_HistoriqueStatuts,
+                                                                Defaults(CP_HistoriqueStatuts),
+                                                                {
+                                                                    Titre: s.Contrat,
+                                                                    AncienStatut: "Soumis",
+                                                                    NouveauStatut: "Validé",
+                                                                    TypeAction: {Value: "Validation de masse"},
+                                                                    PlanActionID: c.DernierPlanID,
+                                                                    Commentaire: txtCommentaire.Text
+                                                                }
+                                                            ),
+                                                            Collect(colErreurs, {Contrat: s.Contrat, Message: "validé, mais l'historique n'a pas été enregistré : " & FirstError.Message});
+                                                            Collect(colOK, {Contrat: s.Contrat}),
+                                                            Collect(colOK, {Contrat: s.Contrat})
+                                                        )
+                                                    )
+                                                )
+                                            );
+                                            IfError(
+                                                ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value})),
+                                                Collect(colErreurs, {Contrat: "Statuts", Message: "rechargement impossible, l'affichage peut être décalé : " & FirstError.Message})
+                                            );
+                                            Set(varRefreshOK, true);
+                                            If(CountRows(colOK) > 0, IfError(PowerBIIntegration.Refresh(), Set(varRefreshOK, false)));
+                                            Set(
+                                                varMsg,
+                                                If(
+                                                    CountRows(colErreurs) = 0,
+                                                    {Visible: true, Type: "Succès", Titre: "Validation effectuée", Message: CountRows(colOK) & " contrat(s) validé(s)." & If(!varRefreshOK, " Le rapport Power BI sera mis à jour au prochain rafraîchissement.", ""), Details: Concat(colOK, "• " & Contrat, Char(10)), Action: ""},
+                                                    CountRows(colOK) = 0,
+                                                    {Visible: true, Type: "Erreur", Titre: "Échec de la validation", Message: "Aucun contrat n'a pu être validé.", Details: Concat(colErreurs, "• " & Contrat & " : " & Message, Char(10)), Action: ""},
+                                                    {Visible: true, Type: "Avertissement", Titre: "Validation partielle", Message: CountRows(colOK) & " contrat(s) validé(s), " & CountRows(colErreurs) & " point(s) à vérifier.", Details: Concat(colErreurs, "• " & Contrat & " : " & Message, Char(10)), Action: ""}
+                                                )
+                                            );
+                                            RemoveIf(colSelection, Contrat in colOK.Contrat);
+                                            Set(varEnCours, false)
+                                    )
+                                )
+                              PressedFill: =RGBA(59, 15, 122, 1)
+                              Size: =11
+                              Text: ="✓  Confirmer"
+                              Visible: =varMsg.Type = "Confirmation"
+                              Width: =140
+                              X: =318
+                              Y: =340
+            - conTraitementEnCours:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(255, 255, 255, 0)
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(255, 255, 255, 0.7)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varEnCours
+                  Width: =Parent.Width
+                Children:
+                  - lblTraitementEnCours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(76, 29, 149, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =40
+                        Size: =13
+                        Text: ="Traitement en cours…"
+                        Width: =Parent.Width
+                        Y: =375
