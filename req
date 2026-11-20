@@ -1,196 +1,952 @@
-
-let
-    // URL du site SharePoint
-    SiteURL = "https://entreprise.sharepoint.com/sites/MonSite",
-
-    // Toutes les listes et bibliothèques du site
-    Source = SharePoint.Tables(
-        SiteURL,
-        [ApiVersion = 15]
-    ),
-
-    // Extraction des métadonnées des documents
-    Extraction = Table.AddColumn(
-        Source,
-        "Documents",
-        each
-            let
-                NomBibliotheque = [Title],
-                Donnees = try [Items] otherwise null,
-
-                Resultat =
-                    if Donnees = null then
-                        #table({}, {})
-                    else
-                        let
-                            AvecBibliotheque = Table.AddColumn(
-                                Donnees,
-                                "Bibliothèque",
-                                each NomBibliotheque,
-                                type text
+Screens:
+  Screen1:
+    Properties:
+      Height: =790
+      LoadingSpinnerColor: =RGBA(56, 96, 178, 1)
+      Width: =546
+    Children:
+      - conPanneauValidation:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            BorderColor: =RGBA(255, 255, 255, 1)
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: '=790 '
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =546
+          Children:
+            - conEntete:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(243, 238, 253, 1)
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(243, 238, 253, 1)
+                  Height: =84
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =546
+                Children:
+                  - lblLogo:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(124, 58, 237, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =48
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =30
+                        Text: ="◆"
+                        Width: =44
+                        X: =14
+                        Y: =18
+                  - lblTitrePanneau:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(46, 16, 101, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =28
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =15
+                        Text: ="Power Apps — Validation & plan d'action"
+                        Width: =470
+                        X: =64
+                        Y: =14
+                  - lblSousTitre:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(109, 40, 217, 1)
+                        Font: =Font.'Segoe UI'
+                        Height: =24
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =11
+                        Text: ="Gestion opérationnelle des contrôles " & First(PowerBIIntegration.Data).Volet
+                        Width: =470
+                        X: =64
+                        Y: =44
+            - conKpiATraiter:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(221, 208, 250, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(241, 235, 253, 1)
+                  Height: =78
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =170
+                  X: =12
+                  Y: =96
+                Children:
+                  - icoKpiATraiter:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Color: =RGBA(91, 33, 182, 1)
+                        Height: =30
+                        Icon: =Icon.Clock
+                        Width: =30
+                        X: =12
+                        Y: =22
+                  - lblKpiTitreATraiter:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="À traiter"
+                        Width: =110
+                        X: =52
+                        Y: =10
+                  - lblKpiValeurATraiter:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =22
+                        Text: =CountRows(Filter(PowerBIIntegration.Data, Coalesce(LookUp(colStatuts, Contrat = IDCTRTLOCTXT).Statut, Statut) = "À traiter"))
+                        Width: =110
+                        X: =52
+                        Y: =34
+            - conKpiSoumis:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(207, 224, 250, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(234, 242, 253, 1)
+                  Height: =78
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =170
+                  X: =190
+                  Y: =96
+                Children:
+                  - icoKpiSoumis:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Color: =RGBA(29, 78, 216, 1)
+                        Height: =30
+                        Icon: =Icon.Send
+                        Width: =30
+                        X: =12
+                        Y: =22
+                  - lblKpiTitreSoumis:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Soumis"
+                        Width: =110
+                        X: =52
+                        Y: =10
+                  - lblKpiValeurSoumis:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =22
+                        Text: =CountRows(Filter(PowerBIIntegration.Data, Coalesce(LookUp(colStatuts, Contrat = IDCTRTLOCTXT).Statut, Statut) = "Soumis"))
+                        Width: =110
+                        X: =52
+                        Y: =34
+            - conKpiValides:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(205, 235, 213, 1)
+                  BorderThickness: =1
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(234, 247, 238, 1)
+                  Height: =78
+                  RadiusBottomLeft: =12
+                  RadiusBottomRight: =12
+                  RadiusTopLeft: =12
+                  RadiusTopRight: =12
+                  Width: =170
+                  X: =368
+                  Y: =96
+                Children:
+                  - icoKpiValides:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Color: =RGBA(21, 128, 61, 1)
+                        Height: =30
+                        Icon: =Icon.CheckBadge
+                        Width: =30
+                        X: =12
+                        Y: =22
+                  - lblKpiTitreValides:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =22
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =12
+                        Text: ="Validés"
+                        Width: =110
+                        X: =52
+                        Y: =10
+                  - lblKpiValeurValides:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Bold
+                        Height: =34
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =22
+                        Text: =CountRows(Filter(PowerBIIntegration.Data, Coalesce(LookUp(colStatuts, Contrat = IDCTRTLOCTXT).Statut, Statut) = "Validé"))
+                        Width: =110
+                        X: =52
+                        Y: =34
+            - lblLibelle:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(30, 27, 46, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =11
+                  Text: ="Libellé plan d'action *"
+                  Width: =300
+                  X: =14
+                  Y: =184
+            - txtLibelle:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(217, 211, 232, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(30, 27, 46, 1)
+                  Default: =""
+                  FocusedBorderColor: =RGBA(124, 58, 237, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Segoe UI'
+                  Height: =34
+                  HintText: ="Ex. Mise à jour du statut Forbearance"
+                  HoverBorderColor: =RGBA(167, 139, 250, 1)
+                  PaddingLeft: =10
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =11
+                  Width: =518
+                  X: =14
+                  Y: =206
+            - lblEcheance:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(30, 27, 46, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =11
+                  Text: ="Échéance *"
+                  Width: =240
+                  X: =14
+                  Y: =248
+            - dpEcheance:
+                Control: Classic/DatePicker@2.6.0
+                Properties:
+                  BorderColor: =RGBA(217, 211, 232, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(30, 27, 46, 1)
+                  DefaultDate: =Blank()
+                  Font: =Font.'Segoe UI'
+                  Height: =34
+                  IconBackground: =RGBA(255, 255, 255, 1)
+                  IconFill: =RGBA(91, 33, 182, 1)
+                  Size: =11
+                  Width: =250
+                  X: =14
+                  Y: =270
+            - lblAvancement:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(30, 27, 46, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =11
+                  Text: ="Avancement %"
+                  Width: =240
+                  X: =282
+                  Y: =248
+            - txtAvancement:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(217, 211, 232, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(30, 27, 46, 1)
+                  Default: =0
+                  FocusedBorderColor: =RGBA(124, 58, 237, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Segoe UI'
+                  Format: =TextFormat.Number
+                  Height: =34
+                  HintText: ="0 à 100"
+                  HoverBorderColor: =RGBA(167, 139, 250, 1)
+                  PaddingLeft: =10
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =11
+                  Width: =250
+                  X: =282
+                  Y: =270
+            - lblCommentaire:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(30, 27, 46, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =20
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Size: =11
+                  Text: ="Commentaire"
+                  Width: =240
+                  X: =14
+                  Y: =312
+            - txtCommentaire:
+                Control: Classic/TextInput@2.3.2
+                Properties:
+                  BorderColor: =RGBA(217, 211, 232, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(30, 27, 46, 1)
+                  Default: =varCommentaire
+                  FocusedBorderColor: =RGBA(124, 58, 237, 1)
+                  FocusedBorderThickness: =2
+                  Font: =Font.'Segoe UI'
+                  Height: =64
+                  HintText: ="Cliquer pour saisir en plein écran…"
+                  HoverBorderColor: =RGBA(167, 139, 250, 1)
+                  Mode: =TextMode.MultiLine
+                  PaddingLeft: =10
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Size: =11
+                  Width: =518
+                  X: =14
+                  Y: =334
+            - btnOuvrirCommentaire:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(255, 255, 255, 0)
+                  BorderThickness: =0
+                  Fill: =RGBA(255, 255, 255, 0)
+                  Height: =64
+                  HoverBorderColor: =RGBA(167, 139, 250, 1)
+                  HoverFill: =RGBA(124, 58, 237, 0.05)
+                  OnSelect: =Reset(txtCommentaireGrand); Set(varPopupCommentaire, true)
+                  PressedFill: =RGBA(124, 58, 237, 0.1)
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Text: =""
+                  Width: =518
+                  X: =14
+                  Y: =334
+            - lblElements:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(46, 16, 101, 1)
+                  Font: =Font.'Segoe UI'
+                  FontWeight: =FontWeight.Bold
+                  Height: =24
+                  PaddingBottom: =0
+                  PaddingLeft: =0
+                  PaddingRight: =0
+                  PaddingTop: =0
+                  Text: |-
+                    ="Éléments à valider (sélection : " & CountRows(colSelection) & ")"
+                  Width: =518
+                  X: =14
+                  Y: =410
+            - conEnteteGalerie:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(241, 238, 248, 1)
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(241, 238, 248, 1)
+                  Height: =30
+                  RadiusBottomLeft: =8
+                  RadiusBottomRight: =8
+                  RadiusTopLeft: =8
+                  RadiusTopRight: =8
+                  Width: =522
+                  X: =12
+                  Y: =440
+                Children:
+                  - chkTous:
+                      Control: Classic/CheckBox@2.1.0
+                      Properties:
+                        CheckboxBorderColor: =RGBA(167, 139, 250, 1)
+                        CheckboxSize: =18
+                        CheckmarkFill: =RGBA(255, 255, 255, 1)
+                        Fill: =RGBA(255, 255, 255, 0)
+                        Height: =28
+                        OnCheck: |-
+                          =ClearCollect(colSelection, ForAll(galElements.AllItems, {Contrat: IDCTRTLOCTXT}))
+                        OnUncheck: =Clear(colSelection)
+                        Text: =""
+                        Width: =30
+                        X: =8
+                        Y: =1
+                  - lblEnteteContrat:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: ="Contrat"
+                        Width: =92
+                        X: =44
+                  - lblEnteteCONTRIBUTEUR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: ="CONTRIBUTEUR"
+                        Width: =118
+                        X: =154
+                  - lblEnteteEncours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: ="Encours"
+                        Width: =72
+                        X: =258
+                  - lblEnteteStatut:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: ="Statut"
+                        Width: =76
+                        X: =340
+                  - lblEntetePriorite:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =30
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: ="Priorité"
+                        Width: =104
+                        X: =418
+            - galElements:
+                Control: Gallery@2.15.0
+                Variant: Vertical
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 0)
+                  Height: =246
+                  Items: |-
+                    =Sort(
+                        Filter(
+                            AddColumns(
+                                PowerBIIntegration.Data,
+                                StatutActuel, Coalesce(LookUp(colStatuts, Contrat = IDCTRTLOCTXT).Statut, Statut),
+                                PrioOrdre, Switch(Priorité, "Haute", 1, "Moyenne", 2, 3)
                             ),
-
-                            Colonnes = Table.SelectColumns(
-                                AvecBibliotheque,
-                                {
-                                    "Bibliothèque",
-                                    "FileLeafRef",
-                                    "FileRef",
-                                    "FileDirRef",
-                                    "FSObjType",
-                                    "Modified",
-                                    "Editor",
-                                    "FieldValuesAsText"
-                                },
-                                MissingField.UseNull
-                            )
-                        in
-                            Colonnes
-            in
-                Resultat
-    ),
-
-    // Consolidation
-    Consolidation = Table.Combine(Extraction[Documents]),
-
-    // Conserver uniquement les fichiers (pas les dossiers)
-    Fichiers = Table.SelectRows(
-        Consolidation,
-        each
-            let
-                TypeObjet = try Number.From([FSObjType]) otherwise null
-            in
-                TypeObjet = 0
-                and [FileLeafRef] <> null
-                and [FileRef] <> null
-    ),
-
-    // Fonction d'extraction du nom du modificateur
-    NomPersonne = (valeur as any, texte as any) as nullable text =>
-        let
-            Nom =
-                if Value.Is(valeur, type record) then
-                    Record.FieldOrDefault(
-                        valeur,
-                        "title",
-                        Record.FieldOrDefault(valeur, "Title", null)
+                            StatutActuel <> "Validé"
+                        ),
+                        PrioOrdre,
+                        SortOrder.Ascending
                     )
-                else if Value.Is(valeur, type table) then
-                    try valeur{0}[title] otherwise null
-                else if Value.Is(valeur, type list) then
-                    try valeur{0}[title] otherwise null
-                else if Value.Is(valeur, type text) then
-                    valeur
-                else
-                    null,
-
-            NomTexte =
-                if Value.Is(texte, type record) then
-                    Record.FieldOrDefault(texte, "Editor", null)
-                else
-                    null,
-
-            Resultat =
-                if Nom <> null then Text.From(Nom)
-                else if NomTexte <> null then Text.From(NomTexte)
-                else null
-        in
-            Resultat,
-
-    // Récupération du dernier modificateur
-    AjoutModificateur = Table.AddColumn(
-        Fichiers,
-        "Modifié par",
-        each NomPersonne([Editor], [FieldValuesAsText]),
-        type text
-    ),
-
-    // Lien direct du document
-    AjoutLien = Table.AddColumn(
-        AjoutModificateur,
-        "Lien document",
-        each
-            Uri.Parts(SiteURL)[Scheme]
-            & "://"
-            & Uri.Parts(SiteURL)[Host]
-            & [FileRef],
-        type text
-    ),
-
-    // Sélection des colonnes finales
-    Selection = Table.SelectColumns(
-        AjoutLien,
-        {
-            "Bibliothèque",
-            "FileLeafRef",
-            "Modified",
-            "Modifié par",
-            "FileDirRef",
-            "Lien document"
-        }
-    ),
-
-    // Renommage
-    Renommage = Table.RenameColumns(
-        Selection,
-        {
-            {"FileLeafRef", "Document"},
-            {"Modified", "Dernière modification"},
-            {"FileDirRef", "Répertoire"}
-        }
-    ),
-
-    // Tri des modifications récentes
-    Tri = Table.Sort(
-        Renommage,
-        {{"Dernière modification", Order.Descending}}
-    )
-in
-    Tri
-
-
-
-🗄️ Data (SharePoint ou Dataverse)
-Campagne : trimestre, dates d’ouverture et de clôture, statut
-Dossier (Population) : clé Trimestre|Onglet|TiersLocal, établissement, indicateurs agrégés, nb de lignes de détail, « présente aussi dans », statut, dates
-Question : socle commun + question spécifique par onglet, ordre, obligatoire oui/non
-Réponse : dossier, question, valeur, commentaire, auteur, date
-Échange : fil des messages (dossier, émetteur, sens Direction ↔ Établissement, message, date)
-Établissement (référentiel) : code, nom, groupe AD, mails des correspondants
-Direction : liste nominative des utilisateurs (pas de groupe AD de ce côté)
-Paramètres : délai de relance, URL du PBI, etc.
-Bibliothèque PJ : un dossier par dossier de contrôle
-Pour la volumétrie : index sur Établissement, Campagne et Statut
-📊 Power BI
-Requête DAX d’agrégation : passage du grain détail au grain dossier, utilisée par le flow de chargement
-Page de détail avec filtre par URL sur le tiers local (le lien « voir le détail » ouvert depuis l’app)
-Nouvelles sources : les listes Dossier et Réponse
-Pages de suivi : taux de réponse, taux de conformité par établissement et par onglet, dossiers en retard, délai moyen de réponse
-RLS par établissement, si le PBI est diffusé aux établissements
-📱 Power Apps
-Gestion du profil au démarrage : Direction (liste nominative) ou Établissement (groupe AD), et périmètre visible
-Écrans :
-Accueil avec compteurs (à traiter, en attente, clôturés)
-Liste Direction : filtres, sélection multiple, interrogation en masse
-« Mes dossiers » côté Établissement
-Fiche dossier : en-tête agrégé, lien PBI, questionnaire dynamique, fil d’échanges, PJ
-Admin : campagnes, questions, référentiel établissements
-Composants réutilisables : en-tête, badge de statut, fil de messages, panneau de filtres
-Règles de gestion :
-transitions de statut
-commentaire obligatoire si non conforme
-verrouillage du dossier après clôture
-un établissement ne voit que ses propres dossiers
-⚡ Power Automate
-Chargement de campagne (manuel ou trimestriel) : requête DAX, upsert des dossiers, création des dossiers PJ
-Interrogation (une ou plusieurs questions, appelée depuis l’app) : mise à jour du statut et mail à l’établissement
-Notification de réponse : mail à la Direction
-Relance planifiée (quotidienne) : dossiers sans réponse au-delà de X jours
-Clôture de campagne : figer les statuts, archiver, rafraîchir le dataset PBI
-🔧 Transverse
-Une solution unique
-Variables d’environnement (sites, listes, URL PBI)
-Références de connexion
-Environnements DEV et PROD
-Droits SharePoint
-Documentation RUN, déjà prévue dans ton suivi de projets
+                  TemplatePadding: =0
+                  TemplateSize: =40
+                  Width: =522
+                  X: =12
+                  Y: =472
+                Children:
+                  - chkLigne:
+                      Control: Classic/CheckBox@2.1.0
+                      Properties:
+                        CheckboxBorderColor: =RGBA(167, 139, 250, 1)
+                        CheckboxSize: =18
+                        CheckmarkFill: =RGBA(255, 255, 255, 1)
+                        Default: =ThisItem.IDCTRTLOCTXT in colSelection.Contrat
+                        Fill: =RGBA(255, 255, 255, 0)
+                        Height: =28
+                        OnCheck: |-
+                          =If(!(ThisItem.IDCTRTLOCTXT in colSelection.Contrat), Collect(colSelection, {Contrat: ThisItem.IDCTRTLOCTXT}))
+                        OnUncheck: =RemoveIf(colSelection, Contrat = ThisItem.IDCTRTLOCTXT)
+                        Text: =""
+                        Width: =30
+                        X: =8
+                        Y: =6
+                  - lblGalContrat:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: =ThisItem.IDCTRTLOCTXT
+                        Width: =96
+                        X: =44
+                  - lblGalCONTRIBUTEUR:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: =ThisItem.CONTRIBUTEUR
+                        Width: =118
+                        X: =154
+                  - lblGalEncours:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: =Text(ThisItem.EXPO / 1000, "0.00", "fr-FR") & " K€"
+                        Width: =72
+                        X: =258
+                  - lblGalStatut:
+                      Control: Label@2.5.1
+                      Properties:
+                        Color: =RGBA(30, 27, 46, 1)
+                        Font: =Font.'Segoe UI'
+                        PaddingBottom: =0
+                        PaddingLeft: =0
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Size: =10
+                        Text: =ThisItem.StatutActuel
+                        Width: =76
+                        X: =340
+                  - btnGalPriorite:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        BorderThickness: =0
+                        Color: =Switch(ThisItem.Priorité, "Haute", RGBA(185, 28, 28, 1), "Moyenne", RGBA(161, 98, 7, 1), RGBA(21, 128, 61, 1))
+                        DisplayMode: =DisplayMode.View
+                        Fill: =Switch(ThisItem.Priorité, "Haute", RGBA(254, 226, 226, 1), "Moyenne", RGBA(254, 243, 199, 1), RGBA(220, 252, 231, 1))
+                        Height: =22
+                        RadiusBottomLeft: =11
+                        RadiusBottomRight: =11
+                        RadiusTopLeft: =11
+                        RadiusTopRight: =11
+                        Size: =9
+                        Text: =ThisItem.Priorité
+                        Width: =84
+                        X: =430
+                        Y: =9
+                  - sepGalLigne:
+                      Control: Rectangle@2.3.0
+                      Properties:
+                        Fill: =RGBA(236, 234, 243, 1)
+                        Height: =1
+                        Width: =Parent.TemplateWidth
+                        Y: =Parent.TemplateHeight - 1
+            - btnOuvrirApp:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(201, 184, 242, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(76, 29, 149, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =44
+                  HoverColor: =RGBA(76, 29, 149, 1)
+                  HoverFill: =RGBA(243, 238, 253, 1)
+                  OnSelect: =Launch("https://apps.powerapps.com/play/e/<ENVIRONMENT_ID>/a/<APP_ID>")
+                  PressedFill: =RGBA(233, 223, 252, 1)
+                  Size: =11
+                  Text: ="↗  Ouvrir l'app"
+                  Width: =150
+                  X: =12
+                  Y: =724
+            - btnValidationMasse:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(201, 184, 242, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(76, 29, 149, 1)
+                  Fill: =RGBA(255, 255, 255, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =44
+                  HoverColor: =RGBA(76, 29, 149, 1)
+                  HoverFill: =RGBA(243, 238, 253, 1)
+                  OnSelect: |-
+                    =With(
+                        {aValider: Filter(colSelection As s, LookUp(colStatuts As st, st.Contrat = s.Contrat).Statut = "Soumis")},
+                        If(
+                            CountRows(aValider) = 0,
+                            Notify("Aucun contrat au statut « Soumis » dans la sélection.", NotificationType.Warning),
+                            ForAll(
+                                aValider As s,
+                                With(
+                                    {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
+                                    Patch(
+                                        CP_HistoriqueStatuts,
+                                        Defaults(CP_HistoriqueStatuts),
+                                        {
+                                            Titre: s.Contrat,
+                                            AncienStatut: "Soumis",
+                                            NouveauStatut: "Validé",
+                                            TypeAction: {Value: "Validation de masse"},
+                                            PlanActionID: c.DernierPlanID,
+                                            Commentaire: txtCommentaire.Text
+                                        }
+                                    );
+                                    Patch(CP_SuiviContrats, c, {Statut: {Value: "Validé"}, ValideParEmail: User().Email, DateValidation: Now()})
+                                )
+                            );
+                            Notify(
+                                CountRows(aValider) & " contrat(s) validé(s)" &
+                                If(CountRows(colSelection) > CountRows(aValider), " — " & (CountRows(colSelection) - CountRows(aValider)) & " ignoré(s) (pas au statut Soumis)", ""),
+                                NotificationType.Success
+                            );
+                            ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value}));
+                            Clear(colSelection);
+                            Reset(chkTous);
+                            //PowerBIIntegration.Refresh()
+                        )
+                    )
+                  PressedFill: =RGBA(233, 223, 252, 1)
+                  Size: =11
+                  Text: ="✓  Validation de masse"
+                  Width: =186
+                  X: =170
+                  Y: =724
+            - btnSoumettre:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  BorderColor: =RGBA(76, 29, 149, 1)
+                  BorderThickness: =1
+                  Color: =RGBA(255, 255, 255, 1)
+                  Fill: =RGBA(76, 29, 149, 1)
+                  Font: =Font.'Segoe UI'
+                  Height: =44
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =RGBA(91, 33, 182, 1)
+                  OnSelect: |-
+                    =With(
+                        {volet: First(PowerBIIntegration.Data).Volet},
+                        If(
+                            IsBlank(Trim(txtLibelle.Text)) || IsBlank(dpEcheance.SelectedDate) || CountRows(colSelection) = 0,
+                            Notify("Renseigne le libellé, l'échéance et sélectionne au moins un contrat.", NotificationType.Error),
+                            Set(
+                                varPlan,
+                                Patch(
+                                    CP_PlansAction,
+                                    Defaults(CP_PlansAction),
+                                    {
+                                        Titre: txtLibelle.Text,
+                                        Volet: {Value: volet},
+                                        Echeance: dpEcheance.SelectedDate,
+                                        Avancement: Value(txtAvancement.Text),
+                                        Commentaire: txtCommentaire.Text,
+                                        StatutPlan: {Value: "Soumis"},
+                                        NbContrats: CountRows(colSelection),
+                                        ContratsConcernes: Concat(colSelection, Contrat, "; ")
+                                    }
+                                )
+                            );
+                            ForAll(
+                                colSelection As s,
+                                With(
+                                    {c: LookUp(CP_SuiviContrats, Titre = s.Contrat)},
+                                    Patch(
+                                        CP_HistoriqueStatuts,
+                                        Defaults(CP_HistoriqueStatuts),
+                                        {
+                                            Titre: s.Contrat,
+                                            AncienStatut: Coalesce(c.Statut.Value, "À traiter"),
+                                            NouveauStatut: "Soumis",
+                                            TypeAction: {Value: "Soumission"},
+                                            PlanActionID: varPlan.ID,
+                                            Commentaire: txtCommentaire.Text
+                                        }
+                                    );
+                                    If(
+                                        IsBlank(c),
+                                        Patch(CP_SuiviContrats, Defaults(CP_SuiviContrats), {Titre: s.Contrat, Volet: {Value: volet}, Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID}),
+                                        Patch(CP_SuiviContrats, c, {Statut: {Value: "Soumis"}, DernierPlanID: varPlan.ID})
+                                    )
+                                )
+                            );
+                            ClearCollect(colStatuts, ForAll(CP_SuiviContrats As r, {Contrat: r.Titre, Statut: r.Statut.Value}));
+                            Notify("Plan d'action soumis : " & CountRows(colSelection) & " contrat(s).", NotificationType.Success);
+                            Clear(colSelection);
+                            Set(varCommentaire, Blank()); Reset(txtLibelle); Reset(dpEcheance); Reset(txtAvancement); Reset(txtCommentaire); Reset(chkTous);
+                        )
+                    )
+                  PressedFill: =RGBA(59, 15, 122, 1)
+                  Size: =11
+                  Text: ="➤  Soumettre"
+                  Width: =170
+                  X: =364
+                  Y: =724
+            - conPopupCommentaire:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderColor: =RGBA(30, 27, 46, 1)
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(30, 27, 46, 0.55)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =varPopupCommentaire
+                  Width: =Parent.Width
+                Children:
+                  - conPopupCarte:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderColor: =RGBA(221, 208, 250, 1)
+                        BorderThickness: =1
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =742
+                        RadiusBottomLeft: =16
+                        RadiusBottomRight: =16
+                        RadiusTopLeft: =16
+                        RadiusTopRight: =16
+                        Width: =518
+                        X: =14
+                        Y: =24
+                      Children:
+                        - lblPopupTitre:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(46, 16, 101, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Bold
+                              Height: =30
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =16
+                              Text: ="Commentaire"
+                              Width: =400
+                              X: =20
+                              Y: =14
+                        - lblPopupSousTitre:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(109, 40, 217, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =20
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =11
+                              Text: ="Plan d'action — " & First(PowerBIIntegration.Data).Volet
+                              Width: =400
+                              X: =20
+                              Y: =44
+                        - icoPopupFermer:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              Color: =RGBA(95, 90, 114, 1)
+                              Height: =28
+                              Icon: =Icon.Cancel
+                              OnSelect: =Set(varPopupCommentaire, false)
+                              Width: =28
+                              X: =472
+                              Y: =18
+                        - txtCommentaireGrand:
+                            Control: Classic/TextInput@2.3.2
+                            Properties:
+                              BorderColor: =RGBA(217, 211, 232, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(30, 27, 46, 1)
+                              Default: =varCommentaire
+                              FocusedBorderColor: =RGBA(124, 58, 237, 1)
+                              FocusedBorderThickness: =2
+                              Font: =Font.'Segoe UI'
+                              Height: =576
+                              HintText: ="Précisions, critères de sortie, prochaines étapes…"
+                              HoverBorderColor: =RGBA(167, 139, 250, 1)
+                              Mode: =TextMode.MultiLine
+                              PaddingLeft: =10
+                              PaddingTop: =10
+                              RadiusBottomLeft: =8
+                              RadiusBottomRight: =8
+                              RadiusTopLeft: =8
+                              RadiusTopRight: =8
+                              Size: =11
+                              Width: =478
+                              X: =20
+                              Y: =76
+                        - lblPopupCompteur:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(95, 90, 114, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =20
+                              PaddingBottom: =0
+                              PaddingLeft: =0
+                              PaddingRight: =0
+                              PaddingTop: =0
+                              Size: =10
+                              Text: =Len(txtCommentaireGrand.Text) & " caractères"
+                              Width: =200
+                              X: =20
+                              Y: =658
+                        - btnPopupAnnuler:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(201, 184, 242, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(76, 29, 149, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =42
+                              HoverColor: =RGBA(76, 29, 149, 1)
+                              HoverFill: =RGBA(243, 238, 253, 1)
+                              OnSelect: =Set(varPopupCommentaire, false)
+                              PressedFill: =RGBA(233, 223, 252, 1)
+                              Size: =11
+                              Text: ="Annuler"
+                              Width: =140
+                              X: =196
+                              Y: =684
+                        - btnPopupValider:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(76, 29, 149, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(255, 255, 255, 1)
+                              Fill: =RGBA(76, 29, 149, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =42
+                              HoverColor: =RGBA(255, 255, 255, 1)
+                              HoverFill: =RGBA(91, 33, 182, 1)
+                              OnSelect: =Set(varCommentaire, txtCommentaireGrand.Text); Reset(txtCommentaire); Set(varPopupCommentaire, false)
+                              PressedFill: =RGBA(59, 15, 122, 1)
+                              Size: =11
+                              Text: ="✓  Valider"
+                              Width: =154
+                              X: =344
+                              Y: =684
