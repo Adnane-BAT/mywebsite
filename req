@@ -1,15 +1,5 @@
-// 3. Cohérence du plan : supprimé si aucun contrat, ajusté si partiel
 If(
-    CountRows(colOK) = 0;
-    IfError(
-        Remove(CP_PlansAction; varPlan);
-        Collect(colErreurs; {Contrat: "Plan n°" & varPlan.ID; Message: "plan vide non supprimé, à supprimer manuellement : " & FirstError.Message})
-    )
-);;
-If(
-    CountRows(colOK) > 0 && CountRows(colOK) < CountRows(colSelection);
-    IfError(
-        Patch(CP_PlansAction; varPlan; {NbContrats: CountRows(colOK); ContratsConcernes: Concat(colOK; Contrat; "; ")});
-        Collect(colErreurs; {Contrat: "Plan n°" & varPlan.ID; Message: "liste des contrats du plan non mise à jour : " & FirstError.Message})
-    )
+    CountRows(colOK) > 0 && CountRows(colOK) < CountRows(colSelection) &&
+    IsError(Patch(CP_PlansAction; varPlan; {NbContrats: CountRows(colOK); ContratsConcernes: Concat(colOK; Contrat; "; ")}));
+    Collect(colErreurs; {Contrat: "Plan n°" & varPlan.ID; Message: "liste des contrats du plan non mise à jour : " & First(Errors(CP_PlansAction)).Message})
 );;
