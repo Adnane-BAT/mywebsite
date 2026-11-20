@@ -781,7 +781,7 @@ Screens:
                   Align: =Align.Center
                   Color: =RGBA(95, 90, 114, 1)
                   Font: =Font.'Segoe UI'
-                  FontItalic: =true
+                  Italic: =true
                   Height: =60
                   Size: =11
                   Text: |-
