@@ -1,5 +1,5 @@
 - conPanneauValidation:
-    Control: GroupContainer@1.3.0
+    Control: GroupContainer@1.5.0
     Variant: ManualLayout
     Properties:
       X: =0
@@ -16,7 +16,7 @@
       DropShadow: =DropShadow.None
     Children:
     - conEntete:
-        Control: GroupContainer@1.3.0
+        Control: GroupContainer@1.5.0
         Variant: ManualLayout
         Properties:
           X: =0
@@ -87,7 +87,7 @@
               PaddingBottom: =0
               VerticalAlign: =VerticalAlign.Middle
     - conKpiATraiter:
-        Control: GroupContainer@1.3.0
+        Control: GroupContainer@1.5.0
         Variant: ManualLayout
         Properties:
           X: =12
@@ -149,7 +149,7 @@
               PaddingBottom: =0
               VerticalAlign: =VerticalAlign.Middle
     - conKpiSoumis:
-        Control: GroupContainer@1.3.0
+        Control: GroupContainer@1.5.0
         Variant: ManualLayout
         Properties:
           X: =190
@@ -211,7 +211,7 @@
               PaddingBottom: =0
               VerticalAlign: =VerticalAlign.Middle
     - conKpiValides:
-        Control: GroupContainer@1.3.0
+        Control: GroupContainer@1.5.0
         Variant: ManualLayout
         Properties:
           X: =368
@@ -346,10 +346,6 @@
           IconFill: =RGBA(91, 33, 182, 1)
           IconBackground: =RGBA(255, 255, 255, 1)
           Color: =RGBA(30, 27, 46, 1)
-          RadiusTopLeft: =8
-          RadiusTopRight: =8
-          RadiusBottomLeft: =8
-          RadiusBottomRight: =8
     - lblAvancement:
         Control: Label@2.5.1
         Properties:
@@ -452,7 +448,7 @@
           PaddingBottom: =0
           VerticalAlign: =VerticalAlign.Middle
     - conEnteteGalerie:
-        Control: GroupContainer@1.3.0
+        Control: GroupContainer@1.5.0
         Variant: ManualLayout
         Properties:
           X: =12
